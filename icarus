@@ -197,10 +197,10 @@ fi
             # Convert the expiry timestamp to a human-readable date
             if [[ "$(uname)" == "Darwin" ]]; then
                 # macOS (BSD date)
-                date -r "${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S"
+                expiry_date=$(date -r "${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S")
             else
                 # Linux (GNU date)
-                date -d "${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S"
+                expiry_date=$(date -d @"${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S")
             fi
 
             # Calculate the time remaining
