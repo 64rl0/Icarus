@@ -194,8 +194,14 @@ fi
             expiry_timestamp=$(echo "$line" | awk '{print $5}')
             cookie_name=$(echo "$line" | awk '{print $6}')
 
-            # Convert the expiry timestamp to a human-readable date (macOS version)
-            expiry_date=$(date -r "$expiry_timestamp" +"%Y-%m-%d %H:%M:%S")
+            # Convert the expiry timestamp to a human-readable date
+            if [[ "$(uname)" == "Darwin" ]]; then
+                # macOS (BSD date)
+                date -r "${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S"
+            else
+                # Linux (GNU date)
+                date -d "${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S"
+            fi
 
             # Calculate the time remaining
             current_timestamp=$(date +%s)
