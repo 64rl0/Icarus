@@ -426,6 +426,7 @@ builder() {
             "${HOME}/.config/starship"
             "${HOME}/.config/tmux"
             "${HOME}/.config/alacritty"
+            "${HOME}/.icarus"
          )
 
         for dotfile in "${dotfiles[@]}"; do
