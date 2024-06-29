@@ -158,7 +158,7 @@ amazon() {
             ssh -t "${hostname}" "
 source /local/home/carlogtt/.zshrc;
 
-echo -e '${blue}Auto-Performing Kerberos Authentication${end}';
+echo -e '${blue}Performing Kerberos Authentication${end}';
 echo -e '${red}[DISABLED] Kerberos${end}';
 #kinit -f;
 
