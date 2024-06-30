@@ -423,6 +423,9 @@ builder() {
     # Update all the dotfiles configs
     dotfiles_update() {
         dotfiles=(
+            "${HOME}/.icarus"
+            "${HOME}/.bash/config"
+            "${HOME}/.zsh/config"
             "${HOME}/.carlogtt_alias"
             "${HOME}/.carlogtt_script"
             "${HOME}/.vim"
@@ -430,7 +433,6 @@ builder() {
             "${HOME}/.config/starship"
             "${HOME}/.config/tmux"
             "${HOME}/.config/alacritty"
-            "${HOME}/.icarus"
          )
 
         for dotfile in "${dotfiles[@]}"; do
