@@ -80,7 +80,7 @@ export PATH="/opt/homebrew/bin:/Users/carlogtt/.local/bin:/usr/local/bin:/usr/bi
 
 # CLI variables
 cli_name='icarus'
-this_cli_fullpath="/usr/local/bin/${cli_name}"
+this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
 
 
 ########################################################################
