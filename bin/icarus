@@ -433,6 +433,7 @@ builder() {
             "${HOME}/.config/starship"
             "${HOME}/.config/tmux"
             "${HOME}/.config/alacritty"
+            "${HOME}/.config/apple-terminal"
          )
 
         for dotfile in "${dotfiles[@]}"; do
