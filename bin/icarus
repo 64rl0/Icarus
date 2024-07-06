@@ -434,6 +434,7 @@ builder() {
             "${HOME}/.config/tmux"
             "${HOME}/.config/alacritty"
             "${HOME}/.config/apple-terminal"
+            "${HOME}/.config/lazygit"
          )
 
         for dotfile in "${dotfiles[@]}"; do
