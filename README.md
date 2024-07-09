@@ -1,7 +1,5 @@
 # Icarus
 
-# Table of Contents
-
 # Usage
 
 ### `icarus [COMMAND] [ARGS] [OPTIONS]`
@@ -15,19 +13,19 @@
 
 # Commands
 
-### [`--amazon`](https://www.notion.so/Icarus-24e98d7e372b4c6b831d5b3de0b663f1?pvs=21)
+### `--amazon`
 
 Utilities for managing and automating tasks within Amazon environments.
 
-### [`--builder`](https://www.notion.so/Icarus-24e98d7e372b4c6b831d5b3de0b663f1?pvs=21)
+### `--builder`
 
 Tools and utilities to aid in software development processes.
 
-### [`--macos`](https://www.notion.so/Icarus-24e98d7e372b4c6b831d5b3de0b663f1?pvs=21)
+### `--macos`
 
 Features designed to manage and secure MacOS systems.
 
-### [`--unison`](https://www.notion.so/Icarus-24e98d7e372b4c6b831d5b3de0b663f1?pvs=21)
+### `--unison`
 
 Controls for managing the Unison file synchronization tool.
 
