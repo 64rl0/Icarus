@@ -1284,7 +1284,7 @@ usage() {
     echo -e " -s | --update-hosts                                                    Update /etc/hosts with LogitechBackup IPs."
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
-    echo -e " -p | --python-package-init         -n PACKAGE_NAME                     Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase"
+    echo -e " -p | --python-package-init         -n PACKAGE_NAME                     Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."
     echo -e " -d | --dotfiles-update                                                 Update dotfiles from their specified repository."
     echo -e ""
     echo -e "${yellow}--macos [ARGS]:${end}"
