@@ -1,4 +1,4 @@
-# Icarus
+# Icarus CLI
 
 # Usage
 
