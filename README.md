@@ -11,34 +11,17 @@
 `OPTIONS` Modifiers that further customize the behavior of `[ARGS]`. Options can adjust how commands and arguments behave or extend their functionality.
 
 
-# Commands
-
-### `--amazon`
-
-Utilities for managing and automating tasks within Amazon environments.
-
-### `--builder`
-
-Tools and utilities to aid in software development processes.
-
-### `--macos`
-
-Features designed to manage and secure MacOS systems.
-
-### `--unison`
-
-Controls for managing the Unison file synchronization tool.
+# Global Commands
 
 ### `-h | --help`
-
-Global command
 
 Displays the help information detailing usage and command options.
 
 
-# Args
+# Commands
 
 ## --amazon
+Utilities for managing and automating tasks within Amazon environments.
 
 ### `-a | --auth-init [-i DEVDSK_ID]`
 
@@ -63,6 +46,7 @@ Executes configuration scripts on a specified remote Developer Desk.
 Updates the `/etc/hosts` file with IP addresses from LogitechBackup for network configuration.
 
 ## --builder
+Tools and utilities to aid in software development processes.
 
 ### `-p | --python-package-init -n PACKAGE_NAME`
 
@@ -76,6 +60,7 @@ Creates a new Python package directory structure in the current working director
 Update dotfiles from their specified repository.
 
 ## --macos
+Features designed to manage and secure MacOS systems.
 
 ### `-f | --find-unencrypted-volumes`
 
@@ -113,6 +98,7 @@ Installs a LaunchDaemon that automatically mounts a specified volume at system s
 - Example: `icarus --macos --install-launchd -n BootVolume -p /System/Volumes/BootVolume`
 
 ## --unison
+Controls for managing the Unison file synchronization tool.
 
 ### `-i | --status`
 
