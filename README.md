@@ -11,15 +11,13 @@
 `OPTIONS` Modifiers that further customize the behavior of `[ARGS]`. Options can adjust how commands and arguments behave or extend their functionality.
 
 &nbsp;
-# Global Commands
+# Commands
 
 ### `-h | --help`
 
 Displays the help information detailing usage and command options.
 
 &nbsp;
-# Commands
-
 ## --amazon
 Utilities for managing and automating tasks within Amazon environments.
 
