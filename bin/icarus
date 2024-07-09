@@ -82,7 +82,6 @@ export PATH="/opt/homebrew/bin:/Users/carlogtt/.local/bin:/usr/local/bin:/usr/bi
 cli_name='icarus'
 this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
 
-
 ########################################################################
 # AMAZON
 ########################################################################
@@ -419,7 +418,6 @@ builder() {
         echo -e "\n${bold_green}${green_check_mark} Project ${project_name_pascal_case} successfully created!${end}"
     }
 
-
     # Update all the dotfiles configs
     dotfiles_update() {
         dotfiles=(
@@ -435,7 +433,7 @@ builder() {
             "${HOME}/.config/alacritty"
             "${HOME}/.config/apple-terminal"
             "${HOME}/.config/lazygit"
-         )
+        )
 
         for dotfile in "${dotfiles[@]}"; do
             echo -e "${sparkles}${bold_yellow}${dotfile}${end}"
