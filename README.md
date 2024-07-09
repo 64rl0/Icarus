@@ -2,19 +2,6 @@
 
 # Table of Contents
 
----
-
-# External Documentation
-
-<aside>
-✨ [*Table of Contents*](https://www.notion.so/Brazil-Build-System-a56b63244d4b4bcca2fc27b29882ef67?pvs=21)
-
-</aside>
-
-- GitHub
-
----
-
 # Usage
 
 ### `icarus [COMMAND] [ARGS] [OPTIONS]`
@@ -25,7 +12,6 @@
 
 `OPTIONS` Modifiers that further customize the behavior of `[ARGS]`. Options can adjust how commands and arguments behave or extend their functionality.
 
----
 
 # Commands
 
@@ -51,7 +37,6 @@ Global command
 
 Displays the help information detailing usage and command options.
 
----
 
 # Args
 
@@ -155,5 +140,3 @@ Clears synchronization locks on the localhost. If the `-i` option is provided, i
 ### `-l | --install-launchd`
 
 Installs a LaunchDaemon to automatically start Unison at system startup.
-
----
