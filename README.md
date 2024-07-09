@@ -1,5 +1,5 @@
 # Icarus CLI
-
+&nbsp;
 # Usage
 
 ### `icarus [COMMAND] [ARGS] [OPTIONS]`
@@ -10,14 +10,14 @@
 
 `OPTIONS` Modifiers that further customize the behavior of `[ARGS]`. Options can adjust how commands and arguments behave or extend their functionality.
 
-
+&nbsp;
 # Global Commands
 
 ### `-h | --help`
 
 Displays the help information detailing usage and command options.
 
-
+&nbsp;
 # Commands
 
 ## --amazon
@@ -45,6 +45,7 @@ Executes configuration scripts on a specified remote Developer Desk.
 
 Updates the `/etc/hosts` file with IP addresses from LogitechBackup for network configuration.
 
+&nbsp;
 ## --builder
 Tools and utilities to aid in software development processes.
 
@@ -59,6 +60,7 @@ Creates a new Python package directory structure in the current working director
 
 Update dotfiles from their specified repository.
 
+&nbsp;
 ## --macos
 Features designed to manage and secure MacOS systems.
 
@@ -97,6 +99,7 @@ Installs a LaunchDaemon that automatically mounts a specified volume at system s
 - `-p` Mount point.
 - Example: `icarus --macos --install-launchd -n BootVolume -p /System/Volumes/BootVolume`
 
+&nbsp;
 ## --unison
 Controls for managing the Unison file synchronization tool.
 
