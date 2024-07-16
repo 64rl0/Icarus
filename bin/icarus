@@ -1083,7 +1083,6 @@ EOF
         unison_profiles=(
             "prof_workplace"
             "prof_my_lib"
-            "prof_devdsk6"
             "prof_devdsk7"
         )
 
