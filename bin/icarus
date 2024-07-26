@@ -433,6 +433,7 @@ builder() {
             "${HOME}/.config/alacritty"
             "${HOME}/.config/apple-terminal"
             "${HOME}/.config/lazygit"
+            "${HOME}/.config/homebrew"
         )
 
         for dotfile in "${dotfiles[@]}"; do
