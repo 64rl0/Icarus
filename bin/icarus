@@ -422,7 +422,9 @@ builder() {
     dotfiles_update() {
         dotfiles=(
             "${HOME}/.bash/config"
+            "${HOME}/.bash/completion"
             "${HOME}/.zsh/config"
+            "${HOME}/.zsh/completion"
             "${HOME}/.carlogtt_alias"
             "${HOME}/.carlogtt_script"
             "${HOME}/.vim"
