@@ -285,7 +285,7 @@ EOF
     }
 
     update_etc_hosts_daemon() {
-        hosts_launchd_daemon_path="/Library/LaunchDaemons/com.carlogtt.hosts.launchd.daemon.plist"
+        hosts_launchd_daemon_path="/Library/LaunchDaemons/com.carlogtt.hosts.daemon.plist"
 
         echo -e "We need to briefly run as root (through sudo) to write to ${hosts_launchd_daemon_path}."
         echo -e "If prompted, please enter your user password."
@@ -299,7 +299,7 @@ EOF
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>com.carlogtt.hosts.launchd.daemon</string>
+        <string>com.carlogtt.hosts.daemon</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
