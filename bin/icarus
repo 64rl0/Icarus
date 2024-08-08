@@ -306,9 +306,9 @@ EOF
             <integer>00</integer>
         </dict>
         <key>StandardOutPath</key>
-        <string>/dev/null</string>
+        <string>/tmp/com.carlogtt.hosts.daemon.log</string>
         <key>StandardErrorPath</key>
-        <string>/dev/null</string>
+        <string>/tmp/com.carlogtt.hosts.daemon.log</string>
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
