@@ -339,7 +339,6 @@ EOF
         echo -e "loading ${hosts_launchd_daemon_path}"
         sudo launchctl unload "${hosts_launchd_daemon_path}"
         sudo launchctl load "${hosts_launchd_daemon_path}"
-
         echo -e "Configuration loaded"
     }
 
