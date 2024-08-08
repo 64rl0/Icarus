@@ -229,7 +229,6 @@ fi
     }
 
     update_etc_hosts() {
-
         echo -e "We need to briefly run as root (through sudo) to write the /etc/hosts"
         echo -e "If prompted, please enter your user password."
         sudo -v
@@ -287,7 +286,6 @@ EOF
     }
 
     update_etc_hosts_daemon() {
-
         hosts_launchd_daemon_path="/Library/LaunchDaemons/com.hosts.launchd.daemon.plist"
 
         echo -e "We need to briefly run as root (through sudo) to write to ${hosts_launchd_daemon_path}."
