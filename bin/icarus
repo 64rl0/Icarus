@@ -1063,6 +1063,8 @@ EOF
             <key>Minute</key>
             <integer>00</integer>
         </dict>
+        <key>KeepAlive</key>
+        <true/>
         <key>StandardOutPath</key>
         <string>${HOME}/.unison/unison_daily_restart.log</string>
         <key>StandardErrorPath</key>
