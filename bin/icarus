@@ -303,7 +303,7 @@ EOF
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
-            <integer>33</integer>
+            <integer>47</integer>
         </dict>
         <key>StandardOutPath</key>
         <string>/dev/null</string>
