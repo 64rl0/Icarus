@@ -1079,9 +1079,9 @@ unison() {
         <key>KeepAlive</key>
         <true/>
         <key>StandardOutPath</key>
-        <string>${HOME}/.unison/unison_launchd_agent.log</string>
+        <string>/tmp/com.unison.launchd.agent.log</string>
         <key>StandardErrorPath</key>
-        <string>${HOME}/.unison/unison_launchd_agent.log</string>
+        <string>/tmp/com.unison.launchd.agent.log</string>
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
@@ -1114,9 +1114,9 @@ EOF
             <integer>00</integer>
         </dict>
         <key>StandardOutPath</key>
-        <string>${HOME}/.unison/unison_daily_restart.log</string>
+        <string>/tmp/com.unison.daily_restart.agent.log</string>
         <key>StandardErrorPath</key>
-        <string>${HOME}/.unison/unison_daily_restart.log</string>
+        <string>/tmp/com.unison.daily_restart.agent.log</string>
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
