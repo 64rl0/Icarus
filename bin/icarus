@@ -233,7 +233,7 @@ fi
         echo -e "If prompted, please enter your user password."
         sudo -v
 
-        cat <<'EOF' >"/tmp/.update_etc_hosts_temp.py"
+        cat <<'EOF' >"/tmp/update_etc_hosts_temp.py"
 import urllib.request
 import subprocess
 import json
@@ -278,7 +278,7 @@ new_hosts_file = "".join(hosts_lines)
 with open('/etc/hosts', 'w') as f:
     f.write(new_hosts_file)
 EOF
-        sudo /usr/bin/python3 "/tmp/.update_etc_hosts_temp.py" || exit 1
+        sudo /usr/bin/python3 "/tmp/update_etc_hosts_temp.py" || exit 1
 
         echo -e "\n${bold_green}${green_check_mark} /etc/hosts file updated!${end}\n"
         cat "/etc/hosts"
@@ -303,7 +303,7 @@ EOF
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
-            <integer>47</integer>
+            <integer>00</integer>
         </dict>
         <key>StandardOutPath</key>
         <string>/dev/null</string>
