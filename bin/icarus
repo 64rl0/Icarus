@@ -285,7 +285,7 @@ EOF
     }
 
     update_etc_hosts_daemon() {
-        hosts_launchd_daemon_path="/Library/LaunchDaemons/com.hosts.launchd.daemon.plist"
+        hosts_launchd_daemon_path="/Library/LaunchDaemons/com.carlogtt.hosts.launchd.daemon.plist"
 
         echo -e "We need to briefly run as root (through sudo) to write to ${hosts_launchd_daemon_path}."
         echo -e "If prompted, please enter your user password."
@@ -299,7 +299,7 @@ EOF
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>com.hosts.launchd.daemon</string>
+        <string>com.carlogtt.hosts.launchd.daemon</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
@@ -1055,7 +1055,7 @@ unison() {
     }
 
     unison_launchd_daemon_path="${HOME}/Library/LaunchAgents/com.unison.launchd.agent.plist"
-    unison_daily_restart_daemon_path="${HOME}/Library/LaunchAgents/com.unison.daily.restart.plist"
+    unison_daily_restart_daemon_path="${HOME}/Library/LaunchAgents/com.unison.daily_restart.agent.plist"
 
     unison_install_launchd() {
         echo -e "Writing launchd daemon configuration"
@@ -1105,7 +1105,7 @@ EOF
             <string>${HOME}</string>
         </dict>
         <key>Label</key>
-        <string>com.unison.daily.restart</string>
+        <string>com.unison.daily_restart.agent</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Hour</key>
