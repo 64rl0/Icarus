@@ -233,7 +233,7 @@ fi
         echo -e "If prompted, please enter your user password."
         sudo -v
 
-        cat <<'EOF' >"${HOME}/.update_etc_hosts_temp.py"
+        cat <<'EOF' >"/tmp/.update_etc_hosts_temp.py"
 import urllib.request
 import subprocess
 import json
@@ -278,8 +278,7 @@ new_hosts_file = "".join(hosts_lines)
 with open('/etc/hosts', 'w') as f:
     f.write(new_hosts_file)
 EOF
-        sudo python3 "${HOME}/.update_etc_hosts_temp.py" || exit 1
-        rm -rf "${HOME}/.update_etc_hosts_temp.py" || exit 1
+        sudo /usr/bin/python3 "/tmp/.update_etc_hosts_temp.py" || exit 1
 
         echo -e "\n${bold_green}${green_check_mark} /etc/hosts file updated!${end}\n"
         cat "/etc/hosts"
@@ -299,19 +298,12 @@ EOF
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
-        <key>EnvironmentVariables</key>
-        <dict>
-            <key>PATH</key>
-            <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-            <key>HOME</key>
-            <string>${HOME}</string>
-        </dict>
         <key>Label</key>
         <string>com.hosts.launchd.daemon</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
-            <integer>00</integer>
+            <integer>33</integer>
         </dict>
         <key>StandardOutPath</key>
         <string>/dev/null</string>
