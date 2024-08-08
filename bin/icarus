@@ -326,7 +326,7 @@ EOF
 </plist>
 EOF
 
-        sudo chown root:wheel -- ${hosts_launchd_daemon_path}
+        sudo chown root:wheel ${hosts_launchd_daemon_path}
         sudo chmod 644 -- ${hosts_launchd_daemon_path}
 
         echo -e "launchd daemon configuration was successfully written to"
