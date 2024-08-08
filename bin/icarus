@@ -286,7 +286,7 @@ EOF
         cat "/etc/hosts"
     }
 
-    update_etc_hosts_daemon () {
+    update_etc_hosts_daemon() {
 
         hosts_launchd_daemon_path="/Library/LaunchAgents/com.hosts.launchd.agent.plist"
 
@@ -296,7 +296,7 @@ EOF
 
         echo -e "\nWriting launchd daemon configuration"
 
-        cat <<EOF >"${hosts_launchd_daemon_path}"
+        cat <<EOF | sudo tee "${hosts_launchd_daemon_path}" >/dev/null
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
