@@ -288,7 +288,7 @@ EOF
 
     update_etc_hosts_daemon() {
 
-        hosts_launchd_daemon_path="/Library/LaunchDaemons/com.hosts.launchd.agent.plist"
+        hosts_launchd_daemon_path="/Library/LaunchDaemons/com.hosts.launchd.daemon.plist"
 
         echo -e "We need to briefly run as root (through sudo) to write to ${hosts_launchd_daemon_path}."
         echo -e "If prompted, please enter your user password."
@@ -301,8 +301,15 @@ EOF
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+        <key>EnvironmentVariables</key>
+        <dict>
+            <key>PATH</key>
+            <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+            <key>HOME</key>
+            <string>${HOME}</string>
+        </dict>
         <key>Label</key>
-        <string>com.hosts.launchd.agent</string>
+        <string>com.hosts.launchd.daemon</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
