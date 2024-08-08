@@ -238,7 +238,6 @@ fi
 import urllib.request
 import subprocess
 import json
-from pprint import pprint
 import datetime
 
 url = "https://dns.google/resolve?name=cpgbackup.logitech.com&type=A"
@@ -264,7 +263,7 @@ insert_idx = None
 with open('/etc/hosts', 'r') as f:
     for idx, line in enumerate(f.readlines()):
         if "## updated on" in line:
-            line = f"## updated on {datetime.datetime.now(datetime.timezone.utc).isoformat()}\n"
+            line = f"## updated on UTC {datetime.datetime.now(datetime.timezone.utc).isoformat()}\n"
             hosts_lines.append(line)
             continue
         if "cpgbackup.logitech.com" in line:
@@ -285,6 +284,59 @@ EOF
 
         echo -e "\n${bold_green}${green_check_mark} /etc/hosts file updated!${end}\n"
         cat "/etc/hosts"
+    }
+
+    update_etc_hosts_daemon () {
+
+        hosts_launchd_daemon_path="/Library/LaunchAgents/com.hosts.launchd.agent.plist"
+
+        echo -e "We need to briefly run as root (through sudo) to write to ${hosts_launchd_daemon_path}."
+        echo -e "If prompted, please enter your user password."
+        sudo -v
+
+        echo -e "\nWriting launchd daemon configuration"
+
+        cat <<EOF >"${hosts_launchd_daemon_path}"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>EnvironmentVariables</key>
+        <dict>
+            <key>PATH</key>
+            <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+            <key>HOME</key>
+            <string>${HOME}</string>
+        </dict>
+        <key>Label</key>
+        <string>com.hosts.launchd.agent</string>
+        <key>StartInterval</key>
+        <integer>3600</integer>
+        <key>StandardOutPath</key>
+        <string>/dev/null</string>
+        <key>StandardErrorPath</key>
+        <string>/dev/null</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>${this_cli_fullpath}</string>
+            <string>--amazon</string>
+            <string>--update-hosts</string>
+        </array>
+    </dict>
+</plist>
+EOF
+
+        sudo chown root:wheel -- ${hosts_launchd_daemon_path}
+        sudo chmod 644 -- ${hosts_launchd_daemon_path}
+
+        echo -e "launchd daemon configuration was successfully written to"
+        echo -e "${hosts_launchd_daemon_path}"
+
+        echo -e "\nLoading launchd daemons configuration"
+        echo -e "loading ${hosts_launchd_daemon_path}"
+        sudo launchctl load "${hosts_launchd_daemon_path}"
+
+        echo -e "Configuration loaded"
     }
 
     if [[ -z "$1" ]]; then
@@ -342,6 +394,11 @@ EOF
 
     -s | --update-hosts)
         update_etc_hosts
+        exit 0
+        ;;
+
+    -u | --update-hosts-d)
+        update_etc_hosts_daemon
         exit 0
         ;;
 
@@ -1282,7 +1339,8 @@ usage() {
     echo -e " -a | --auth-init                   [-i DEVDSK_ID]                      Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
     echo -e " -c | --midway-cookie                                                   Check the cookies validity."
     echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
-    echo -e " -s | --update-hosts                                                    Update /etc/hosts with LogitechBackup IPs."
+    echo -e " -s | --update-hosts                                                    Update /etc/hosts file."
+    echo -e " -u | --update-hosts-d                                                  Install a LaunchDaemon to update the hosts file every hour."
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
     echo -e " -p | --python-package-init         -n PACKAGE_NAME                     Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."

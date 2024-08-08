@@ -41,7 +41,11 @@ Executes configuration scripts on a specified remote Developer Desk.
 
 ### `-s | --update-hosts`
 
-Updates the `/etc/hosts` file with IP addresses from LogitechBackup for network configuration.
+Updates the `/etc/hosts` file with IP addresses for network configuration.
+
+### `-u | --update-hosts-d`
+
+Install a LaunchDaemon to update the `/etc/hosts` file every hour.
 
 &nbsp;
 ## --builder
