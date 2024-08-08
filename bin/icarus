@@ -313,7 +313,7 @@ EOF
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
-            <integer>20</integer>
+            <integer>00</integer>
         </dict>
         <key>StandardOutPath</key>
         <string>/dev/null</string>
@@ -337,6 +337,7 @@ EOF
 
         echo -e "\nLoading launchd daemons configuration"
         echo -e "loading ${hosts_launchd_daemon_path}"
+        sudo launchctl unload "${hosts_launchd_daemon_path}"
         sudo launchctl load "${hosts_launchd_daemon_path}"
 
         echo -e "Configuration loaded"
