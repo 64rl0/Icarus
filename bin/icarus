@@ -310,8 +310,11 @@ EOF
         </dict>
         <key>Label</key>
         <string>com.hosts.launchd.agent</string>
-        <key>StartInterval</key>
-        <integer>3600</integer>
+        <key>StartCalendarInterval</key>
+        <dict>
+            <key>Minute</key>
+            <integer>20</integer>
+        </dict>
         <key>StandardOutPath</key>
         <string>/dev/null</string>
         <key>StandardErrorPath</key>
