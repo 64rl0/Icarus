@@ -121,7 +121,7 @@ amazon() {
         while true; do
 
             echo -e "${blue}Midway Authentication${end}"
-            mwinit -s
+            mwinit -s --fido2
             mwinit_status=$?
 
             # Check if Midway was successful
