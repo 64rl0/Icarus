@@ -162,7 +162,7 @@ echo -e '${red}[DISABLED] Kerberos${end}';
 echo '';
 
 echo -e '${blue}Midway Authentication${end}';
-mwinit -s -o
+mwinit -s -o || echo failed!!!!;
 mwinit_status=\$?;
 if [[ \$mwinit_status -eq 0 ]]; then
     echo -e '${bold_green}${key} Successfully authenticated!${end}'
