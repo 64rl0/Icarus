@@ -164,7 +164,7 @@ echo '';
 echo -e '${blue}Midway Authentication${end}';
 while IFS= read -r line; do;
   echo \$line 123;
-done; < <(mwinit -s -o)
+done; < <(mwinit -s -o);
 mwinit_status=\$?;
 if [[ \$mwinit_status -eq 0 ]]; then
     echo -e '${bold_green}${key} Successfully authenticated!${end}'
