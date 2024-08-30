@@ -163,17 +163,11 @@ echo '';
 
 echo -e '${blue}Midway Authentication${end}';
 mwinit -s -o;
-cookie_timestamp=\$(stat -c %Y '/local/home/carlogtt/.midway/cookie');
-now_timestamp=\$(date +%s);
-diff_timestamp=\$(( now_timestamp - cookie_timestamp ));
-echo \$cookie_timestamp;
-echo \$now_timestamp;
-echo \$diff_timestamp;
-if [[ \$mwinit_status -eq 0 ]]; then;
-    echo -e '${bold_green}${key} Successfully authenticated!${end}';
-else;
-    echo -e '${bold_red}Authentication failed!\n${end}';
-fi
+#if [[ \$mwinit_status -eq 0 ]]; then;
+#    echo -e '${bold_green}${key} Successfully authenticated!${end}';
+#else;
+#    echo -e '${bold_red}Authentication failed!\n${end}';
+#fi
 "
             # Break line
             echo ""
