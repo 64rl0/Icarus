@@ -162,8 +162,11 @@ echo -e '${red}[DISABLED] Kerberos${end}';
 echo '';
 
 echo -e '${blue}Midway Authentication${end}';
-mwinit -s -o || mwinit_status=1;
-echo status: \$? .
+mwinit -s -o;
+cookie_timestamp=\$(stat -c %Y 'local/home/carlogtt/.midway/cookie');
+now_timestamp=\$(date +%s);
+diff_timestamp=\$(( now_timestamp - cookie_timestamp ));
+echo \$diff_timestamp;
 if [[ \$mwinit_status -eq 0 ]]; then;
     echo -e '${bold_green}${key} Successfully authenticated!${end}';
 else;
