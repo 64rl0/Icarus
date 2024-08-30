@@ -162,14 +162,12 @@ echo -e '${red}[DISABLED] Kerberos${end}';
 echo '';
 
 echo -e '${blue}Midway Authentication${end}';
-while IFS= read -r line; do;
-  echo \$line 123;
-done; < <(mwinit -s -o);
-mwinit_status=\$?;
-if [[ \$mwinit_status -eq 0 ]]; then
-    echo -e '${bold_green}${key} Successfully authenticated!${end}'
-else
-    echo -e '${bold_red}Authentication failed!\n${end}'
+mwinit -s -o || mwinit_status=1;
+echo status: \$? .
+if [[ \$mwinit_status -eq 0 ]]; then;
+    echo -e '${bold_green}${key} Successfully authenticated!${end}';
+else;
+    echo -e '${bold_red}Authentication failed!\n${end}';
 fi
 "
             # Break line
