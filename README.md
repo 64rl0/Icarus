@@ -47,6 +47,13 @@ Updates the `/etc/hosts` file with IP addresses for network configuration.
 
 Install a LaunchDaemon to update the `/etc/hosts` file every hour.
 
+### `-r | --spurdog-ro`
+
+Check membership for Spurdog Program.
+
+- `-u` Mandatory identifier for the Amazon User Alias.
+- Example: `icarus --amazon --spurdog-ro -u carlogtt`
+
 &nbsp;
 ## --builder
 Tools and utilities to aid in software development processes.
