@@ -333,6 +333,11 @@ EOF
         echo -e "Configuration loaded"
     }
 
+    spurdog_read_on () {
+        local username="$1"
+        curl -b "${HOME}/.midway/cookie" -L -G -d "id=${username}" "https://sarsen-ccwt.adc.security.aws.dev/api/v1/check"
+    }
+
     if [[ -z "$1" ]]; then
         arg='-h'
     else
@@ -376,6 +381,24 @@ EOF
                 exit 1
             fi
             devdsk_formation "${@:3}"
+            exit 0
+            ;;
+        *)
+            echo -e "${bold}amazon: illegal option -- $*${end}"
+            usage
+            exit 1
+            ;;
+        esac
+        ;;
+
+    -r | --spurdog-ro)
+        case "$2" in
+        -u)
+            if [[ -z "$3" ]]; then
+                usage
+                exit 1
+            fi
+            spurdog_read_on "${@:3}"
             exit 0
             ;;
         *)
@@ -1335,6 +1358,7 @@ usage() {
     echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
     echo -e " -s | --update-hosts                                                    Update /etc/hosts file."
     echo -e " -u | --update-hosts-d                                                  Install a LaunchDaemon to update the hosts file every hour."
+    echo -e " -r | --spurdog-ro                  -u AMZ_ALIAS                        Check membership for Spurdog Program"
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
     echo -e " -p | --python-package-init         -n PACKAGE_NAME                     Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."
