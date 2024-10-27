@@ -335,7 +335,7 @@ EOF
 
     spurdog_read_on () {
         local username="$1"
-        curl -b "${HOME}/.midway/cookie" -L -G -d "id=${username}" "https://sarsen-ccwt.adc.security.aws.dev/api/v1/check"
+        curl --cookie "${HOME}/.midway/cookie" -L -G --silent --data "id=${username}" "https://sarsen-ccwt.adc.security.aws.dev/api/v1/check" | jq
     }
 
     if [[ -z "$1" ]]; then
