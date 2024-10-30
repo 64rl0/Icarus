@@ -82,6 +82,16 @@ export PATH="/opt/homebrew/bin:/Users/carlogtt/.local/bin:/usr/local/bin:/usr/bi
 cli_name='icarus'
 this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
 
+
+########################################################################
+# UTILS
+########################################################################
+run_as_sudo() {
+    echo -e "We need to briefly run as root (through sudo) to execute some commands."
+    echo -e "If prompted, please enter your user password."
+    sudo -v
+    }
+
 ########################################################################
 # AMAZON
 ########################################################################
@@ -230,9 +240,7 @@ mwinit_status=\$?;
     }
 
     update_etc_hosts() {
-        echo -e "We need to briefly run as root (through sudo) to write the /etc/hosts"
-        echo -e "If prompted, please enter your user password."
-        sudo -v
+        run_as_sudo
 
         cat <<'EOF' >"/tmp/update_etc_hosts_temp.py"
 import urllib.request
@@ -288,9 +296,7 @@ EOF
     update_etc_hosts_daemon() {
         hosts_launchd_daemon_path="/Library/LaunchDaemons/com.carlogtt.hosts.daemon.plist"
 
-        echo -e "We need to briefly run as root (through sudo) to write to ${hosts_launchd_daemon_path}."
-        echo -e "If prompted, please enter your user password."
-        sudo -v
+        run_as_sudo
 
         echo -e "\nWriting launchd daemon configuration"
 
@@ -336,6 +342,27 @@ EOF
     spurdog_read_on () {
         local username="$1"
         curl --cookie "${HOME}/.midway/cookie" -L -G --silent --data "id=${username}" "https://sarsen-ccwt.adc.security.aws.dev/api/v1/check" | jq
+    }
+
+    brazil_setup_volumes () {
+    run_as_sudo
+
+    echo -e "Creating case-sensitive volumes on your macOS system..."
+
+    diskref=$(diskutil apfs list | awk -F: '/Container Reference/{gsub (" ", ""); print $2}')
+    echo -e "Diskref is ${diskref}"
+
+    echo -e "\nnCreating the workplace volume..."
+#    diskutil apfs addVolume "${diskref}" "Case-sensitive APFS" "workplace"
+
+    echo -e "\nnCreating the brazil-pkg-cache volume..."
+#    diskutil apfs addVolume "${diskref}" "Case-sensitive APFS" "brazil-pkg-cache"
+
+    echo -e "\nnCreating a symbolic link from the workplace volume to your home directory..."
+#    ln -s "/Volumes/workplace" "${HOME}/workplace"
+
+    echo -e "\nCreating a symbolic link from the brazil-pkg-cache volume to your home directory..."
+#    ln -s "/Volumes/brazil-pkg-cache" "${HOME}/brazil-pkg-cache"
     }
 
     if [[ -z "$1" ]]; then
@@ -407,6 +434,11 @@ EOF
             exit 1
             ;;
         esac
+        ;;
+
+    -b | --brazil-setup)
+        brazil_setup_volumes
+        exit 0
         ;;
 
     -s | --update-hosts)
@@ -630,9 +662,7 @@ macos() {
         # Spotlight indexing is disabled on the volumes by default to avoid CPU time contention
         # during package caching or checkout.
 
-        echo -e "We need to briefly run as root (through sudo) to store the volume passphrase in the System keychain (${system_keychain_path}) to protect it from deletion during password rotation."
-        echo -e "If prompted, please enter your user password."
-        sudo -v
+        run_as_sudo
 
         volume_name="$1"
 
@@ -694,9 +724,7 @@ EOF
         # generated passphrase and stores the passphrase in the System keychain so that
         # the volume can be automatically mounted at startup.
 
-        echo -e "We need to briefly run as root (through sudo) to store the volume passphrase in the System keychain (${system_keychain_path}) to protect it from deletion during password rotation."
-        echo -e "If prompted, please enter your user password."
-        sudo -v
+        run_as_sudo
 
         volume_name="$1"
 
@@ -1358,6 +1386,7 @@ usage() {
     echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
     echo -e " -s | --update-hosts                                                    Update /etc/hosts file."
     echo -e " -u | --update-hosts-d                                                  Install a LaunchDaemon to update the hosts file every hour."
+    echo -e " -b | --brazil-setup                                                    Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache'."
     echo -e " -r | --spurdog-ro                  -u AMZ_ALIAS                        Check membership for Spurdog Program"
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
