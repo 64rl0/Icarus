@@ -1388,7 +1388,7 @@ usage() {
     echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
     echo -e " -s | --update-hosts                                                    Update /etc/hosts file."
     echo -e " -u | --update-hosts-d                                                  Install a LaunchDaemon to update the hosts file every hour."
-    echo -e " -b | --brazil-setup                                                    Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache'.)"
+    echo -e " -b | --brazil-setup                                                    Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
     echo -e " -r | --spurdog-ro                  -u AMZ_ALIAS                        Check membership for Spurdog Program"
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"

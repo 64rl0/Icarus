@@ -47,6 +47,12 @@ Updates the `/etc/hosts` file with IP addresses for network configuration.
 
 Install a LaunchDaemon to update the `/etc/hosts` file every hour.
 
+### `-b | --brazil-setup`
+
+Create case-sensitive volumes: 
+- 'workplace'
+- 'brazil-pkg-cache'
+
 ### `-r | --spurdog-ro`
 
 Check membership for Spurdog Program.
