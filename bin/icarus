@@ -347,22 +347,24 @@ EOF
     brazil_setup_volumes () {
     run_as_sudo
 
-    echo -e "Creating case-sensitive volumes on your macOS system..."
+    echo -e "\nCreating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
 
     diskref=$(diskutil apfs list | awk -F: '/Container Reference/{gsub (" ", ""); print $2}')
     echo -e "Diskref is ${diskref}"
 
-    echo -e "\nnCreating the workplace volume..."
+    echo -e "\n\nCreating the workplace volume..."
 #    diskutil apfs addVolume "${diskref}" "Case-sensitive APFS" "workplace"
 
-    echo -e "\nnCreating the brazil-pkg-cache volume..."
+    echo -e "\n\nCreating the brazil-pkg-cache volume..."
 #    diskutil apfs addVolume "${diskref}" "Case-sensitive APFS" "brazil-pkg-cache"
 
-    echo -e "\nnCreating a symbolic link from the workplace volume to your home directory..."
+    echo -e "\n\nCreating a symbolic link from the workplace volume to your home directory..."
 #    ln -s "/Volumes/workplace" "${HOME}/workplace"
 
     echo -e "\nCreating a symbolic link from the brazil-pkg-cache volume to your home directory..."
 #    ln -s "/Volumes/brazil-pkg-cache" "${HOME}/brazil-pkg-cache"
+
+    echo -e "${green_check_mark} ${bold_green}Brazil volumes created successfully!"
     }
 
     if [[ -z "$1" ]]; then
@@ -1386,7 +1388,7 @@ usage() {
     echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
     echo -e " -s | --update-hosts                                                    Update /etc/hosts file."
     echo -e " -u | --update-hosts-d                                                  Install a LaunchDaemon to update the hosts file every hour."
-    echo -e " -b | --brazil-setup                                                    Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache'."
+    echo -e " -b | --brazil-setup                                                    Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache'.)"
     echo -e " -r | --spurdog-ro                  -u AMZ_ALIAS                        Check membership for Spurdog Program"
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
