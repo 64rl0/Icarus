@@ -489,7 +489,7 @@ builder() {
         echo "${snake_case_str}"
     }
 
-    python_project_init() {
+    python_package_init() {
         # Remove leading and trailing whitespace
         project_name_pascal_case="$(echo "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
         project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
@@ -561,14 +561,14 @@ builder() {
     fi
 
     case "${arg}" in
-    -p | --python-project-init)
+    -p | --python-package-init)
         case "$2" in
         -n)
             if [[ -z "$3" ]]; then
                 usage
                 exit 1
             fi
-            python_project_init "$3"
+            python_package_init "$3"
             exit 0
             ;;
         *)
