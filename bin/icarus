@@ -513,9 +513,17 @@ builder() {
         chmod 755 "${project_absolute_path}"
         git clone "git@github.com:64rl0/PythonTemplatePackage.git" "${project_absolute_path}"
 
+        # Remove git folder from cloned template
         rm -rf "${project_absolute_path}/.git"
+
+        # Rename main project folder
         mv "${project_absolute_path}/src/project_name_here" "${project_absolute_path}/src/${project_name_snake_case}"
+
+        # Create .env file
         touch "${project_absolute_path}/.env"
+
+        # Replace the '12' on line 12 in __init__.py file
+        sed -i '' "12s/.*/# __init__.py -> ${project_name_snake_case}" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
 
         echo -e "\nInitiating Git repository..."
         cd "${project_absolute_path}"
