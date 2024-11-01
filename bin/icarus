@@ -495,6 +495,7 @@ builder() {
         project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
         absolute_current_path="$(realpath "$(pwd)")"
         project_absolute_path="${absolute_current_path}/${project_name_pascal_case}"
+        project_src_folder="${project_absolute_path}/src/${project_name_snake_case}"
 
         if [[ -z "${project_name_snake_case}" ]]; then
             echo -e "Invalid input: only alphanumeric characters are allowed in the project name."
@@ -523,10 +524,10 @@ builder() {
         touch "${project_absolute_path}/.env"
 
         # Rename project_name
-        sed -i '' "12s|.*|# src/${project_name_snake_case}/__init__.py|" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
-        sed -i '' "12s|.*|# src/${project_name_snake_case}/main.py|" "${project_absolute_path}/src/${project_name_snake_case}/main.py"
-        sed -i '' "12s|.*|# src/config/${project_name_snake_case}/__init__.py|" "${project_absolute_path}/src/config/${project_name_snake_case}/__init__.py"
-        sed -i '' "12s|.*|# src/config/${project_name_snake_case}/aaa_env_vars.py|" "${project_absolute_path}/src/config/${project_name_snake_case}/aaa_env_vars.py"
+        sed -i '' "12s|.*|# src/${project_name_snake_case}/__init__.py|" "${project_src_folder}/__init__.py"
+        sed -i '' "12s|.*|# src/${project_name_snake_case}/main.py|" "${project_src_folder}/main.py"
+        sed -i '' "12s|.*|# src/${project_name_snake_case}/config/__init__.py|" "${project_src_folder}/config/__init__.py"
+        sed -i '' "12s|.*|# src/${project_name_snake_case}/config/aaa_env_vars.py|" "${project_src_folder}/config/aaa_env_vars.py"
 
         echo -e "\nInitiating Git repository..."
         cd "${project_absolute_path}"
