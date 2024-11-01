@@ -524,7 +524,7 @@ builder() {
 
         # Rename project_name
         sed -i '' "12s/.*/# __init__.py -> ${project_name_snake_case}/" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
-        sed -i '' "12s/.*/# ${project_name_pascal_case}/test/test_application.py" "${project_absolute_path}/test/test_application.py"
+        sed -i '' "12s/.*/# ${project_name_pascal_case}/test/test_application.py/" "${project_absolute_path}/test/test_application.py"
 
         echo -e "\nInitiating Git repository..."
         cd "${project_absolute_path}"
