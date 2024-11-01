@@ -523,7 +523,7 @@ builder() {
         touch "${project_absolute_path}/.env"
 
         # Replace the '12' on line 12 in __init__.py file
-        sed -i '' "12s/.*/# __init__.py -> ${project_name_snake_case}" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
+        sed -i '' "12s/.*/# __init__.py -> ${project_name_snake_case}/" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
 
         echo -e "\nInitiating Git repository..."
         cd "${project_absolute_path}"
