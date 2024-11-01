@@ -523,7 +523,10 @@ builder() {
         touch "${project_absolute_path}/.env"
 
         # Rename project_name
-        sed -i '' "12s/.*/# __init__.py -> ${project_name_snake_case}/" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
+        sed -i '' "12s|.*|# src/${project_name_snake_case}/__init__.py|" "${project_absolute_path}/src/${project_name_snake_case}/__init__.py"
+        sed -i '' "12s|.*|# src/${project_name_snake_case}/main.py|" "${project_absolute_path}/src/${project_name_snake_case}/main.py"
+        sed -i '' "12s|.*|# src/config/${project_name_snake_case}/__init__.py|" "${project_absolute_path}/src/config/${project_name_snake_case}/__init__.py"
+        sed -i '' "12s|.*|# src/config/${project_name_snake_case}/aaa_env_vars.py|" "${project_absolute_path}/src/config/${project_name_snake_case}/aaa_env_vars.py"
 
         echo -e "\nInitiating Git repository..."
         cd "${project_absolute_path}"
