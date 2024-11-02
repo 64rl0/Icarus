@@ -1,166 +1,170 @@
+# zsh completion for icarus cli
+# vim: ft=sh
+
+# Enable autoloading
 #compdef icarus
 
 local -a commands
 local -a amazon_args builder_args macos_args unison_args
 
 commands=(
-  '--amazon:Utilities for Amazon environment'
-  '--builder:Utilities for software development'
-  '--macos:Utilities for macOS'
-  '--unison:Utilities to manage Unison daemon'
-  '--help:Show help'
-  '-h:Show help'
+    '--amazon:Utilities for Amazon environment'
+    '--builder:Utilities for software development'
+    '--macos:Utilities for macOS'
+    '--unison:Utilities to manage Unison daemon'
+    '--help:Show help'
+    '-h:Show help'
 )
 
 amazon_args=(
-  '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
-  '-a:Run midway authentication on localhost and optional remote DevDsk(s)'
+    '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
+    '-a:Run midway authentication on localhost and optional remote DevDsk(s)'
 
-  '--midway-cookie:Check the cookies validity'
-  '-c:Check the cookies validity'
+    '--midway-cookie:Check the cookies validity'
+    '-c:Check the cookies validity'
 
-  '--devdsk-formation:Run DevDsk Formation on a remote DevDsk'
-  '-d:Run DevDsk Formation on a remote DevDsk'
+    '--devdsk-formation:Run DevDsk Formation on a remote DevDsk'
+    '-d:Run DevDsk Formation on a remote DevDsk'
 
-  '--update-hosts:Update /etc/hosts file'
-  '-s:Update /etc/hosts file'
+    '--update-hosts:Update /etc/hosts file'
+    '-s:Update /etc/hosts file'
 
-  '--update-hosts-d:Install a LaunchDaemon to update the hosts file every hour'
-  '-u:Install a LaunchDaemon to update the hosts file every hour'
+    '--update-hosts-d:Install a LaunchDaemon to update the hosts file every hour'
+    '-u:Install a LaunchDaemon to update the hosts file every hour'
 
-  '--brazil-setup:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
-  '-b:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
+    '--brazil-setup:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
+    '-b:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
 
-  '--spurdog-ro:Check membership for Spurdog Program'
-  '-r:Check membership for Spurdog Program'
+    '--spurdog-ro:Check membership for Spurdog Program'
+    '-r:Check membership for Spurdog Program'
 )
 
 builder_args=(
-  '--python-package-init:Initiate a new Python package in the current folder'
-  '-p:Initiate a new Python package in the current folder'
+    '--python-package-init:Initiate a new Python package in the current folder'
+    '-p:Initiate a new Python package in the current folder'
 
-  '--dotfiles-update:Update dotfiles from their specified repository'
-  '-d:Update dotfiles from their specified repository'
+    '--dotfiles-update:Update dotfiles from their specified repository'
+    '-d:Update dotfiles from their specified repository'
 )
 
 macos_args=(
-  '--find-unencrypted-volumes:Find unencrypted volumes'
-  '-f:Find unencrypted volumes'
+    '--find-unencrypted-volumes:Find unencrypted volumes'
+    '-f:Find unencrypted volumes'
 
-  '--make-encrypted-volume:Make an encrypted APFS volume'
-  '-c:Make an encrypted APFS volume'
+    '--make-encrypted-volume:Make an encrypted APFS volume'
+    '-c:Make an encrypted APFS volume'
 
-  '--encrypt-volume:Encrypt an existing APFS volume'
-  '-e:Encrypt an existing APFS volume'
+    '--encrypt-volume:Encrypt an existing APFS volume'
+    '-e:Encrypt an existing APFS volume'
 
-  '--mount-volume:Mount the specified volume at the specified mount point'
-  '-m:Mount the specified volume at the specified mount point'
+    '--mount-volume:Mount the specified volume at the specified mount point'
+    '-m:Mount the specified volume at the specified mount point'
 
-  '--mount-at-startup:Install a LaunchDaemon to mount the volume at System Startup'
-  '-l:Install a LaunchDaemon to mount the volume at System Startup'
+    '--mount-at-startup:Install a LaunchDaemon to mount the volume at System Startup'
+    '-l:Install a LaunchDaemon to mount the volume at System Startup'
 )
 
 unison_args=(
-  '--status:Check the running status of each Unison profile'
-  '-i:Check the running status of each Unison profile'
+    '--status:Check the running status of each Unison profile'
+    '-i:Check the running status of each Unison profile'
 
-  '--start:Start Unison profile(s) sync'
-  '-s:Start Unison profile(s) sync'
+    '--start:Start Unison profile(s) sync'
+    '-s:Start Unison profile(s) sync'
 
-  '--stop:Stop Unison profile(s) sync'
-  '-k:Stop Unison profile(s) sync'
+    '--stop:Stop Unison profile(s) sync'
+    '-k:Stop Unison profile(s) sync'
 
-  '--clear-locks:Clear Unison locks on localhost and a optional remote DevDsk'
-  '-c:Clear Unison locks on localhost and a optional remote DevDsk'
+    '--clear-locks:Clear Unison locks on localhost and a optional remote DevDsk'
+    '-c:Clear Unison locks on localhost and a optional remote DevDsk'
 
-  '--start-at-startup:Install a LaunchDaemon to start Unison at System Startup'
-  '-l:Install a LaunchDaemon to start Unison at System Startup'
+    '--start-at-startup:Install a LaunchDaemon to start Unison at System Startup'
+    '-l:Install a LaunchDaemon to start Unison at System Startup'
 )
 
 case "$words[2]" in
-  --amazon)
+--amazon)
     case "$words[3]" in
-      -a|--auth-init)
+    -a | --auth-init)
         _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
         ;;
-      -c|--midway-cookie)
+    -c | --midway-cookie)
         :
         ;;
-      -d|--devdsk-formation)
+    -d | --devdsk-formation)
         _arguments '-i[REQUIRED DevDsk ID]:REQUIRED DevDsk ID'
         ;;
-      -s|--update-hosts)
+    -s | --update-hosts)
         :
         ;;
-      -b|--brazil-setup)
+    -b | --brazil-setup)
         :
         ;;
-      -r|--spurdog-ro)
+    -r | --spurdog-ro)
         _arguments '-u[REQUIRED Amazon user alias]:REQUIRED Amazon user alias'
         ;;
-      *)
+    *)
         _describe 'args' amazon_args
         ;;
     esac
     ;;
-  --builder)
+--builder)
     case "$words[3]" in
-      -p|--python-package-init)
+    -p | --python-package-init)
         _arguments '-n[REQUIRED Package name in PascalCase]:REQUIRED Package name in PascalCase'
         ;;
-      -d|--dotfiles-update)
+    -d | --dotfiles-update)
         :
         ;;
-      *)
+    *)
         _describe 'args' builder_args
         ;;
     esac
     ;;
-  --macos)
+--macos)
     case "$words[3]" in
-      -f|--find-unencrypted-volumes)
+    -f | --find-unencrypted-volumes)
         :
         ;;
-      -c|--make-encrypted-volume)
+    -c | --make-encrypted-volume)
         _arguments '-n[REQUIRED Name of the volume to create]:REQUIRED Name of the volume to create' '-q[OPTIONAL Quota in Gb i.e. -q 50g]:OPTIONAL Quota in Gb i.e. -q 50g'
         ;;
-      -e|--encrypt-volume)
+    -e | --encrypt-volume)
         :
         ;;
-      -m|--mount-volume)
+    -m | --mount-volume)
         _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
         ;;
-      -l|--mount-at-startup)
+    -l | --mount-at-startup)
         _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
         ;;
-      *)
+    *)
         _describe 'args' macos_args
         ;;
     esac
     ;;
-  --unison)
+--unison)
     case "$words[3]" in
-      -i|--status)
+    -i | --status)
         :
         ;;
-      -s|--start)
+    -s | --start)
         :
         ;;
-      -k|--stop)
+    -k | --stop)
         :
         ;;
-      -c|--clear-locks)
+    -c | --clear-locks)
         _arguments '-i[OPTIONAL DevDsk ID]:OPTIONAL DevDsk ID'
         ;;
-      -l|--start-at-startup)
+    -l | --start-at-startup)
         :
         ;;
-      *)
+    *)
         _describe 'args' unison_args
         ;;
     esac
     ;;
-  *)
+*)
     _describe 'commands' commands
     ;;
 esac
