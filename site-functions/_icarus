@@ -92,7 +92,7 @@ _icarus() {
           _arguments '-i[DEVDSK_ID]:DevDsk ID'
           ;;
         -r|--spurdog-ro)
-          _arguments '-u:[AMZ_ALIAS]:Amazon user alias'
+          _arguments '-u[AMZ_ALIAS]:Amazon user alias'
           ;;
         *)
           _describe 'args' amazon_args
@@ -102,7 +102,7 @@ _icarus() {
     --builder)
       case "$words[3]" in
         -p|--python-package-init)
-          _arguments '-n:[PACKAGE_NAME]:Package name in PascalCase'
+          _arguments '-n[PACKAGE_NAME]:Package name in PascalCase'
           ;;
         *)
           _describe 'args' builder_args
@@ -112,13 +112,13 @@ _icarus() {
     --macos)
       case "$words[3]" in
         -c|--make-encrypted-volume)
-          _arguments '-n:[VOLUME_NAME]:Name of the volume to create' '-q:[QUOTA]:Quota in Gb i.e. -q 50g'
+          _arguments '-n[VOLUME_NAME]:Name of the volume to create' '-q[QUOTA]:Quota in Gb i.e. -q 50g'
           ;;
         -m|--mount-volume)
-          _arguments '-n:[VOLUME_NAME]:Name of the volume to mount' '-p:[MOUNT_POINT]:Mount point'
+          _arguments '-n[VOLUME_NAME]:Name of the volume to mount' '-p[MOUNT_POINT]:Mount point'
           ;;
         -l|--mount-at-startup)
-          _arguments '-n:[VOLUME_NAME]:Name of the volume to mount' '-p:[MOUNT_POINT]:Mount point'
+          _arguments '-n[VOLUME_NAME]:Name of the volume to mount' '-p[MOUNT_POINT]:Mount point'
           ;;
         *)
           _describe 'args' macos_args
@@ -128,7 +128,7 @@ _icarus() {
     --unison)
       case "$words[3]" in
         -c|--clear-locks)
-          _arguments '-i:[DEVDSK_ID]:DevDsk ID'
+          _arguments '-i[DEVDSK_ID]:DevDsk ID'
           ;;
         *)
           _describe 'args' unison_args
