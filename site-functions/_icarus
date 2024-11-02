@@ -69,7 +69,7 @@ _icarus() {
     '--status:Check the running status of each Unison profile'
     '-i:Check the running status of each Unison profile'
 
-    '--start:Start Start Unison profile(s) sync'
+    '--start:Start Unison profile(s) sync'
     '-s:Start Unison profile(s) sync'
 
     '--stop:Stop Unison profile(s) sync'
@@ -112,13 +112,13 @@ _icarus() {
     --macos)
       case "$words[3]" in
         -c|--make-encrypted-volume)
-          _arguments '-n:VOLUME_NAME:Volume name' '-q:QUOTA:Quota in Gb i.e. -q 50g'
+          _arguments '-n:VOLUME_NAME:Name of the volume to create' '-q:QUOTA:Quota in Gb i.e. -q 50g'
           ;;
         -m|--mount-volume)
-          _arguments '-n:VOLUME_NAME:Volume name' '-p:MOUNT_POINT:Mount point'
+          _arguments '-n:VOLUME_NAME:Name of the volume to mount' '-p:MOUNT_POINT:Mount point'
           ;;
         -l|--mount-at-startup)
-          _arguments '-n:VOLUME_NAME:Volume name' '-p:MOUNT_POINT:Mount point'
+          _arguments '-n:VOLUME_NAME:Name of the volume to mount' '-p:MOUNT_POINT:Mount point'
           ;;
         *)
           _describe 'args' macos_args
