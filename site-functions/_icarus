@@ -112,21 +112,13 @@ _icarus() {
     --macos)
       case "$words[3]" in
         -c|--make-encrypted-volume)
-          _arguments '-n[REQUIRED Name of the volume to create]:REQUIRED Name of the volume to create:(next)' && return 0
-            case "$state" in
-            -next)
-              _arguments '-q[OPTIONAL Quota in Gb i.e. -q 50g]:OPTIONAL Quota in Gb i.e. -q 50g'
-              ;;
-            *)
-              :
-              ;;
-            esac
+          _arguments '-n[REQUIRED Name of the volume to create]:REQUIRED Name of the volume to create' '-q[OPTIONAL Quota in Gb i.e. -q 50g]:OPTIONAL Quota in Gb i.e. -q 50g'
           ;;
         -m|--mount-volume)
-          _arguments '-n[REQUIRED Name of the volume to mount]' '-p[REQUIRED Mount point]'
+          _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
           ;;
         -l|--mount-at-startup)
-          _arguments '-n[REQUIRED Name of the volume to mount]' '-p[REQUIRED Mount point]'
+          _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
           ;;
         *)
           _describe 'args' macos_args
