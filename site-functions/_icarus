@@ -46,7 +46,7 @@ _icarus() {
     '-l --start-at-startup:Install a daemon to start Unison at startup'
   )
 
-  case "$words[1]" in
+  case "$words[2]" in
     --amazon)
       _describe 'args' amazon_args
       ;;
