@@ -103,3 +103,4 @@ _icarus() {
 }
 
 # Register the completion function
+compdef _icarus icarus
