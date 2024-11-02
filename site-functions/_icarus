@@ -18,82 +18,134 @@ _icarus() {
   )
 
   amazon_args=(
-    '--auth-init:Run midway authentication'
-    '-a:Run midway authentication'
+    '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
+    '-a:Run midway authentication on localhost and optional remote DevDsk(s)'
+    '-i:Specify DEVDSK_IDs. Takes multiple IDs i.e. -i 1 2 3'
 
-    '--midway-cookie:Check cookies validity'
-    '-c:Check cookies validity'
+    '--midway-cookie:Check the cookies validity'
+    '-c:Check the cookies validity'
 
-    '--devdsk-formation:Run DevDsk Formation'
-    '-d:Run DevDsk Formation'
+    '--devdsk-formation:Run DevDsk Formation on a remote DevDsk'
+    '-d:Run DevDsk Formation on a remote DevDsk'
+    '-i:Specify DEVDSK_ID'
 
-    '--update-hosts:Update /etc/hosts'
-    '-s:Update /etc/hosts'
+    '--update-hosts:Update /etc/hosts file'
+    '-s:Update /etc/hosts file'
 
-    '--update-hosts-d:Install a daemon for hosts update'
-    '-u:Install a daemon for hosts update'
+    '--update-hosts-d:Install a LaunchDaemon to update the hosts file every hour'
+    '-u:Install a LaunchDaemon to update the hosts file every hour'
 
-    '--brazil-setup:Create case-sensitive volumes'
-    '-b:Create case-sensitive volumes'
+    '--brazil-setup:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
+    '-b:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
 
     '--spurdog-ro:Check membership for Spurdog Program'
     '-r:Check membership for Spurdog Program'
+    '-u:Specify AMZ_ALIAS'
   )
 
   builder_args=(
-    '--python-package-init:Initiate a new Python package'
-    '-p:Initiate a new Python package'
+    '--python-package-init:Initiate a new Python package in the current folder'
+    '-p:Initiate a new Python package in the current folder'
+    '-n:PACKAGE_NAME'
 
-    '--dotfiles-update:Update dotfiles from repo'
-    '-d:Update dotfiles from repo'
+    '--dotfiles-update:Update dotfiles from their specified repository'
+    '-d:Update dotfiles from their specified repository'
   )
 
   macos_args=(
-    '--find-unencrypted-volumes:Find all unencrypted volumes'
-    '-f:Find all unencrypted volumes'
+    '--find-unencrypted-volumes:Find unencrypted volumes'
+    '-f:Find unencrypted volumes'
 
     '--make-encrypted-volume:Make an encrypted APFS volume'
     '-c:Make an encrypted APFS volume'
+    '-n:VOLUME_NAME'
+    '-q:QUOTA'
 
     '--encrypt-volume:Encrypt an existing APFS volume'
     '-e:Encrypt an existing APFS volume'
+    '-n:VOLUME_NAME'
 
-    '--mount-volume:Mount the specified volume'
-    '-m:Mount the specified volume'
+    '--mount-volume:Mount the specified volume at the specified mount point'
+    '-m:Mount the specified volume at the specified mount point'
+    '-n:VOLUME_NAME'
+    '-p:MOUNT_POINT'
 
-    '--mount-at-startup:Install a daemon to mount at startup'
-    '-l:Install a daemon to mount at startup'
+    '--mount-at-startup:Install a LaunchDaemon to mount the volume at System Startup'
+    '-l:Install a LaunchDaemon to mount the volume at System Startup'
+    '-n:VOLUME_NAME'
+    '-p:MOUNT_POINT'
   )
 
   unison_args=(
-    '--status:Check Unison status'
-    '-i:Check Unison status'
+    '--status:Check the running status of each Unison profile'
+    '-i:Check the running status of each Unison profile'
 
-    '--start:Start Unison sync'
-    '-s:Start Unison sync'
+    '--start:Start Start Unison profile(s) sync'
+    '-s:Start Unison profile(s) sync'
 
-    '--stop:Stop Unison sync'
-    '-k:Stop Unison sync'
+    '--stop:Stop Unison profile(s) sync'
+    '-k:Stop Unison profile(s) sync'
 
-    '--clear-locks:Clear Unison locks'
-    '-c:Clear Unison locks'
+    '--clear-locks:Clear Unison locks on localhost and a optional remote DevDsk'
+    '-c:Clear Unison locks on localhost and a optional remote DevDsk'
+    '-i:Specify DEVDSK_ID'
 
-    '--start-at-startup:Install a daemon to start Unison at startup'
-    '-l:Install a daemon to start Unison at startup'
+    '--start-at-startup:Install a LaunchDaemon to start Unison at System Startup'
+    '-l:Install a LaunchDaemon to start Unison at System Startup'
   )
 
   case "$words[2]" in
     --amazon)
-      _describe 'args' amazon_args
+      case "$words[3]" in
+        -a|--auth-init)
+          _arguments -n '(-i --devdsk-id)' '(-i --devdsk-id):DEVDSK_ID:'
+          ;;
+        -d|--devdsk-formation)
+          _arguments -n '(-i --devdsk-id)' '(-i --devdsk-id):DEVDSK_ID:'
+          ;;
+        -r|--spurdog-ro)
+          _arguments -n '(-u --amz-alias)' '(-u --amz-alias):AMZ_ALIAS:'
+          ;;
+        *)
+          _describe 'args' amazon_args
+          ;;
+      esac
       ;;
     --builder)
-      _describe 'args' builder_args
+      case "$words[3]" in
+        -p|--python-package-init)
+          _arguments -n '-n' '-n:PACKAGE_NAME:'
+          ;;
+        *)
+          _describe 'args' builder_args
+          ;;
+      esac
       ;;
     --macos)
-      _describe 'args' macos_args
+      case "$words[3]" in
+        -c|--make-encrypted-volume)
+          _arguments -n '-n -q' '-n:VOLUME_NAME:' '-q:QUOTA:'
+          ;;
+        -m|--mount-volume)
+          _arguments -n '-n -p' '-n:VOLUME_NAME:' '-p:MOUNT_POINT:'
+          ;;
+        -l|--mount-at-startup)
+          _arguments -n '-n -p' '-n:VOLUME_NAME:' '-p:MOUNT_POINT:'
+          ;;
+        *)
+          _describe 'args' macos_args
+          ;;
+      esac
       ;;
     --unison)
-      _describe 'args' unison_args
+      case "$words[3]" in
+        -c|--clear-locks)
+          _arguments -n '(-i --devdsk-id)' '(-i --devdsk-id):DEVDSK_ID:'
+          ;;
+        *)
+          _describe 'args' unison_args
+          ;;
+      esac
       ;;
     *)
       _describe 'commands' commands
