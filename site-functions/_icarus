@@ -95,7 +95,7 @@ _icarus() {
           _arguments '-u[REQUIRED Amazon user alias]:REQUIRED Amazon user alias'
           ;;
         *)
-          :
+          _describe 'args' amazon_args
           ;;
       esac
       ;;
@@ -105,7 +105,7 @@ _icarus() {
           _arguments '-n[REQUIRED Package name in PascalCase]:REQUIRED Package name in PascalCase'
           ;;
         *)
-          :
+          _describe 'args' builder_args
           ;;
       esac
       ;;
@@ -121,7 +121,7 @@ _icarus() {
           _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
           ;;
         *)
-          :
+          _describe 'args' macos_args
           ;;
       esac
       ;;
@@ -131,7 +131,7 @@ _icarus() {
           _arguments '-i[OPTIONAL DevDsk ID]:OPTIONAL DevDsk ID'
           ;;
         *)
-          :
+          _describe 'args' unison_args
           ;;
       esac
       ;;
