@@ -86,7 +86,7 @@ _icarus() {
     --amazon)
       case "$words[3]" in
         -a|--auth-init)
-          _arguments '-i:DEVDSK_ID:Takes multiple ids i.e. -i 1 2 3'
+          _arguments '-i[DEVDSK_ID]:[Takes multiple ids i.e. -i 1 2 3]'
           ;;
         -d|--devdsk-formation)
           _arguments '-i:DEVDSK_ID:DevDsk ID'
