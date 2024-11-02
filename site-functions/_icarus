@@ -13,39 +13,73 @@ _icarus() {
     '--builder:Utilities for software development'
     '--macos:Utilities for macOS'
     '--unison:Utilities to manage Unison daemon'
-    '-h:Show help'
     '--help:Show help'
+    '-h:Show help'
   )
 
   amazon_args=(
-    '-a --auth-init:Run midway authentication'
-    '-c --midway-cookie:Check cookies validity'
-    '-d --devdsk-formation:Run DevDsk Formation'
-    '-s --update-hosts:Update /etc/hosts'
-    '-u --update-hosts-d:Install a daemon for hosts update'
-    '-b --brazil-setup:Create case-sensitive volumes'
-    '-r --spurdog-ro:Check membership for Spurdog Program'
+    '--auth-init:Run midway authentication'
+    '-a:Run midway authentication'
+
+    '--midway-cookie:Check cookies validity'
+    '-c:Check cookies validity'
+
+    '--devdsk-formation:Run DevDsk Formation'
+    '-d:Run DevDsk Formation'
+
+    '--update-hosts:Update /etc/hosts'
+    '-s:Update /etc/hosts'
+
+    '--update-hosts-d:Install a daemon for hosts update'
+    '-u:Install a daemon for hosts update'
+
+    '--brazil-setup:Create case-sensitive volumes'
+    '-b:Create case-sensitive volumes'
+
+    '--spurdog-ro:Check membership for Spurdog Program'
+    '-r:Check membership for Spurdog Program'
   )
 
   builder_args=(
-    '-p --python-package-init:Initiate a new Python package'
-    '-d --dotfiles-update:Update dotfiles from repo'
+    '--python-package-init:Initiate a new Python package'
+    '-p:Initiate a new Python package'
+
+    '--dotfiles-update:Update dotfiles from repo'
+    '-d:Update dotfiles from repo'
   )
 
   macos_args=(
-    '-f --find-unencrypted-volumes:Find all unencrypted volumes'
-    '-c --make-encrypted-volume:Make an encrypted APFS volume'
-    '-e --encrypt-volume:Encrypt an existing APFS volume'
-    '-m --mount-volume:Mount the specified volume'
-    '-l --mount-at-startup:Install a daemon to mount at startup'
+    '--find-unencrypted-volumes:Find all unencrypted volumes'
+    '-f:Find all unencrypted volumes'
+
+    '--make-encrypted-volume:Make an encrypted APFS volume'
+    '-c:Make an encrypted APFS volume'
+
+    '--encrypt-volume:Encrypt an existing APFS volume'
+    '-e:Encrypt an existing APFS volume'
+
+    '--mount-volume:Mount the specified volume'
+    '-m:Mount the specified volume'
+
+    '--mount-at-startup:Install a daemon to mount at startup'
+    '-l:Install a daemon to mount at startup'
   )
 
   unison_args=(
-    '-i --status:Check Unison status'
-    '-s --start:Start Unison sync'
-    '-k --stop:Stop Unison sync'
-    '-c --clear-locks:Clear Unison locks'
-    '-l --start-at-startup:Install a daemon to start Unison at startup'
+    '--status:Check Unison status'
+    '-i:Check Unison status'
+
+    '--start:Start Unison sync'
+    '-s:Start Unison sync'
+
+    '--stop:Stop Unison sync'
+    '-k:Stop Unison sync'
+
+    '--clear-locks:Clear Unison locks'
+    '-c:Clear Unison locks'
+
+    '--start-at-startup:Install a daemon to start Unison at startup'
+    '-l:Install a daemon to start Unison at startup'
   )
 
   case "$words[2]" in
