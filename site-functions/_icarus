@@ -1,10 +1,8 @@
-#compdef icarus
-#autoload
-
 # zsh completion for icarus cli
 # vim: ft=sh
 
 # Enable autoloading
+#compdef icarus
 
 _icarus() {
   local -a commands
@@ -103,4 +101,5 @@ _icarus() {
   esac
 }
 
-_icarus "$@"
+# Register the completion function
+compdef _icarus icarus
