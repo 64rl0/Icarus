@@ -103,8 +103,3 @@ _icarus() {
 
 # Register the completion function
 # compdef _icarus icarus
-
-# don't run the completion function when being source-ed or eval-ed
-if [ "$funcstack[1]" = "_icarus" ]; then
-    _icarus
-fi
