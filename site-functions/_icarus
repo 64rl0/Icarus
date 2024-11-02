@@ -1,7 +1,3 @@
-# zsh completion for icarus cli
-# vim: ft=sh
-
-# Enable autoloading
 #compdef icarus
 
 local -a commands
