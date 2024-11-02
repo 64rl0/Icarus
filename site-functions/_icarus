@@ -2,7 +2,7 @@
 # vim: ft=sh
 
 # Enable autoloading
-# compdef icarus
+#compdef icarus
 
 _icarus() {
   local -a commands
