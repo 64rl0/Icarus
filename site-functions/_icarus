@@ -1,4 +1,5 @@
 #compdef icarus
+#autoload
 
 # zsh completion for icarus cli
 # vim: ft=sh
