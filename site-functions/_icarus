@@ -112,7 +112,7 @@ _icarus() {
     --macos)
       case "$words[3]" in
         -c|--make-encrypted-volume)
-          _arguments '-n[[VOLUME_NAME]:Name of the volume to create]' '-q[QUOTA]:Quota in Gb i.e. -q 50g'
+          _arguments '-n[Name of the volume to create]::()' '-q[Quota in Gb i.e. -q 50g]::()'
           ;;
         -m|--mount-volume)
           _arguments '-n[VOLUME_NAME]:Name of the volume to mount' '-p[MOUNT_POINT]:Mount point'
