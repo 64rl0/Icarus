@@ -86,26 +86,26 @@ _icarus() {
     --amazon)
       case "$words[3]" in
         -a|--auth-init)
-          _arguments '-i[[[DEVDSK_ID]:DevDsk ID, takes multiple ids i.e. -i 1 2 3]'
+          _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
           ;;
         -d|--devdsk-formation)
-          _arguments '-i[DEVDSK_ID]:DevDsk ID'
+          _arguments '-i[REQUIRED DevDsk ID]:REQUIRED DevDsk ID'
           ;;
         -r|--spurdog-ro)
-          _arguments '-u[AMZ_ALIAS]:Amazon user alias'
+          _arguments '-u[REQUIRED Amazon user alias]:REQUIRED Amazon user alias'
           ;;
         *)
-          _describe 'args' amazon_args
+          :
           ;;
       esac
       ;;
     --builder)
       case "$words[3]" in
         -p|--python-package-init)
-          _arguments '-n[PACKAGE_NAME]:Package name in PascalCase'
+          _arguments '-n[REQUIRED Package name in PascalCase]:REQUIRED Package name in PascalCase'
           ;;
         *)
-          _describe 'args' builder_args
+          :
           ;;
       esac
       ;;
@@ -121,17 +121,17 @@ _icarus() {
           _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
           ;;
         *)
-          _describe 'args' macos_args
+          :
           ;;
       esac
       ;;
     --unison)
       case "$words[3]" in
         -c|--clear-locks)
-          _arguments '-i[DEVDSK_ID]:DevDsk ID'
+          _arguments '-i[OPTIONAL DevDsk ID]:OPTIONAL DevDsk ID'
           ;;
         *)
-          _describe 'args' unison_args
+          :
           ;;
       esac
       ;;
