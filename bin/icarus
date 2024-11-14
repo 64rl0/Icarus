@@ -1199,6 +1199,7 @@ EOF
             "prof_workplace"
             "prof_my_lib"
             "prof_devdsk7"
+            "prof_devdsk8"
         )
 
         for unison_profile in "${unison_profiles[@]}"; do
