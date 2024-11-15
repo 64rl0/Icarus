@@ -75,11 +75,12 @@ set -o pipefail  # Exit status of a pipeline is the status of the last cmd to ex
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 
+# Sourcing existing bashrc to export current PATH
+source "${HOME}/.bashrc"
+
 # CLI variables
 cli_name='icarus'
 this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
-
-source "${HOME}/.bashrc"
 
 ########################################################################
 # UTILS
