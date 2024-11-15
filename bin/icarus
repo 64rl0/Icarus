@@ -79,7 +79,7 @@ declare -r script_dir_abs
 cli_name='icarus'
 this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
 
-source "${HOME}/.zshrc"
+source "${HOME}/.bashrc"
 
 ########################################################################
 # UTILS
