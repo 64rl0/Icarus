@@ -76,8 +76,10 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 
 # Sourcing existing bashrc to export current PATH
+set +e
 echo -e "Home is: ${HOME}"
 source "${HOME}/.bashrc" || echo -e "${red}[ERROR] Failed to source .bashrc${end}"
+set -e
 
 # CLI variables
 cli_name='icarus'
