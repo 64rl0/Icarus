@@ -78,7 +78,7 @@ declare -r script_dir_abs
 # Temporarily disable 'errexit' to allow for retries
 set +e
 # Sourcing existing bashrc to export current PATH
-source "${HOME}/.bashrc" || echo -e "${red}[ERROR] Failed to source .bashrc${end}"
+source "${HOME}/.bashrc" || echo -e "${red}[ERROR] [$(date '+%Y-%m-%d %T %Z')] Failed to source .bashrc${end}"
 # Re-enable 'errexit'
 set -e
 
@@ -93,6 +93,10 @@ run_as_sudo() {
     echo -e "We need to briefly run as root (through sudo) to execute some commands."
     echo -e "If prompted, please enter your user password."
     sudo -v
+}
+
+log_time() {
+    echo -e "[$(date '+%Y-%m-%d %T %Z')]"
 }
 
 ########################################################################
