@@ -1208,6 +1208,7 @@ EOF
     unison_run_profiles() {
         unison_profiles=(
             "prof_workplace"
+            "prof_brazil-pkg-cache"
             "prof_my_lib"
             "prof_devdsk7"
             "prof_devdsk8"
