@@ -1492,7 +1492,7 @@ usage() {
     echo -e ""
     echo -e "${yellow}--amazon [ARGS]:${end}"
     echo -e " --auth-init                   [-i DEVDSK_ID] [--devdsk]                Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
-    echo -e " --auth-init-exp               -i DEVDSK_ID                             Run midway authentication express on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 2 2 3."
+    echo -e " --auth-init-exp               [-i DEVDSK_ID] [--devdsk]                Run midway authentication express on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 2 2 3."
     echo -e " --midway-cookie                                                        Check the cookies validity."
     echo -e " --devdsk-formation            -i DEVDSK_ID                             Run DevDsk Formation on a remote DevDsk."
     echo -e " --update-hosts                                                         Update /etc/hosts file."
