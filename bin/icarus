@@ -195,7 +195,9 @@ set timeout -1
 set mwpin \$env(MWPIN)
 
 # Start the script
+log_user 0
 spawn \$env(HOME)/.icarus/bin/icarus --amazon --auth-init $*
+log_user 1
 
 # Handle multiple prompt possibilities repeatedly
 while {1} {
