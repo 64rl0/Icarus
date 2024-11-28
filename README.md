@@ -26,20 +26,16 @@ Utilities for managing and automating tasks within Amazon environments.
 Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- `[--devdsk]` Run mwinit with OTP option --otp-auth
 - Example: `icarus --amazon --auth-init -i 1 2 3`
-- Example: `icarus --amazon --auth-init --devdsk`
 
 ### `--auth-init-exp`
 
-Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs. 
+Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
 This command uses the expect program to pass the MWPIN to mwinit so that you will only need to tap your security key.
 You must export the variable MWPIN set to your security key pin.
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- `[--devdsk]` Run mwinit with OTP option --otp-auth
 - Example: `icarus --amazon --auth-init-exp -i 1 2 3`
-- Example: `icarus --amazon --auth-init-exp --devdsk`
 
 ### `--midway-cookie`
 
@@ -71,7 +67,9 @@ Create case-sensitive volumes:
 Check membership for Spurdog Program.
 
 - `-u` Mandatory identifier for the Amazon User Alias.
+- `--auth` Run mwinit before querying.
 - Example: `icarus --amazon --spurdog-ro -u carlogtt`
+- Example: `icarus --amazon --spurdog-ro -u carlogtt --auth`
 
 &nbsp;
 ## --builder

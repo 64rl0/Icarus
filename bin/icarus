@@ -109,7 +109,7 @@ amazon() {
         set +e
 
         # Local machine
-        echo -e "${bold_yellow}${circle_arrows} Authentication started for LOCAL $(uname -n)...\n${end}"
+        echo -e "${bold_yellow}${circle_arrows} Authentication started for $(uname -n)...\n${end}"
 
         # Authenticate Kerberos
         while true; do
@@ -134,7 +134,7 @@ amazon() {
         # Authenticate Midway
         while true; do
             echo -e "${blue}Midway Authentication${end}"
-            if [[ "$1" == "--devdsk" ]]; then
+            if [ -n "$SSH_CONNECTION" ]; then
                 mwinit --otp-auth -s
             else
                 mwinit --fido2 -s
@@ -168,7 +168,7 @@ amazon() {
             # SSH into the cloud desktop and initialize there
             echo -e "${bold_yellow}${circle_arrows} Authentication started for REMOTE SSH ${hostname}...${end}"
 
-            ssh -t "${hostname}" '${HOME}/.icarus/bin/icarus --amazon --auth-init --devdsk'
+            ssh -t "${hostname}" '${HOME}/.icarus/bin/icarus --amazon --auth-init'
             # Break line
             echo ""
             echo ""
@@ -406,6 +406,11 @@ EOF
     }
 
     spurdog_read_on() {
+        if [[ "$2" == "--auth" ]]; then
+            # Run mwinit authentication
+            "${this_cli_fullpath}" "--amazon" "--auth-init"
+        fi
+
         local username="$1"
         curl --cookie "${HOME}/.midway/cookie" -L -G --silent --data "id=${username}" "https://sarsen-ccwt.adc.security.aws.dev/api/v1/check" | jq
     }
@@ -446,10 +451,6 @@ EOF
                     auth_init_local_machine
                     exit 0
                     ;;
-                --devdsk)
-                    auth_init_local_machine "--devdsk"
-                    exit 0
-                    ;;
                 -i)
                     if [[ -z "$3" ]]; then
                         usage
@@ -471,10 +472,6 @@ EOF
             case "$2" in
                 '')
                     auth_init_express
-                    exit 0
-                    ;;
-                --devdsk)
-                    auth_init_express "--devdsk"
                     exit 0
                     ;;
                 -i)
@@ -1491,14 +1488,14 @@ usage() {
     echo -e " -h | --help                                                            Echo this usage list."
     echo -e ""
     echo -e "${yellow}--amazon [ARGS]:${end}"
-    echo -e " --auth-init                   [-i DEVDSK_ID] [--devdsk]                Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
-    echo -e " --auth-init-exp               [-i DEVDSK_ID] [--devdsk]                Run midway authentication express on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 2 2 3."
+    echo -e " --auth-init                   [-i DEVDSK_ID]                           Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
+    echo -e " --auth-init-exp               [-i DEVDSK_ID]                           Run midway authentication express on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 2 2 3."
     echo -e " --midway-cookie                                                        Check the cookies validity."
     echo -e " --devdsk-formation            -i DEVDSK_ID                             Run DevDsk Formation on a remote DevDsk."
     echo -e " --update-hosts                                                         Update /etc/hosts file."
     echo -e " --update-hosts-d                                                       Install a LaunchDaemon to update the hosts file every hour."
     echo -e " --brazil-setup                                                         Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
-    echo -e " --spurdog-ro                  -u AMZ_ALIAS                             Check membership for Spurdog Program"
+    echo -e " --spurdog-ro                  -u AMZ_ALIAS [--auth]                    Check membership for Spurdog Program, use --auth to run mwinit before querying"
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
     echo -e " --python-package-init         -n PACKAGE_NAME                          Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."
