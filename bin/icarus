@@ -113,7 +113,6 @@ amazon() {
 
         # Authenticate Kerberos
         while true; do
-
             echo -e "${blue}Kerberos Authentication${end}"
             echo -e "${red}[DISABLED] Kerberos${end}" && true
             # kinit -f
@@ -127,7 +126,6 @@ amazon() {
                 echo -e "${bold_red}Authentication failed! Please try again.\n${end}"
                 continue
             fi
-
         done
 
         # Break line
@@ -135,9 +133,12 @@ amazon() {
 
         # Authenticate Midway
         while true; do
-
             echo -e "${blue}Midway Authentication${end}"
-            mwinit -s --fido2
+            if [[ "$1" == "--devdsk" ]]; then
+                mwinit --opt-auth -s
+            else
+                mwinit --fido2 -s
+            fi
             mwinit_status=$?
 
             # Check if Midway was successful
@@ -148,7 +149,6 @@ amazon() {
                 echo -e "${bold_red}Authentication failed! Please try again.\n${end}"
                 continue
             fi
-
         done
 
         # Break line
@@ -168,24 +168,7 @@ amazon() {
             # SSH into the cloud desktop and initialize there
             echo -e "${bold_yellow}${circle_arrows} Authentication started for REMOTE SSH ${hostname}...\n${end}"
 
-            ssh -t "${hostname}" "
-#source /local/home/carlogtt/.zshrc;
-
-echo -e '${blue}Performing Kerberos Authentication${end}';
-echo -e '${red}[DISABLED] Kerberos${end}';
-#kinit -f;
-
-echo '';
-
-echo -e '${blue}Midway Authentication${end}';
-mwinit -s -o;
-#mwinit_status=\$?;
-#if [[ \$mwinit_status -eq 0 ]]; then;
-#    echo -e '${bold_green}${key} Successfully authenticated!${end}';
-#else;
-#    echo -e '${bold_red}Authentication failed!\n${end}';
-#fi
-"
+            ssh -t "${hostname}" '${HOME}/.icarus/bin/icarus --amazon --auth-init --devdsk'
             # Break line
             echo ""
             echo ""
@@ -212,7 +195,7 @@ set timeout -1
 set mwpin \$env(MWPIN)
 
 # Start the script
-spawn \$env(HOME)/.icarus/bin/icarus --amazon --auth-init -i $*
+spawn \$env(HOME)/.icarus/bin/icarus --amazon --auth-init $*
 
 # Handle multiple prompt possibilities repeatedly
 while {1} {
@@ -225,6 +208,7 @@ while {1} {
             # Expect the intermediate prompt
             expect {
                 "Touch the security key" {
+                    sleep 1
                 }
             }
 
@@ -419,12 +403,12 @@ EOF
         echo -e "Configuration loaded"
     }
 
-    spurdog_read_on()  {
+    spurdog_read_on() {
         local username="$1"
         curl --cookie "${HOME}/.midway/cookie" -L -G --silent --data "id=${username}" "https://sarsen-ccwt.adc.security.aws.dev/api/v1/check" | jq
     }
 
-    brazil_setup_volumes()  {
+    brazil_setup_volumes() {
         run_as_sudo
 
         echo -e "\nCreating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
@@ -454,112 +438,124 @@ EOF
     fi
 
     case "${arg}" in
-    -a | --auth-init)
-        case "$2" in
-        '')
-            auth_init_local_machine
+        --auth-init)
+            case "$2" in
+                '')
+                    auth_init_local_machine
+                    exit 0
+                    ;;
+                --devdsk)
+                    auth_init_local_machine "--devdsk"
+                    exit 0
+                    ;;
+                -i)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    auth_init_local_machine
+                    auth_init_ssh "${@:3}"
+                    exit 0
+                    ;;
+                *)
+                    echo -e "${bold}amazon: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        --auth-init-exp)
+            case "$2" in
+                '')
+                    auth_init_express
+                    exit 0
+                    ;;
+                --devdsk)
+                    auth_init_express "--devdsk"
+                    exit 0
+                    ;;
+                -i)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    auth_init_express "-i ${*:3}"
+                    exit 0
+                    ;;
+                *)
+                    echo -e "${bold}amazon: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        --midway-cookie)
+            cookies_analysis
             exit 0
             ;;
-        -i)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            auth_init_local_machine
-            auth_init_ssh "${@:3}"
+
+        --devdsk-formation)
+            case "$2" in
+                -i)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    devdsk_formation "${@:3}"
+                    exit 0
+                    ;;
+                *)
+                    echo -e "${bold}amazon: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        --spurdog-ro)
+            case "$2" in
+                -u)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    spurdog_read_on "${@:3}"
+                    exit 0
+                    ;;
+                *)
+                    echo -e "${bold}amazon: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        --brazil-setup)
+            brazil_setup_volumes
             exit 0
             ;;
+
+        --update-hosts)
+            update_etc_hosts
+            exit 0
+            ;;
+
+        --update-hosts-d)
+            update_etc_hosts_daemon
+            exit 0
+            ;;
+
+        -h | --help)
+            usage
+            ;;
+
         *)
             echo -e "${bold}amazon: illegal option -- $*${end}"
             usage
             exit 1
             ;;
-        esac
-        ;;
-
-    -e | --auth-init-exp)
-        case "$2" in
-        -i)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            auth_init_express "${@:3}"
-            exit 0
-            ;;
-        *)
-            echo -e "${bold}amazon: illegal option -- $*${end}"
-            usage
-            exit 1
-            ;;
-        esac
-        ;;
-
-    -c | --midway-cookie)
-        cookies_analysis
-        exit 0
-        ;;
-
-    -d | --devdsk-formation)
-        case "$2" in
-        -i)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            devdsk_formation "${@:3}"
-            exit 0
-            ;;
-        *)
-            echo -e "${bold}amazon: illegal option -- $*${end}"
-            usage
-            exit 1
-            ;;
-        esac
-        ;;
-
-    -r | --spurdog-ro)
-        case "$2" in
-        -u)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            spurdog_read_on "${@:3}"
-            exit 0
-            ;;
-        *)
-            echo -e "${bold}amazon: illegal option -- $*${end}"
-            usage
-            exit 1
-            ;;
-        esac
-        ;;
-
-    -b | --brazil-setup)
-        brazil_setup_volumes
-        exit 0
-        ;;
-
-    -s | --update-hosts)
-        update_etc_hosts
-        exit 0
-        ;;
-
-    -u | --update-hosts-d)
-        update_etc_hosts_daemon
-        exit 0
-        ;;
-
-    -h | --help)
-        usage
-        ;;
-
-    *)
-        echo -e "${bold}amazon: illegal option -- $*${end}"
-        usage
-        exit 1
-        ;;
     esac
 }
 
@@ -671,38 +667,38 @@ builder() {
     fi
 
     case "${arg}" in
-    -p | --python-package-init)
-        case "$2" in
-        -n)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            python_package_init "$3"
+        --python-package-init)
+            case "$2" in
+                -n)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    python_package_init "$3"
+                    exit 0
+                    ;;
+                *)
+                    echo -e "${bold}builder: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        --dotfiles-update)
+            dotfiles_update
             exit 0
             ;;
+
+        -h | --help)
+            usage
+            ;;
+
         *)
             echo -e "${bold}builder: illegal option -- $*${end}"
             usage
             exit 1
             ;;
-        esac
-        ;;
-
-    -d | --dotfiles-update)
-        dotfiles_update
-        exit 0
-        ;;
-
-    -h | --help)
-        usage
-        ;;
-
-    *)
-        echo -e "${bold}builder: illegal option -- $*${end}"
-        usage
-        exit 1
-        ;;
     esac
 }
 
@@ -1027,134 +1023,134 @@ EOF
     fi
 
     case "${arg}" in
-    -f | --find-unencrypted-volumes)
-        macos_find_unencrypted_volumes
-        exit 0
-        ;;
+        --find-unencrypted-volumes)
+            macos_find_unencrypted_volumes
+            exit 0
+            ;;
 
-    -c | --make-encrypted-volume)
-        case "$2" in
-        -n)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            case "$4" in
-            '')
-                macos_make_encrypted_volume "$3"
-                exit 0
-                ;;
-            -q)
-                if [[ -z "$5" ]]; then
+        --make-encrypted-volume)
+            case "$2" in
+                -n)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    case "$4" in
+                        '')
+                            macos_make_encrypted_volume "$3"
+                            exit 0
+                            ;;
+                        -q)
+                            if [[ -z "$5" ]]; then
+                                usage
+                                exit 1
+                            fi
+                            macos_make_encrypted_volume "$3" "$5"
+                            exit 0
+                            ;;
+                        *)
+                            echo -e "${bold}macos: illegal option -- $*${end}"
+                            usage
+                            exit 1
+                            ;;
+                    esac
+                    ;;
+                *)
+                    echo -e "${bold}macos: illegal option -- $*${end}"
                     usage
                     exit 1
-                fi
-                macos_make_encrypted_volume "$3" "$5"
-                exit 0
-                ;;
-            *)
-                echo -e "${bold}macos: illegal option -- $*${end}"
-                usage
-                exit 1
-                ;;
+                    ;;
             esac
             ;;
-        *)
-            echo -e "${bold}macos: illegal option -- $*${end}"
-            usage
-            exit 1
-            ;;
-        esac
-        ;;
 
-    -e | --encrypt-volume)
-        case "$2" in
-        -n)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            macos_encrypt_volume "$3"
-            ;;
-        *)
-            echo -e "${bold}macos: illegal option -- $*${end}"
-            usage
-            exit 1
-            ;;
-        esac
-        ;;
-
-    -m | --mount-volume)
-        case "$2" in
-        -n)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            case "$4" in
-            -p)
-                if [[ -z "$5" ]]; then
+        --encrypt-volume)
+            case "$2" in
+                -n)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    macos_encrypt_volume "$3"
+                    ;;
+                *)
+                    echo -e "${bold}macos: illegal option -- $*${end}"
                     usage
                     exit 1
-                fi
-                macos_mount_volume "$3" "$5"
-                exit 0
-                ;;
-            *)
-                echo -e "${bold}macos: illegal option -- $*${end}"
-                usage
-                exit 1
-                ;;
+                    ;;
             esac
             ;;
-        *)
-            echo -e "${bold}macos: illegal option -- $*${end}"
-            usage
-            exit 1
-            ;;
-        esac
-        ;;
 
-    -l | --mount-at-startup)
-        case "$2" in
-        -n)
-            if [[ -z "$3" ]]; then
-                usage
-                exit 1
-            fi
-            case "$4" in
-            -p)
-                if [[ -z "$5" ]]; then
+        --mount-volume)
+            case "$2" in
+                -n)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    case "$4" in
+                        -p)
+                            if [[ -z "$5" ]]; then
+                                usage
+                                exit 1
+                            fi
+                            macos_mount_volume "$3" "$5"
+                            exit 0
+                            ;;
+                        *)
+                            echo -e "${bold}macos: illegal option -- $*${end}"
+                            usage
+                            exit 1
+                            ;;
+                    esac
+                    ;;
+                *)
+                    echo -e "${bold}macos: illegal option -- $*${end}"
                     usage
                     exit 1
-                fi
-                macos_install_mount_volume_launchd "$3" "$5"
-                exit 0
-                ;;
-            *)
-                echo -e "${bold}macos: illegal option -- $*${end}"
-                usage
-                exit 1
-                ;;
+                    ;;
             esac
             ;;
+
+        --mount-at-startup)
+            case "$2" in
+                -n)
+                    if [[ -z "$3" ]]; then
+                        usage
+                        exit 1
+                    fi
+                    case "$4" in
+                        -p)
+                            if [[ -z "$5" ]]; then
+                                usage
+                                exit 1
+                            fi
+                            macos_install_mount_volume_launchd "$3" "$5"
+                            exit 0
+                            ;;
+                        *)
+                            echo -e "${bold}macos: illegal option -- $*${end}"
+                            usage
+                            exit 1
+                            ;;
+                    esac
+                    ;;
+                *)
+                    echo -e "${bold}macos: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        -h | --help)
+            usage
+            ;;
+
         *)
             echo -e "${bold}macos: illegal option -- $*${end}"
             usage
             exit 1
             ;;
-        esac
-        ;;
-
-    -h | --help)
-        usage
-        ;;
-
-    *)
-        echo -e "${bold}macos: illegal option -- $*${end}"
-        usage
-        exit 1
-        ;;
     esac
 
 }
@@ -1410,61 +1406,61 @@ EOF
     fi
 
     case "${arg}" in
-    -i | --status)
-        unison_status
-        exit 0
-        ;;
-
-    -s | --start)
-        unison_start
-        exit 0
-        ;;
-
-    -k | --stop)
-        unison_stop
-        exit 0
-        ;;
-
-    -c | --clear-locks)
-        case "$2" in
-        '')
-            clear_locks_local_machine
+        --status)
+            unison_status
             exit 0
             ;;
-        -i)
-            clear_locks_local_machine
-            echo -e "\n"
-            clear_locks_ssh "$3"
+
+        --start)
+            unison_start
             exit 0
             ;;
+
+        --stop)
+            unison_stop
+            exit 0
+            ;;
+
+        --clear-locks)
+            case "$2" in
+                '')
+                    clear_locks_local_machine
+                    exit 0
+                    ;;
+                -i)
+                    clear_locks_local_machine
+                    echo -e "\n"
+                    clear_locks_ssh "$3"
+                    exit 0
+                    ;;
+                *)
+                    echo -e "${bold}unison: illegal option -- $*${end}"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        --start-at-startup)
+            unison_install_launchd
+            exit 0
+            ;;
+
+        # Internally used only, not available in the CLI help page
+        --run-profiles)
+            unison_run_profiles
+            exit 0
+            ;;
+
+        -h | --help)
+            usage
+            ;;
+
         *)
             echo -e "${bold}unison: illegal option -- $*${end}"
             usage
             exit 1
             ;;
-        esac
-        ;;
-
-    -l | --start-at-startup)
-        unison_install_launchd
-        exit 0
-        ;;
-
-    # Internally used only, not available in the CLI help page
-    --run-profiles)
-        unison_run_profiles
-        exit 0
-        ;;
-
-    -h | --help)
-        usage
-        ;;
-
-    *)
-        echo -e "${bold}unison: illegal option -- $*${end}"
-        usage
-        exit 1
-        ;;
     esac
 }
 
@@ -1493,32 +1489,32 @@ usage() {
     echo -e " -h | --help                                                            Echo this usage list."
     echo -e ""
     echo -e "${yellow}--amazon [ARGS]:${end}"
-    echo -e " -a | --auth-init                   [-i DEVDSK_ID]                      Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
-    echo -e " -e | --auth-init-exp               -i DEVDSK_ID                        Run midway authentication express on localhost and MANDATORY remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
-    echo -e " -c | --midway-cookie                                                   Check the cookies validity."
-    echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
-    echo -e " -s | --update-hosts                                                    Update /etc/hosts file."
-    echo -e " -u | --update-hosts-d                                                  Install a LaunchDaemon to update the hosts file every hour."
-    echo -e " -b | --brazil-setup                                                    Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
-    echo -e " -r | --spurdog-ro                  -u AMZ_ALIAS                        Check membership for Spurdog Program"
+    echo -e " --auth-init                   [-i DEVDSK_ID] [--devdsk]                Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
+    echo -e " --auth-init-exp               -i DEVDSK_ID                             Run midway authentication express on localhost and MANDATORY remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
+    echo -e " --midway-cookie                                                        Check the cookies validity."
+    echo -e " --devdsk-formation            -i DEVDSK_ID                             Run DevDsk Formation on a remote DevDsk."
+    echo -e " --update-hosts                                                         Update /etc/hosts file."
+    echo -e " --update-hosts-d                                                       Install a LaunchDaemon to update the hosts file every hour."
+    echo -e " --brazil-setup                                                         Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
+    echo -e " --spurdog-ro                  -u AMZ_ALIAS                             Check membership for Spurdog Program"
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
-    echo -e " -p | --python-package-init         -n PACKAGE_NAME                     Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."
-    echo -e " -d | --dotfiles-update                                                 Update dotfiles from their specified repository."
+    echo -e " --python-package-init         -n PACKAGE_NAME                          Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."
+    echo -e " --dotfiles-update                                                      Update dotfiles from their specified repository."
     echo -e ""
     echo -e "${yellow}--macos [ARGS]:${end}"
-    echo -e " -f | --find-unencrypted-volumes                                        Find all unencrypted volumes."
-    echo -e " -c | --make-encrypted-volume       -n VOLUME_NAME    [-q QUOTA]        Make an encrypted APFS volume. QUOTA in Gb i.e. -q 50g."
-    echo -e " -e | --encrypt-volume              -n VOLUME_NAME                      Encrypt an existing APFS volume."
-    echo -e " -m | --mount-volume                -n VOLUME_NAME    -p MOUNT_POINT    Mount the specified volume at the specified mount point."
-    echo -e " -l | --mount-at-startup            -n VOLUME_NAME    -p MOUNT_POINT    Install a LaunchDaemon to mount the volume at System Startup."
+    echo -e " --find-unencrypted-volumes                                             Find all unencrypted volumes."
+    echo -e " --make-encrypted-volume       -n VOLUME_NAME    [-q QUOTA]             Make an encrypted APFS volume. QUOTA in Gb i.e. -q 50g."
+    echo -e " --encrypt-volume              -n VOLUME_NAME                           Encrypt an existing APFS volume."
+    echo -e " --mount-volume                -n VOLUME_NAME    -p MOUNT_POINT         Mount the specified volume at the specified mount point."
+    echo -e " --mount-at-startup            -n VOLUME_NAME    -p MOUNT_POINT         Install a LaunchDaemon to mount the volume at System Startup."
     echo -e ""
     echo -e "${yellow}--unison [ARGS]:${end}"
-    echo -e " -i | --status                                                          Check the running status of each Unison profile."
-    echo -e " -s | --start                                                           Start Unison profile(s) sync."
-    echo -e " -k | --stop                                                            Stop Unison profile(s) sync."
-    echo -e " -c | --clear-locks                 [-i DEVDSK_ID]                      Clear Unison locks on localhost and a optional remote DevDsk."
-    echo -e " -l | --start-at-startup                                                Install a LaunchDaemon to start Unison at System Startup."
+    echo -e " --status                                                               Check the running status of each Unison profile."
+    echo -e " --start                                                                Start Unison profile(s) sync."
+    echo -e " --stop                                                                 Stop Unison profile(s) sync."
+    echo -e " --clear-locks                 [-i DEVDSK_ID]                           Clear Unison locks on localhost and a optional remote DevDsk."
+    echo -e " --start-at-startup                                                     Install a LaunchDaemon to start Unison at System Startup."
     echo -e ""
 }
 
@@ -1534,30 +1530,28 @@ else
 fi
 
 case "${arg}" in
+    --amazon)
+        amazon "${@:2}"
+        ;;
+    --builder)
+        builder "${@:2}"
+        ;;
+    --macos)
+        macos "${@:2}"
+        ;;
+    --unison)
+        unison "${@:2}"
+        ;;
 
---amazon)
-    amazon "${@:2}"
-    ;;
---builder)
-    builder "${@:2}"
-    ;;
---macos)
-    macos "${@:2}"
-    ;;
---unison)
-    unison "${@:2}"
-    ;;
-
--h | --help)
-    echo_welcome
-    echo -e ""
-    usage
-    echo -e ""
-    ;;
-*)
-    echo -e "${bold}${cli_name}: illegal option -- $*${end}"
-    usage
-    exit 1
-    ;;
-
+    -h | --help)
+        echo_welcome
+        echo -e ""
+        usage
+        echo -e ""
+        ;;
+    *)
+        echo -e "${bold}${cli_name}: illegal option -- $*${end}"
+        usage
+        exit 1
+        ;;
 esac
