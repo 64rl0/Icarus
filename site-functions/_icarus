@@ -16,6 +16,9 @@ amazon_args=(
     '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
     '-a:Run midway authentication on localhost and optional remote DevDsk(s)'
 
+    '--auth-init-exp:Run midway authentication express on localhost and MANDATORY remote DevDsk(s)'
+    '-e:Run midway authentication express on localhost and MANDATORY remote DevDsk(s)'
+
     '--midway-cookie:Check the cookies validity'
     '-c:Check the cookies validity'
 

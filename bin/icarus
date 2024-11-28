@@ -193,6 +193,80 @@ mwinit -s -o;
         done
     }
 
+    auth_init_express() {
+        # Check that MWPIN is exported
+        if [[ -z "${MWPIN}" ]]; then
+            echo -e "${red}MWPIN env variable not found! Run the following command to set it${end}"
+            echo -e "${red}export MWPIN=<mwpin>${end}"
+            return
+        fi
+
+        cat <<EOF >"/tmp/auth-init-expect.exp"
+#!/usr/bin/expect
+# vim: ft=sh
+
+#   __|    \    _ \  |      _ \   __| __ __| __ __|
+#  (      _ \     /  |     (   | (_ |    |      |
+# \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
+
+set timeout -1
+set mwpin \$env(MWPIN)
+
+# Start the script
+spawn \$env(HOME)/.icarus/bin/icarus --amazon --auth-init -i $*
+
+# Handle multiple prompt possibilities repeatedly
+while {1} {
+    expect {
+        # Case 1 local machine
+        "Enter the on-token PIN of your security key:" {
+            sleep 1
+            send "\$mwpin\r"
+
+            # Expect the intermediate prompt
+            expect {
+                "Touch the security key" {
+                }
+            }
+
+            # Continue
+            exp_continue
+        }
+
+        # Case 2 over ssh
+        "Please enter your Midway PIN:" {
+            sleep 1
+            send "\$mwpin\r"
+
+            # Expect the intermediate prompt
+            expect {
+                "Press your security key for 3-5 seconds to generate the one-time password (OTP)" {
+                    # Disable terminal echo
+                    stty -echo
+                    expect_user -re "(.*)\n"
+                    set yubikey \$expect_out(1,string)
+                    send "\$yubikey\r"
+                    # Re-enable terminal echo
+                    stty echo
+                }
+            }
+
+            # Continue
+            exp_continue
+        }
+
+        # Case 3 exit case
+        eof {
+            exit
+        }
+    }
+}
+EOF
+
+    # Run the expect script as file to maintain interactivity
+    expect "/tmp/auth-init-expect.exp"
+    }
+
     cookies_analysis() {
         # Define the path to the cookies file
         cookies_filepath="${HOME}/.midway/cookie"
@@ -394,6 +468,24 @@ EOF
             fi
             auth_init_local_machine
             auth_init_ssh "${@:3}"
+            exit 0
+            ;;
+        *)
+            echo -e "${bold}amazon: illegal option -- $*${end}"
+            usage
+            exit 1
+            ;;
+        esac
+        ;;
+
+    -e | --auth-init-exp)
+        case "$2" in
+        -i)
+            if [[ -z "$3" ]]; then
+                usage
+                exit 1
+            fi
+            auth_init_express "${@:3}"
             exit 0
             ;;
         *)
@@ -1405,6 +1497,7 @@ usage() {
     echo -e ""
     echo -e "${yellow}--amazon [ARGS]:${end}"
     echo -e " -a | --auth-init                   [-i DEVDSK_ID]                      Run midway authentication on localhost and optional remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
+    echo -e " -e | --auth-init-exp               -i DEVDSK_ID                        Run midway authentication express on localhost and MANDATORY remote DevDsk(s). Takes multiple ids i.e. -i 1 2 3."
     echo -e " -c | --midway-cookie                                                   Check the cookies validity."
     echo -e " -d | --devdsk-formation            -i DEVDSK_ID                        Run DevDsk Formation on a remote DevDsk."
     echo -e " -s | --update-hosts                                                    Update /etc/hosts file."

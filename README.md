@@ -28,6 +28,13 @@ Initializes midway authentication by setting up necessary credentials on the loc
 - `-i` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
 - Example: `icarus --amazon --auth-init -i 1 2 3`
 
+### `-e | --auth-init-exp -i DEVDSK_ID`
+
+Initializes midway authentication by setting up necessary credentials on the localhost and on specified remote Developer Desks. This command can accept multiple IDs. This command uses the expect command to pass the MWPIN to mwinit so that you will only need to tap your security key. You must export the variable MWPIN set to your security key pin.
+
+- `-i` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
+- Example: `icarus --amazon --auth-init-exp -i 1 2 3`
+
 ### `-c | --midway-cookie`
 
 Checks the validity of the current authentication cookies to ensure sessions are still valid.
@@ -49,7 +56,7 @@ Install a LaunchDaemon to update the `/etc/hosts` file every hour.
 
 ### `-b | --brazil-setup`
 
-Create case-sensitive volumes: 
+Create case-sensitive volumes:
 - 'workplace'
 - 'brazil-pkg-cache'
 
