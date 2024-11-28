@@ -39,11 +39,14 @@ while {1} {
                 "Press your security key for 3-5 seconds to generate the one-time password (OTP)" {
                     # Disable terminal echo
                     stty -echo
+
                     expect_user -re "(.*)\n"
-                    # Re-enable terminal echo
-                    stty echo
                     set yubikey $expect_out(1,string)
                     send "$yubikey\r"
+
+                    # Re-enable terminal echo
+                    stty echo
+                    
                 }
             }
 
