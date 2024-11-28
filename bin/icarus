@@ -105,7 +105,6 @@ log_message() {
 amazon() {
 
     auth_init_local_machine() {
-
         # Temporarily disable 'errexit' to allow for retries
         set +e
 
@@ -263,8 +262,8 @@ while {1} {
 }
 EOF
 
-    # Run the expect script as file to maintain interactivity
-    expect "/tmp/auth-init-expect.exp"
+        # Run the expect script as file to maintain interactivity
+        expect "/tmp/auth-init-expect.exp"
     }
 
     cookies_analysis() {
@@ -713,7 +712,6 @@ builder() {
 macos() {
 
     macos_find_unencrypted_volumes() {
-
         vol_list_path="/tmp/volumes.plist"
         diskutil apfs list -plist >"${vol_list_path}"
 
@@ -936,7 +934,6 @@ EOF
     }
 
     macos_install_mount_volume_launchd() {
-
         if [[ $(id -u) -ne 0 ]]; then
             echo -e "This script must run as root to be able to mount the volume in the home directory."
             exit 1
