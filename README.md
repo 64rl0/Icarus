@@ -21,46 +21,52 @@ Displays the help information detailing usage and command options.
 ## --amazon
 Utilities for managing and automating tasks within Amazon environments.
 
-### `-a | --auth-init [-i DEVDSK_ID]`
+### `--auth-init [-i DEVDSK_ID]`
 
 Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
 
 - `-i` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
+- `--devdsk` Run mwinit with OTP option --orp-auth
 - Example: `icarus --amazon --auth-init -i 1 2 3`
+- Example: `icarus --amazon --auth-init --devdsk`
 
-### `-e | --auth-init-exp -i DEVDSK_ID`
+### `--auth-init-exp -i DEVDSK_ID`
 
-Initializes midway authentication by setting up necessary credentials on the localhost and on specified remote Developer Desks. This command can accept multiple IDs. This command uses the expect command to pass the MWPIN to mwinit so that you will only need to tap your security key. You must export the variable MWPIN set to your security key pin.
+Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs. 
+This command uses the expect program to pass the MWPIN to mwinit so that you will only need to tap your security key.
+You must export the variable MWPIN set to your security key pin.
 
 - `-i` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- Example: `icarus --amazon --auth-init-exp -i 1 2 3`
+- `--devdsk` Run mwinit with OTP option --orp-auth
+- Example: `icarus --amazon --auth-init -i 1 2 3`
+- Example: `icarus --amazon --auth-init --devdsk`
 
-### `-c | --midway-cookie`
+### `--midway-cookie`
 
 Checks the validity of the current authentication cookies to ensure sessions are still valid.
 
-### `-d | --devdsk-formation -i DEVDSK_ID`
+### `--devdsk-formation -i DEVDSK_ID`
 
 Executes configuration scripts on a specified remote Developer Desk.
 
 - `-i` Mandatory identifier for the Developer Desk.
 - Example: `icarus --amazon --devdsk-formation -i 4`
 
-### `-s | --update-hosts`
+### `--update-hosts`
 
 Updates the `/etc/hosts` file with IP addresses for network configuration.
 
-### `-u | --update-hosts-d`
+### `--update-hosts-d`
 
 Install a LaunchDaemon to update the `/etc/hosts` file every hour.
 
-### `-b | --brazil-setup`
+### `--brazil-setup`
 
 Create case-sensitive volumes:
 - 'workplace'
 - 'brazil-pkg-cache'
 
-### `-r | --spurdog-ro`
+### `--spurdog-ro`
 
 Check membership for Spurdog Program.
 
@@ -71,14 +77,14 @@ Check membership for Spurdog Program.
 ## --builder
 Tools and utilities to aid in software development processes.
 
-### `-p | --python-package-init -n PACKAGE_NAME`
+### `--python-package-init -n PACKAGE_NAME`
 
 Creates a new Python package directory structure in the current working directory using the specified package name in PascalCase.
 
 - `-n` Specifies the name of the Python package.
 - Example: `icarus --builder --python-package-init -n MyNewPackage`
 
-### `-d | --dotfiles-update`
+### `--dotfiles-update`
 
 Update dotfiles from their specified repository.
 
@@ -86,11 +92,11 @@ Update dotfiles from their specified repository.
 ## --macos
 Features designed to manage and secure MacOS systems.
 
-### `-f | --find-unencrypted-volumes`
+### `--find-unencrypted-volumes`
 
 Scans and lists all unencrypted volumes on the system, aiding in security assessments.
 
-### `-c | --make-encrypted-volume -n VOLUME_NAME [-q QUOTA]`
+### `--make-encrypted-volume -n VOLUME_NAME [-q QUOTA]`
 
 Creates a new encrypted APFS volume with an optional quota.
 
@@ -98,14 +104,14 @@ Creates a new encrypted APFS volume with an optional quota.
 - `-q` Quota for the volume in GB (optional).
 - Example: `icarus --macos --make-encrypted-volume -n SecureVolume -q 50g`
 
-### `-e | --encrypt-volume -n VOLUME_NAME`
+### `--encrypt-volume -n VOLUME_NAME`
 
 Encrypts an existing APFS volume, enhancing data security.
 
 - `-n` Name of the volume to encrypt.
 - Example: `icarus --macos --encrypt-volume -n ExistingVolume`
 
-### `-m | --mount-volume -n VOLUME_NAME -p MOUNT_POINT`
+### `--mount-volume -n VOLUME_NAME -p MOUNT_POINT`
 
 Mounts a specified volume at a given mount point.
 
@@ -113,7 +119,7 @@ Mounts a specified volume at a given mount point.
 - `-p` Mount point path.
 - Example: `icarus --macos --mount-volume -n MyVolume -p /mnt/myvolume`
 
-### `-l | --install-launchd -n VOLUME_NAME -p MOUNT_POINT`
+### `--install-launchd -n VOLUME_NAME -p MOUNT_POINT`
 
 Installs a LaunchDaemon that automatically mounts a specified volume at system startup.
 
@@ -125,19 +131,19 @@ Installs a LaunchDaemon that automatically mounts a specified volume at system s
 ## --unison
 Controls for managing the Unison file synchronization tool.
 
-### `-i | --status`
+### `--status`
 
 Checks and reports the running status of each configured Unison profile.
 
-### `-s | --start`
+### `--start`
 
 Starts synchronization for one or more Unison profiles.
 
-### `-k | --stop`
+### `--stop`
 
 Stops synchronization for one or more active Unison profiles.
 
-### `-c | --clear-locks [-i DEVDSK_ID]`
+### `--clear-locks [-i DEVDSK_ID]`
 
 Clears synchronization locks on the localhost. If the `-i` option is provided, it additionally clears the locks on the specified remote Developer Desk
 
@@ -146,6 +152,6 @@ Clears synchronization locks on the localhost. If the `-i` option is provided, i
     - Local Only: `icarus --unison --clear-locks`
     - Remote Specific: `icarus --unison --clear-locks -i 3`
 
-### `-l | --install-launchd`
+### `--install-launchd`
 
 Installs a LaunchDaemon to automatically start Unison at system startup.
