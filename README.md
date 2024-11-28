@@ -21,25 +21,25 @@ Displays the help information detailing usage and command options.
 ## --amazon
 Utilities for managing and automating tasks within Amazon environments.
 
-### `--auth-init [-i DEVDSK_ID]`
+### `--auth-init`
 
 Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
 
-- `-i` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- `--devdsk` Run mwinit with OTP option --orp-auth
+- `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
+- `[--devdsk]` Run mwinit with OTP option --orp-auth
 - Example: `icarus --amazon --auth-init -i 1 2 3`
 - Example: `icarus --amazon --auth-init --devdsk`
 
-### `--auth-init-exp -i DEVDSK_ID`
+### `--auth-init-exp`
 
 Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs. 
 This command uses the expect program to pass the MWPIN to mwinit so that you will only need to tap your security key.
 You must export the variable MWPIN set to your security key pin.
 
-- `-i` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- `--devdsk` Run mwinit with OTP option --orp-auth
-- Example: `icarus --amazon --auth-init -i 1 2 3`
-- Example: `icarus --amazon --auth-init --devdsk`
+- `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
+- `[--devdsk]` Run mwinit with OTP option --orp-auth
+- Example: `icarus --amazon --auth-init-exp -i 1 2 3`
+- Example: `icarus --amazon --auth-init-exp --devdsk`
 
 ### `--midway-cookie`
 
@@ -96,12 +96,12 @@ Features designed to manage and secure MacOS systems.
 
 Scans and lists all unencrypted volumes on the system, aiding in security assessments.
 
-### `--make-encrypted-volume -n VOLUME_NAME [-q QUOTA]`
+### `--make-encrypted-volume -n VOLUME_NAME`
 
 Creates a new encrypted APFS volume with an optional quota.
 
 - `-n` Name of the volume.
-- `-q` Quota for the volume in GB (optional).
+- `[-q]` Quota for the volume in GB (optional).
 - Example: `icarus --macos --make-encrypted-volume -n SecureVolume -q 50g`
 
 ### `--encrypt-volume -n VOLUME_NAME`
@@ -143,11 +143,11 @@ Starts synchronization for one or more Unison profiles.
 
 Stops synchronization for one or more active Unison profiles.
 
-### `--clear-locks [-i DEVDSK_ID]`
+### `--clear-locks`
 
 Clears synchronization locks on the localhost. If the `-i` option is provided, it additionally clears the locks on the specified remote Developer Desk
 
-- `-i` Developer Desk ID (optional).
+- `[-i]` Developer Desk ID (optional).
 - Example
     - Local Only: `icarus --unison --clear-locks`
     - Remote Specific: `icarus --unison --clear-locks -i 3`
