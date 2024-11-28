@@ -1495,7 +1495,7 @@ usage() {
     echo -e " --update-hosts                                                         Update /etc/hosts file."
     echo -e " --update-hosts-d                                                       Install a LaunchDaemon to update the hosts file every hour."
     echo -e " --brazil-setup                                                         Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
-    echo -e " --spurdog-ro                  -u AMZ_ALIAS [--auth]                    Check membership for Spurdog Program, use --auth to run mwinit before querying"
+    echo -e " --spurdog-ro                  -u AMZ_ALIAS [--auth]                    Check membership for Spurdog Program, use --auth to run mwinit before querying."
     echo -e ""
     echo -e "${yellow}--builder [ARGS]:${end}"
     echo -e " --python-package-init         -n PACKAGE_NAME                          Initiate a new Python package in the current folder. [PACKAGE_NAME] in PascalCase."
