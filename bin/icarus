@@ -135,7 +135,7 @@ amazon() {
         while true; do
             echo -e "${blue}Midway Authentication${end}"
             if [[ "$1" == "--devdsk" ]]; then
-                mwinit --opt-auth -s
+                mwinit --otp-auth -s
             else
                 mwinit --fido2 -s
             fi
