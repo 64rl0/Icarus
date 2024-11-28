@@ -86,6 +86,9 @@ case "$words[2]" in
     -a | --auth-init)
         _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
         ;;
+    -e | --auth-init-exp)
+        _arguments '-i[DevDsk ID, takes multiple ids i.e. -i 1 2 3]:DevDsk ID, takes multiple ids i.e. -i 1 2 3'
+        ;;
     -c | --midway-cookie)
         :
         ;;
