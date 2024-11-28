@@ -1,0 +1,55 @@
+#!/usr/bin/expect
+
+set timeout -1
+set mwpin $env(MWPIN)
+
+# Start the script
+spawn $env(HOME)/.icarus/bin/icarus --amazon --auth-init -i 7 8
+
+# Handle multiple prompt possibilities repeatedly
+while {1} {
+    expect {
+        # Case 1
+        "Enter the on-token PIN of your security key:" {
+            sleep 1
+            send "$mwpin\r"
+
+            # Expect the intermediate prompt
+            expect {
+                "Touch the security key" {
+                }
+            }
+
+            # Continue
+            exp_continue
+        }
+
+        # Case 2
+        "Please enter your Midway PIN:" {
+            sleep 1
+            send "$mwpin\r"
+
+            # Expect the intermediate prompt
+            expect {
+                "Press your security key for 3-5 seconds to generate the one-time password (OTP)" {
+                    # Disable terminal echo
+                    stty -echo
+                    expect_user -re "(.*)\n"
+                    # Re-enable terminal echo
+                    stty echo
+                    set yubikey $expect_out(1,string)
+                    send "$yubikey\r"
+                }
+            }
+
+            # Continue
+            exp_continue
+        }
+
+        # Case 3
+        eof {
+            exit
+        }
+
+    }
+}
