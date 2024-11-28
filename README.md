@@ -26,7 +26,7 @@ Utilities for managing and automating tasks within Amazon environments.
 Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- `[--devdsk]` Run mwinit with OTP option --orp-auth
+- `[--devdsk]` Run mwinit with OTP option --otp-auth
 - Example: `icarus --amazon --auth-init -i 1 2 3`
 - Example: `icarus --amazon --auth-init --devdsk`
 
@@ -37,7 +37,7 @@ This command uses the expect program to pass the MWPIN to mwinit so that you wil
 You must export the variable MWPIN set to your security key pin.
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
-- `[--devdsk]` Run mwinit with OTP option --orp-auth
+- `[--devdsk]` Run mwinit with OTP option --otp-auth
 - Example: `icarus --amazon --auth-init-exp -i 1 2 3`
 - Example: `icarus --amazon --auth-init-exp --devdsk`
 
@@ -45,7 +45,7 @@ You must export the variable MWPIN set to your security key pin.
 
 Checks the validity of the current authentication cookies to ensure sessions are still valid.
 
-### `--devdsk-formation -i DEVDSK_ID`
+### `--devdsk-formation`
 
 Executes configuration scripts on a specified remote Developer Desk.
 
@@ -77,7 +77,7 @@ Check membership for Spurdog Program.
 ## --builder
 Tools and utilities to aid in software development processes.
 
-### `--python-package-init -n PACKAGE_NAME`
+### `--python-package-init`
 
 Creates a new Python package directory structure in the current working directory using the specified package name in PascalCase.
 
@@ -96,7 +96,7 @@ Features designed to manage and secure MacOS systems.
 
 Scans and lists all unencrypted volumes on the system, aiding in security assessments.
 
-### `--make-encrypted-volume -n VOLUME_NAME`
+### `--make-encrypted-volume`
 
 Creates a new encrypted APFS volume with an optional quota.
 
@@ -104,14 +104,14 @@ Creates a new encrypted APFS volume with an optional quota.
 - `[-q]` Quota for the volume in GB (optional).
 - Example: `icarus --macos --make-encrypted-volume -n SecureVolume -q 50g`
 
-### `--encrypt-volume -n VOLUME_NAME`
+### `--encrypt-volume`
 
 Encrypts an existing APFS volume, enhancing data security.
 
 - `-n` Name of the volume to encrypt.
 - Example: `icarus --macos --encrypt-volume -n ExistingVolume`
 
-### `--mount-volume -n VOLUME_NAME -p MOUNT_POINT`
+### `--mount-volume`
 
 Mounts a specified volume at a given mount point.
 
@@ -119,7 +119,7 @@ Mounts a specified volume at a given mount point.
 - `-p` Mount point path.
 - Example: `icarus --macos --mount-volume -n MyVolume -p /mnt/myvolume`
 
-### `--install-launchd -n VOLUME_NAME -p MOUNT_POINT`
+### `--install-launchd`
 
 Installs a LaunchDaemon that automatically mounts a specified volume at system startup.
 
