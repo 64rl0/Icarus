@@ -195,7 +195,7 @@ amazon() {
 
 set timeout -1
 set mwpin \$env(MWPIN)
-set mwpin \$env(AMZPSW)
+set amzpsw \$env(AMZPSW)
 
 # Start the script
 log_user 0
@@ -243,7 +243,13 @@ while {1} {
             exp_continue
         }
 
-        # Case 3 exit case
+        # Case 3 Kerberos
+        "@ANT.AMAZON.COM's password:" {
+            sleep 1
+            send "\$amzpsw\r"
+        }
+
+        # Case 4 exit case
         eof {
             exit
         }
