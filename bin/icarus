@@ -179,7 +179,7 @@ amazon() {
     auth_init_express() {
         # Check that MWPIN and AMZPSW are exported
         if [[ -z "${MWPIN}" || -z "${AMZPSW}" ]]; then
-            echo -e "${red}MWPIN or AMZPSW env variable not found! Run the following command to set it${end}"
+            echo -e "${red}MWPIN and/or AMZPSW env variable(s) not found! Run the following command to set it${end}"
             echo -e "${red}export MWPIN=<midway pin>${end}"
             echo -e "${red}export AMZPSW=<amazon password>${end}"
             return
