@@ -114,17 +114,18 @@ amazon() {
         # Authenticate Kerberos
         while true; do
             echo -e "${blue}Kerberos Authentication${end}"
-            echo -e "${red}[DISABLED] Kerberos${end}" && true
-            # kinit -f
+            # echo -e "${red}[DISABLED] Kerberos${end}" && true
+            kinit -f
             kinit_status=$?
 
             # Check if Kerberos was successful
             if [[ $kinit_status -eq 0 ]]; then
-                # echo -e "${bold_green}${key} Successfully authenticated!${end}"
+                echo -e "${bold_green}${key} Successfully authenticated!${end}"
                 break
             else
                 echo -e "${bold_red}Authentication failed! Please try again.\n${end}"
-                continue
+                # continue
+                break  # break the loop as on AL2023 we do not have Kerberos
             fi
         done
 
@@ -176,10 +177,11 @@ amazon() {
     }
 
     auth_init_express() {
-        # Check that MWPIN is exported
-        if [[ -z "${MWPIN}" ]]; then
-            echo -e "${red}MWPIN env variable not found! Run the following command to set it${end}"
-            echo -e "${red}export MWPIN=<mwpin>${end}"
+        # Check that MWPIN and AMZPSW are exported
+        if [[ -z "${MWPIN}" || -z "${AMZPSW}" ]]; then
+            echo -e "${red}MWPIN or AMZPSW env variable not found! Run the following command to set it${end}"
+            echo -e "${red}export MWPIN=<midway pin>${end}"
+            echo -e "${red}export AMZPSW=<amazon password>${end}"
             return
         fi
 
@@ -193,6 +195,7 @@ amazon() {
 
 set timeout -1
 set mwpin \$env(MWPIN)
+set mwpin \$env(AMZPSW)
 
 # Start the script
 log_user 0
@@ -470,22 +473,9 @@ EOF
 
         --auth-init-exp)
             case "$2" in
-                '')
-                    auth_init_express
-                    exit 0
-                    ;;
-                -i)
-                    if [[ -z "$3" ]]; then
-                        usage
-                        exit 1
-                    fi
-                    auth_init_express "-i ${*:3}"
-                    exit 0
-                    ;;
                 *)
-                    echo -e "${bold}amazon: illegal option -- $*${end}"
-                    usage
-                    exit 1
+                    auth_init_express "${@:2}"
+                    exit 0
                     ;;
             esac
             ;;
