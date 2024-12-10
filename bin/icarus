@@ -456,6 +456,7 @@ EOF
     case "${arg}" in
         --auth-init)
             case "$2" in
+                # TODO: find a way to pass in additional agrs to the mwinit program
                 '')
                     auth_init_local_machine
                     exit 0
@@ -479,7 +480,7 @@ EOF
 
         --auth-init-exp)
             case "$2" in
-                *)
+                *)  # Delegate any args to the original icarus --amazon --auth-init
                     auth_init_express "${@:2}"
                     exit 0
                     ;;
