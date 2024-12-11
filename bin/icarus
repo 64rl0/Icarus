@@ -105,6 +105,8 @@ log_message() {
 amazon() {
 
     auth_init_local_machine() {
+        local -a mw_args=$@
+
         # Temporarily disable 'errexit' to allow for retries
         set +e
 
@@ -114,6 +116,7 @@ amazon() {
         # Authenticate Kerberos
         while true; do
             echo -e "${blue}Kerberos Authentication${end}"
+            echo -e "${blue}cmd: kinit -f${end}"
             # echo -e "${red}[DISABLED] Kerberos${end}" && true
             kinit -f
             kinit_status=$?
@@ -136,9 +139,11 @@ amazon() {
         while true; do
             echo -e "${blue}Midway Authentication${end}"
             if [ -n "$SSH_CONNECTION" ]; then
-                mwinit --otp-auth -s
+                echo -e "${blue}cmd: mwinit --otp-auth ${mw_args[*]} ${end}"
+                mwinit --otp-auth "${mw_args[@]}"
             else
-                mwinit --fido2 -s
+                echo -e "${blue}cmd: mwinit --fido2 ${mw_args[*]} ${end}"
+                mwinit --fido2 "${mw_args[@]}"
             fi
             mwinit_status=$?
 
@@ -167,6 +172,12 @@ amazon() {
 		mw_args=("${@:1:$count_mw_args}")
 		shift "$count_mw_args"
 
+        # Prefix each element with --mw-args
+        mw_args_expanded=()
+        for arg in "${mw_args[@]}"; do
+            mw_args_expanded+=("--mw-args" "${arg}")
+        done
+
         # Iterate over each argument
         for dev_dsk_number in "$@"; do
             # Construct the HOSTNAME
@@ -175,7 +186,7 @@ amazon() {
             # SSH into the cloud desktop and initialize there
             echo -e "${bold_yellow}${circle_arrows} Authentication started for REMOTE SSH ${hostname}...${end}"
 
-            ssh -t "${hostname}" "\${HOME}/.icarus/bin/icarus --amazon --auth-init ${mw_args[*]}"
+            ssh -t "${hostname}" "\${HOME}/.icarus/bin/icarus --amazon --auth-init ${mw_args_expanded[*]}"
 
             # Break line
             echo ""
@@ -485,7 +496,6 @@ EOF
             set -- "${other_args[@]}"
 
             case "$2" in
-                # TODO: find a way to pass in additional agrs to the mwinit program
                 '')
                     auth_init_local_machine "${mw_args[@]}"
                     exit 0
