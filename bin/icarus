@@ -161,6 +161,12 @@ amazon() {
     }
 
     auth_init_ssh() {
+		# Removing all the --mw-args passed in with $@
+		count_mw_args="$1"
+		shift
+		mw_args=("${@:1:$count_mw_args}")
+		shift "$count_mw_args"
+
         # Iterate over each argument
         for dev_dsk_number in "$@"; do
             # Construct the HOSTNAME
@@ -169,7 +175,8 @@ amazon() {
             # SSH into the cloud desktop and initialize there
             echo -e "${bold_yellow}${circle_arrows} Authentication started for REMOTE SSH ${hostname}...${end}"
 
-            ssh -t "${hostname}" '${HOME}/.icarus/bin/icarus --amazon --auth-init'
+            ssh -t "${hostname}" "\${HOME}/.icarus/bin/icarus --amazon --auth-init ${mw_args[*]}"
+
             # Break line
             echo ""
             echo ""
@@ -455,10 +462,32 @@ EOF
 
     case "${arg}" in
         --auth-init)
+            # Extract all --mw-args before proceeding
+            mw_args=()
+            other_args=()
+            while [[ $# -gt 0 ]]; do
+                current_arg="$1"
+                shift
+                case "$current_arg" in
+                    --mw-args)
+                        if [[ $# -eq 0 ]]; then
+                            contunue
+                        fi
+                        mw_args+=("$1")
+                        shift
+                        ;;
+                    *)
+                        other_args+=("$current_arg")
+                        ;;
+                esac
+            done
+            # Replace $@ with the arguments that no longer contain --mw-args
+            set -- "${other_args[@]}"
+
             case "$2" in
                 # TODO: find a way to pass in additional agrs to the mwinit program
                 '')
-                    auth_init_local_machine
+                    auth_init_local_machine "${mw_args[@]}"
                     exit 0
                     ;;
                 -i)
@@ -466,8 +495,8 @@ EOF
                         usage
                         exit 1
                     fi
-                    auth_init_local_machine
-                    auth_init_ssh "${@:3}"
+                    auth_init_local_machine "${mw_args[@]}"
+                    auth_init_ssh "${#mw_args[@]}" "${mw_args[@]}" "${@:3}"
                     exit 0
                     ;;
                 *)
