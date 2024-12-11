@@ -494,6 +494,10 @@ EOF
             done
             # Replace $@ with the arguments that no longer contain --mw-args
             set -- "${other_args[@]}"
+			# Validate mw_args or unset the empty array
+			if [[ ${#mw_args[@]} -eq 0 ]]; then
+				unset mw_args
+			fi
 
             case "$2" in
                 '')
