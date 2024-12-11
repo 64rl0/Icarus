@@ -139,11 +139,11 @@ amazon() {
         while true; do
             echo -e "${blue}Midway Authentication${end}"
             if [ -n "$SSH_CONNECTION" ]; then
-                echo -e "${blue}cmd: mwinit --otp-auth ${mw_args[*]} ${end}"
-                mwinit --otp-auth "${mw_args[@]}"
+                echo -e "${blue}cmd: mwinit --otp-auth -s ${mw_args[*]} ${end}"
+                mwinit --otp-auth -s "${mw_args[@]}"
             else
-                echo -e "${blue}cmd: mwinit --fido2 ${mw_args[*]} ${end}"
-                mwinit --fido2 "${mw_args[@]}"
+                echo -e "${blue}cmd: mwinit --fido2 -s ${mw_args[*]} ${end}"
+                mwinit --fido2 -s "${mw_args[@]}"
             fi
             mwinit_status=$?
 
@@ -482,7 +482,7 @@ EOF
                 case "$current_arg" in
                     --mw-args)
                         if [[ $# -eq 0 ]]; then
-                            contunue
+                            continue
                         fi
                         mw_args+=("$1")
                         shift
