@@ -105,7 +105,7 @@ log_message() {
 amazon() {
 
     auth_init_local_machine() {
-        local -a mw_args=$@
+        local -a mw_args=("$@")
 
         # Temporarily disable 'errexit' to allow for retries
         set +e
@@ -494,10 +494,6 @@ EOF
             done
             # Replace $@ with the arguments that no longer contain --mw-args
             set -- "${other_args[@]}"
-			# Validate mw_args or unset the empty array
-			if [[ ${#mw_args[@]} -eq 0 ]]; then
-				unset mw_args
-			fi
 
             case "$2" in
                 '')
