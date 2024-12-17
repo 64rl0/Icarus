@@ -28,7 +28,7 @@ Initializes midway authentication by setting up necessary credentials on the loc
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
 - `[--mw-args]` Specify one arg to pass to mwinit.
 - Example: `icarus --amazon --auth-init -i 1 2 3`
-- Example: `icarus --amazon --auth-init -i 1 2 3 --mw-args --ncl`
+- Example: `icarus --amazon --auth-init -i 1 2 3 --mw-args -s`
 
 ### `--auth-init-exp`
 
@@ -39,7 +39,7 @@ You must export the variable MWPIN set to your security key pin.
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
 - `[--mw-args]` Specify one arg to pass to mwinit.
 - Example: `icarus --amazon --auth-init-exp -i 1 2 3`
-- Example: `icarus --amazon --auth-init-exp -i 1 2 3 --mw-args --ncl`
+- Example: `icarus --amazon --auth-init-exp -i 1 2 3 --mw-args -s`
 
 ### `--midway-cookie`
 
