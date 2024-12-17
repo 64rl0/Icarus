@@ -14,7 +14,7 @@ commands=(
 
 amazon_args=(
     '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
-    '--auth-init-exp:Run midway authentication express on localhost and optional remote DevDsk(s)'
+    '--auth-init-exp:Run midway authentication express'
     '--midway-cookie:Check the cookies validity'
     '--devdsk-formation:Run DevDsk Formation on a remote DevDsk'
     '--update-hosts:Update /etc/hosts file'
@@ -49,9 +49,11 @@ case "$words[2]" in
         case "$words[3]" in
             --auth-init)
                 _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
+                _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
                 ;;
             --auth-init-exp)
                 _arguments '-i[DevDsk ID, takes multiple ids i.e. -i 1 2 3]:DevDsk ID, takes multiple ids i.e. -i 1 2 3'
+                _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
                 ;;
             --midway-cookie)
                 :

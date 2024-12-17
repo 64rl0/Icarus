@@ -26,7 +26,9 @@ Utilities for managing and automating tasks within Amazon environments.
 Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
+- `[--mw-args]` Specify one arg to pass to mwinit.
 - Example: `icarus --amazon --auth-init -i 1 2 3`
+- Example: `icarus --amazon --auth-init -i 1 2 3 --mw-args --ncl`
 
 ### `--auth-init-exp`
 
@@ -35,7 +37,9 @@ This command uses the expect program to pass the MWPIN to mwinit so that you wil
 You must export the variable MWPIN set to your security key pin.
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
+- `[--mw-args]` Specify one arg to pass to mwinit.
 - Example: `icarus --amazon --auth-init-exp -i 1 2 3`
+- Example: `icarus --amazon --auth-init-exp -i 1 2 3 --mw-args --ncl`
 
 ### `--midway-cookie`
 
