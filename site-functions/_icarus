@@ -52,7 +52,7 @@ case "$words[2]" in
                 _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
                 ;;
             --auth-init-exp)
-                _arguments '-i[DevDsk ID, takes multiple ids i.e. -i 1 2 3]:DevDsk ID, takes multiple ids i.e. -i 1 2 3'
+                _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
                 _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
                 ;;
             --midway-cookie)

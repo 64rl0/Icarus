@@ -23,7 +23,7 @@ Utilities for managing and automating tasks within Amazon environments.
 
 ### `--auth-init`
 
-Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
+Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs. If you want to pass additional args to the underlying mwinit program, then can use the flag `--mw-args` to pass them across, only one arg for mwinit is accepted for each `--mw-args`. 
 
 - `[-i]` Specify one or more Developer Desk IDs to initialize authentication simultaneously.
 - `[--mw-args]` Specify one arg to pass to mwinit.
@@ -32,7 +32,7 @@ Initializes midway authentication by setting up necessary credentials on the loc
 
 ### `--auth-init-exp`
 
-Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs.
+Initializes midway authentication by setting up necessary credentials on the localhost and optionally on specified remote Developer Desks. This command can accept multiple IDs. If you want to pass additional args to the underlying mwinit program, then can use the flag `--mw-args` to pass them across, only one arg for mwinit is accepted for each `--mw-args`.
 This command uses the expect program to pass the MWPIN to mwinit so that you will only need to tap your security key.
 You must export the variable MWPIN set to your security key pin.
 
