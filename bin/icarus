@@ -685,6 +685,7 @@ builder() {
             "${HOME}/.config/lazygit"
             "${HOME}/.config/starship"
             "${HOME}/.config/tmux"
+            "${HOME}/.config/yazi"
         )
 
         for dotfile in "${dotfiles[@]}"; do
