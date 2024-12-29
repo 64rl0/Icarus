@@ -680,6 +680,7 @@ builder() {
             "${HOME}/.icarus"
             "${HOME}/.config/alacritty"
             "${HOME}/.config/apple-terminal"
+            "${HOME}/.config/bat"
             "${HOME}/.config/fzf"
             "${HOME}/.config/homebrew"
             "${HOME}/.config/lazygit"
