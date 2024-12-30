@@ -1,5 +1,11 @@
 #compdef icarus
 
+#   __|    \    _ \  |      _ \   __| __ __| __ __|
+#  (      _ \     /  |     (   | (_ |    |      |
+# \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
+
+# zsh completion for icarus 
+
 local -a commands
 local -a amazon_args builder_args macos_args unison_args
 
@@ -137,3 +143,5 @@ case "$words[2]" in
         _describe 'commands' commands
         ;;
 esac
+
+return 0
