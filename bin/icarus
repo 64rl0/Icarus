@@ -697,8 +697,8 @@ builder() {
                 git pull
                 git status
                 popd >/dev/null
+                echo -e ""
             fi
-            echo -e ""
         done
     }
 
