@@ -691,9 +691,16 @@ builder() {
 
         for dotfile in "${dotfiles[@]}"; do
             echo -e "${sparkles}${bold_yellow}${dotfile}${end}"
-            cd "${dotfile}" >/dev/null 1>&2 && git fetch && git status && git pull
+            if [[ -d "${dotfile}" ]]; then
+                pushd "${dotfile}"
+                git fetch
+                git pull
+                git status
+                popd
+            else
+                echo -e "${bold_red}[MISSING]: Not Installed!${end}"
+            fi
             echo -e ""
-            cd "${OLDPWD}" >/dev/null 1>&2
         done
     }
 
