@@ -300,6 +300,7 @@ EOF
 
             # Calculate the time remaining
             cookie_time_remaining=$((cookie_expiry_timestamp - current_timestamp))
+            echo $cookie_time_remaining
 
             # Convert time remaining to human-readable format
             days_remaining=$((cookie_time_remaining / 86400))
