@@ -314,11 +314,10 @@ EOF
 
             # Use printf to format the output
             if [[ "${cookie_time_remaining}" -le 0 ]]; then
-                printf -- "--| %-30s %-35s EXPIRED" "$cookie_name" "$cookie_domain"
+                printf -- "--| %-30s %-35s EXPIRED\n" "$cookie_name" "$cookie_domain"
             else
-                printf -- "--| %-30s %-35s VALID %9d days, %2d hours, %2d minutes, %2d seconds" "$cookie_name" "$cookie_domain" "$days_remaining" "$hours_remaining" "$minutes_remaining" "$seconds_remaining"
+                printf -- "--| %-30s %-35s VALID %9d days, %2d hours, %2d minutes, %2d seconds\n" "$cookie_name" "$cookie_domain" "$days_remaining" "$hours_remaining" "$minutes_remaining" "$seconds_remaining"
             fi
-            echo -e ""
         done <"${cookies_filepath}"
     }
 
