@@ -292,6 +292,7 @@ EOF
         # Process each line of the file
         tail -n +5 "$cookies_filepath" | while read -r line; do
             # Extract the expiration timestamp and the cookie name
+            cookie_domain=$(echo "$line" | awk '{print $1}' | awk '{ gsub(/#HttpOnly_/, ""); print }' )
             expiry_timestamp=$(echo "$line" | awk '{print $5}')
             cookie_name=$(echo "$line" | awk '{print $6}')
 
@@ -315,7 +316,7 @@ EOF
             seconds_remaining=$((time_remaining % 60))
 
             # Use printf to format the output
-            printf "Cookie: %-25s expires: %s  ->  remaining: %3d days, %2d hours, %2d minutes, %2d seconds" "$cookie_name" "$expiry_date" "$days_remaining" "$hours_remaining" "$minutes_remaining" "$seconds_remaining"
+            printf "Cookie: %-25s %-25s expires: %s  ->  remaining: %3d days, %2d hours, %2d minutes, %2d seconds" "$cookie_name" "$cookie_domain" "$expiry_date" "$days_remaining" "$hours_remaining" "$minutes_remaining" "$seconds_remaining"
             echo -e ""
         done
     }
