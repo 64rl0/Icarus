@@ -293,6 +293,11 @@ EOF
 
         # Process each line of the file
         while read -r line; do
+            # Skip commented out lines
+            if [[ "${line}" =~ ^#[[:space:]] ]]; then
+                continue
+            fi
+
             # Extract the expiration timestamp and the cookie name
             cookie_name=$(echo "$line" | awk '{print $6}')
             cookie_domain=$(echo "$line" | awk '{print $1}' | awk '{ gsub(/#HttpOnly_/, ""); print }')
@@ -300,7 +305,6 @@ EOF
 
             # Calculate the time remaining
             cookie_time_remaining=$((cookie_expiry_timestamp - current_timestamp))
-            echo $cookie_time_remaining
 
             # Convert time remaining to human-readable format
             days_remaining=$((cookie_time_remaining / 86400))
