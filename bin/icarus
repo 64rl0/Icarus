@@ -289,34 +289,26 @@ EOF
             exit 1
         fi
 
+        current_timestamp=$(date +%s)
+
         # Process each line of the file
         tail -n +5 "$cookies_filepath" | while read -r line; do
             # Extract the expiration timestamp and the cookie name
-            cookie_domain=$(echo "$line" | awk '{print $1}' | awk '{ gsub(/#HttpOnly_/, ""); print }' )
-            expiry_timestamp=$(echo "$line" | awk '{print $5}')
             cookie_name=$(echo "$line" | awk '{print $6}')
-
-            # Convert the expiry timestamp to a human-readable date
-            if [[ "$(uname)" == "Darwin" ]]; then
-                # macOS (BSD date)
-                expiry_date=$(date -r "${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S")
-            else
-                # Linux (GNU date)
-                expiry_date=$(date -d @"${expiry_timestamp}" +"%Y-%m-%d %H:%M:%S")
-            fi
+            cookie_domain=$(echo "$line" | awk '{print $1}' | awk '{ gsub(/#HttpOnly_/, ""); print }' )
+            cookie_expiry_timestamp=$(echo "$line" | awk '{print $5}')
 
             # Calculate the time remaining
-            current_timestamp=$(date +%s)
-            time_remaining=$((expiry_timestamp - current_timestamp))
+            cookie_time_remaining=$((cookie_expiry_timestamp - current_timestamp))
 
             # Convert time remaining to human-readable format
-            days_remaining=$((time_remaining / 86400))
-            hours_remaining=$(((time_remaining % 86400) / 3600))
-            minutes_remaining=$(((time_remaining % 3600) / 60))
-            seconds_remaining=$((time_remaining % 60))
+            days_remaining=$((cookie_time_remaining / 86400))
+            hours_remaining=$(((cookie_time_remaining % 86400) / 3600))
+            minutes_remaining=$(((cookie_time_remaining % 3600) / 60))
+            seconds_remaining=$((cookie_time_remaining % 60))
 
             # Use printf to format the output
-            if [[ "${time_remaining}" -le 0 ]]; then
+            if [[ "${cookie_time_remaining}" -le 0 ]]; then
                 printf -- "--| %-30s %-35s EXPIRED" "$cookie_name" "$cookie_domain"
             else
                 printf -- "--| %-30s %-35s VALID %9d days, %2d hours, %2d minutes, %2d seconds" "$cookie_name" "$cookie_domain" "$days_remaining" "$hours_remaining" "$minutes_remaining" "$seconds_remaining"
