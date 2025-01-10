@@ -300,7 +300,7 @@ EOF
 
             # Extract the expiration timestamp and the cookie name
             cookie_name=$(echo "$line" | awk '{print $6}')
-            cookie_domain=$(echo "$line" | awk '{print $1}' | awk '{ gsub(/#HttpOnly_/, ""); print }')
+            cookie_domain=$(echo "$line" | awk '{print $1}' | awk '{ gsub(/#HttpOnly_\.?/, ""); print }')
             cookie_expiry_timestamp=$(echo "$line" | awk '{print $5}')
 
             # Calculate the time remaining
