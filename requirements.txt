@@ -1,0 +1,11 @@
+# Custom built packages
+# my-utils-library
+
+# Project utils dependencies
+python-dotenv
+black
+isort
+mypy
+flake8
+pyinstaller
+requests

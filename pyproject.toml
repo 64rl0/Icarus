@@ -1,0 +1,124 @@
+[tool.black]
+# black docs
+# https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html
+
+# How many characters per line to allow. The default is 88.
+line-length = 100
+
+# Black  normalize ' to "
+# Setting to 1 so that  strings are left unchanged instead.
+skip-string-normalization = 1
+
+# Enable potentially disruptive style changes that may be added to
+# Black’s main functionality in the next major release.
+preview = true
+unstable = true
+
+
+[tool.isort]
+# isort docs
+# https://pycqa.github.io/isort/docs/configuration/options.html
+
+# The max length of an import line (used for wrapping long imports).
+line_length = 100
+
+# Use parentheses for line continuation on length limit instead of
+# backslashes. NOTE: This is separate from wrap modes, and only affects
+# how individual lines that are too long get continued, not sections of
+# multiple imports.
+use_parentheses = true
+
+# What sections isort should display imports for and in what order.
+sections = ['FUTURE', 'STDLIB', 'THIRDPARTY', 'MYLIB', 'FIRSTPARTY', 'LOCALFOLDER']
+
+# Multi line output (0-grid, 1-vertical, 2-hanging, 3-vert-hanging,
+# 4-vert-grid, 5-vert-grid-grouped, 6-deprecated-alias-for-5, 7-noqa,
+# 8-vertical-hanging-indent-bracket,
+# 9-vertical-prefix-from-module-import,
+# 10-hanging-indent-with-parentheses).
+multi_line_output = 3
+
+# A mapping of import sections to import heading comments that should
+# show above them.
+import_headings = {future="Special Imports", stdlib="Standard Library Imports", thirdparty="Third Party Library Imports", mylib ="My Library Imports", firstparty="Local Application Imports", localfolder="Local Folder (Relative) Imports"}
+
+# Inserts a blank line before a comment following an import.
+ensure_newline_before_comments = true
+
+# Includes a trailing comma on multi line imports that include
+# parentheses.
+include_trailing_comma = true
+
+# Split imports list followed by a trailing comma into
+# VERTICAL_HANGING_INDENT mode. This follows Black style magic comma.
+split_on_trailing_comma = true
+
+# Causes all non-indented imports to float to the top of the file
+#having its imports sorted (immediately below the top of file comment).
+# This can be an excellent shortcut for collecting imports every once
+#in a while when you place them in the middle of a file to avoid context
+# switching.
+float_to_top = true
+
+# If True isort will apply import headings to indended imports the same
+# way it does unindented ones.
+indented_import_headings = false
+
+# Force all imports to be sorted alphabetically within a section.
+#force_alphabetical_sort_within_sections = true
+
+# If enabled, isort will strip comments that exist within import lines.
+#ignore_comments = true
+
+# Add an explicitly defined source path (modules within src paths have
+#their imports automatically categorized as first_party). Glob expansion
+# (* and **) is supported for this option.
+src_paths = ['src/*']
+
+# Force isort to recognize a module as part of Python's internal future
+# compatibility libraries. WARNING: this overrides the behavior of
+# future handling and therefore can result in code that can't execute.
+known_future_library = ['__future__', 'config']
+
+# Extra modules to be included in the list of ones in Python's standard
+# library.
+extra_standard_library = []
+
+# Force isort to recognize a module as being part of a third party
+# library.
+known_third_party = []
+
+# known_OTHER is how imports of custom sections are defined.
+# OTHER is a placeholder for the custom section name.
+known_mylib = ['carlogtt_library', 'carlogtt_python_library']
+
+# Force isort to recognize a module as being part of the current python
+# project.
+known_first_party = []
+
+# Force isort to recognize a module as being a local folder. Generally,
+#this is reserved for relative imports (from . import module).
+known_local_folder = []
+
+
+[tool.mypy]
+# mypy docs
+# https://mypy.readthedocs.io/en/latest/config_file.html
+
+# Enables the type-checker on the interior of functions without type
+# annotations.
+check_untyped_defs = true
+
+# Displaying specific error codes makes it easier to silence specific
+# errors.
+show_error_codes = true
+
+# Show source code snippets and location markers in error messages.
+pretty = true
+
+# Suppresses errors about packages which do not implement type-hint
+# sharing.
+#ignore_missing_imports = true
+
+# Warns about unneeded '# type: ignore' comments.
+warn_unused_ignores = true
