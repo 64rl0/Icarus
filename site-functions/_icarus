@@ -100,41 +100,41 @@ case "${state}" in
             amazon)
                 case "${words[3]}" in
                     auth-init)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit' \
                             '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
                             '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                         ;;
                     auth-init-exp)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit' \
                             '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
                             '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                         ;;
                     midway-cookie)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit' \
                             '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie'
                         ;;
                     devdsk-formation)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit' \
                             '-i[REQUIRED the DevDsk ID]:REQUIRED the DevDsk ID'
                         ;;
                     update-hosts)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit'
                         ;;
                     update-hosts-d)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit'
                        ;;
                     brazil-setup)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit'
                        ;;
                     spurdog-ro)
-                        _arguments \
+                        _values \
                             '-h[show help message and exit]:show help message and exit' \
                             '-u[REQUIRED username to check Spurdog Program membership]:REQUIRED username to check Spurdog Program membership' \
                             '--auth[OPTIONAL run mwinit before querying]:OPTIONAL run mwinit before querying'
