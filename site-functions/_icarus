@@ -62,11 +62,12 @@ local -a filtered_words
 filtered_words=("${(@)words:#(-v|--verbose)}")
 
 case "${filtered_words[2]}" in
-    echo "${filtered_words[2]}"
+
     amazon)
+        echo "${filtered_words[2]}"
         case "${filtered_words[3]}" in
-            echo "${filtered_words[3]}"
             auth-init)
+                echo "${filtered_words[3]}"
                 _arguments '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3'
                 _arguments '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                 ;;
