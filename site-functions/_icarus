@@ -65,16 +65,18 @@ fi
 # Filter out global options
 filtered_words=("${(@)words:#(-v|--verbose)}")
 
-case "${words[2]}" in
+case "${filtered_words[2]}" in
     amazon)
-        case "${words[3]}" in
+        case "${filtered_words[3]}" in
             auth-init)
                 _arguments \
+                    '-h[help]:help' \
                     '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
                     '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                 ;;
             auth-init-exp)
                 _arguments \
+                    '-h[help]:help' \
                     '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
                     '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                 ;;
