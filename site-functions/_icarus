@@ -26,7 +26,7 @@ _arguments -C \
     '2:action:->action' \
     '*::options:->options'
 
-case $state in
+case "${state}" in
     #################################
     # Step 1: Complete the subcommand
     #################################
@@ -47,39 +47,39 @@ case $state in
     # Step 2: Once subcommand is chosen, complete the sub-subcommand
     #################################################################
     action)
-        case $words[2] in
+        case "${words[2]}" in
             amazon)
                 _values 'amazon subcommand' \
-                    'auth-init[]' \
-                    'auth-init-exp[]' \
-                    'midway-cookie[]' \
-                    'devdsk-formation[]' \
-                    'update-hosts[]' \
-                    'update-hosts-d[]' \
-                    'brazil-setup[]' \
-                    'spurdog-ro[]'
+                    'auth-init[run midway authentication on localhost and optional remote DevDsk(s)]' \
+                    'auth-init-exp[run midway authentication express on localhost and optional remote DevDsk(s)]' \
+                    'midway-cookie[check the cookies validity]' \
+                    'devdsk-formation[run DevDsk Formation on a remote DevDsk]' \
+                    'update-hosts[update /etc/hosts file]' \
+                    'update-hosts-d[install a LaunchDaemon to update the hosts file every hour]' \
+                    'brazil-setup[creating case-sensitive volumes (`workplace` and `brazil-pkg-cache`)]' \
+                    'spurdog-ro[check membership for Spurdog Program]'
                 ;;
             builder)
                 _values 'builder subcommand' \
-                    'python-pkg-init[]' \
-                    'dotfiles-update[]'
+                    'python-pkg-init[initiate a new Python package in the current folder]' \
+                    'dotfiles-update[update dotfiles from their specified repository]'
                 ;;
             macos)
                 _values 'macos subcommand' \
-                    'find-unencrypted-volumes[]' \
-                    'make-encrypted-volume[]' \
-                    'encrypt-volume[]' \
-                    'mount-volume[]' \
-                    'mount-at-startup[]'
+                    'find-unencrypted-volumes[find all unencrypted volumes]' \
+                    'make-encrypted-volume[make an encrypted APFS volume]' \
+                    'encrypt-volume[encrypt an APFS volume]' \
+                    'mount-volume[mount the specified volume at the specified mount point]' \
+                    'mount-at-startup[install a LaunchDaemon to mount the volume at System Startup]'
                 ;;
             unison)
                 _values 'unison subcommand' \
-                    'status[]' \
-                    'restart[]' \
-                    'stop[]' \
-                    'clear-locks[]' \
-                    'start-at-startup[]' \
-                    'run-profiles[]'
+                    'status[check the running status of each Unison profile]' \
+                    'restart[restart Unison profile(s) sync]' \
+                    'stop[stop Unison profile(s) sync]' \
+                    'clear-locks[clear Unison locks on localhost and an optional remote DevDsk]' \
+                    'start-at-startup[install a LaunchDaemon to start Unison at System Startup]' \
+                    'run-profiles[[DO NOT USE] internally used only to run Unison profiles]'
                 ;;
         esac
         ;;
@@ -88,9 +88,9 @@ case $state in
     # Step 3: Complete any options/flags for the chosen sub-subcommand
     ##################################################################
     options)
-        case $words[2] in
+        case "${words[2]}" in
             amazon)
-                case $words[3] in
+                case "${words[3]}" in
                     auth-init)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
@@ -134,7 +134,7 @@ case $state in
                 esac
                 ;;
             builder)
-                case $words[3] in
+                case "${words[3]}" in
                     python-pkg-init)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
@@ -147,7 +147,7 @@ case $state in
                 esac
                 ;;
             macos)
-                case $words[3] in
+                case "${words[3]}" in
                     find-unencrypted-volumes)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit'
@@ -178,7 +178,7 @@ case $state in
                 esac
                 ;;
             unison)
-                case $words[3] in
+                case "${words[3]}" in
                     status)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit'
