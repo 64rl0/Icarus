@@ -69,9 +69,11 @@ def cli_version() -> str:
     :return: The CLI version.
     """
 
+    command = 'cd ~/.icarus && git describe --always'
+
     icarus_version = config.CLI_VERSION
     icarus_build = subprocess.run(
-        ['git', 'describe', '--always'], check=True, text=True, capture_output=True
+        command, check=True, text=True, capture_output=True
     ).stdout.replace('\n', '')
     python_version = sys.version.split()[0]
 
