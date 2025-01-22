@@ -52,6 +52,11 @@ unison_args=(
     'run-profiles:[DO NOT USE] internally used only to run Unison profiles'
 )
 
+# Check for terminal options and prevent further completions
+if [[ "$words" == *(-h|--help|--version)* ]]; then
+    return 0
+fi
+
 # Filter out global options
 local -a filtered_words
 filtered_words=("${(@)words:#(-v|--verbose)}")
