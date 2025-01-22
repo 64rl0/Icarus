@@ -57,12 +57,16 @@ case "${state}" in
                     'update-hosts[update /etc/hosts file]' \
                     'update-hosts-d[install a LaunchDaemon to update the hosts file every hour]' \
                     'brazil-setup[creating case-sensitive volumes (`workplace` and `brazil-pkg-cache`)]' \
-                    'spurdog-ro[check membership for Spurdog Program]'
+                    'spurdog-ro[check membership for Spurdog Program]' \
+                    '--help[show help message and exit]' \
+                    '-h[show help message and exit]'
                 ;;
             builder)
                 _values 'builder subcommand' \
                     'python-pkg-init[initiate a new Python package in the current folder]' \
-                    'dotfiles-update[update dotfiles from their specified repository]'
+                    'dotfiles-update[update dotfiles from their specified repository]' \
+                    '--help[show help message and exit]' \
+                    '-h[show help message and exit]'
                 ;;
             macos)
                 _values 'macos subcommand' \
@@ -70,7 +74,9 @@ case "${state}" in
                     'make-encrypted-volume[make an encrypted APFS volume]' \
                     'encrypt-volume[encrypt an APFS volume]' \
                     'mount-volume[mount the specified volume at the specified mount point]' \
-                    'mount-at-startup[install a LaunchDaemon to mount the volume at System Startup]'
+                    'mount-at-startup[install a LaunchDaemon to mount the volume at System Startup]' \
+                    '--help[show help message and exit]' \
+                    '-h[show help message and exit]'
                 ;;
             unison)
                 _values 'unison subcommand' \
@@ -79,7 +85,9 @@ case "${state}" in
                     'stop[stop Unison profile(s) sync]' \
                     'clear-locks[clear Unison locks on localhost and an optional remote DevDsk]' \
                     'start-at-startup[install a LaunchDaemon to start Unison at System Startup]' \
-                    'run-profiles[\[DO NOT USE\] internally used only to run Unison profiles]'
+                    'run-profiles[\[DO NOT USE\] internally used only to run Unison profiles]' \
+                    '--help[show help message and exit]' \
+                    '-h[show help message and exit]'
                 ;;
         esac
         ;;
