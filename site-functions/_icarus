@@ -54,7 +54,7 @@ unison_args=(
 
 # Filter out global options
 local -a filtered_words
-filtered_words=("${(@)words:#(-v|--verbose|--version|--help|-h)}")
+filtered_words=("${(@)words:#(-v|--verbose)}")
 
 case "${filtered_words[2]}" in
     amazon)
