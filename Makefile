@@ -6,10 +6,6 @@ format:
 build:
 	./scripts/build_venv.sh "build_venv"
 
-.PHONY: compile
-compile:
-	./scripts/compile_binary.sh
-
 .PHONY: deploy
 deploy:
 	./scripts/deploy.sh
