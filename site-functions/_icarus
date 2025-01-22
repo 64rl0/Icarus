@@ -7,21 +7,11 @@
 
 # zsh completion for icarus
 
-# 1) Check for terminal options and prevent further completions
-if [[ " ${words[*]} " == *" -h "* || " ${words[*]} " == *" --help "* || " ${words[*]} " == *" --version "* ]]; then
-    return 0
-fi
-
-# 2) Filter out global options -v / --verbose
-local -a filtered_words
-filtered_words=("${(@)words:#(-v|--verbose)}")
-
-# 3) Reassign $words/$CURRENT so that subcommand logic ignores -v/--verbose
-words=("${filtered_words[@]}")
-CURRENT=$#words
-
-# 4) Use a stateful _arguments approach
+# Use a stateful _arguments approach
 _arguments -C \
+    {-v,--verbose}'[increase output verbosity]' \
+    {-h,--help}'[show help message and exit]' \
+    '--version[display version information and exit]' \
     '1:subcommand:->subcmd' \
     '2:action:->action' \
     '*::options:->options'
@@ -36,11 +26,6 @@ case "${state}" in
             'builder[utilities for software development]' \
             'macos[utilities for macOS]' \
             'unison[utilities to manage Unison daemon]' \
-            '--verbose[increase output verbosity]' \
-            '-v[increase output verbosity]' \
-            '--version[display version information and exit]' \
-            '--help[show help message and exit]' \
-            '-h[show help message and exit]'
         ;;
 
     #################################################################
