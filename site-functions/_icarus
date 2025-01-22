@@ -31,6 +31,7 @@ case $state in
   # Step 1: Complete the subcommand (amazon, builder, macos, unison)
   #################################################################
   subcmd)
+    print -u2 "DEBUG subcmd: $words"
     _values 'subcommand' \
       "amazon[utilities for Amazon environment]" \
       "builder[utilities for software development]" \
@@ -43,6 +44,7 @@ case $state in
   #   (like `auth-init`, `auth-init-exp`, etc.)
   #################################################################
   action)
+    print -u2 "DEBUG action: $words"
     case $words[2] in
       amazon)
         _values 'amazon subcommand' \
@@ -84,6 +86,7 @@ case $state in
   # Step 3: Complete any options/flags for the chosen sub-subcommand
   #################################################################
   options)
+    print -u2 "DEBUG options: $words"
     case $words[2] in
       amazon)
         case $words[3] in
