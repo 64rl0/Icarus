@@ -23,7 +23,7 @@ declare -r unison_base
 
 # Sourcing base file
 source "${cli_script_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
-source "${unison_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
+source "${unison_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source unison_base.sh"
 
 # Script Options
 set -o errexit  # Exit immediately if a command exits with a non-zero status
