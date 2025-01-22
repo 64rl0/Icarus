@@ -33,6 +33,7 @@ This module ...
 
 # Standard Library Imports
 import functools
+import os
 import pathlib
 import subprocess
 import sys
@@ -71,7 +72,11 @@ def cli_version() -> str:
 
     icarus_version = config.CLI_VERSION
     icarus_build = subprocess.run(
-        ['git', 'describe', '--always'], cwd='~/.icarus', check=True, text=True, capture_output=True
+        ['git', 'describe', '--always'],
+        cwd=os.path.expanduser("~/.icarus"),
+        check=True,
+        text=True,
+        capture_output=True,
     ).stdout.replace('\n', '')
     python_version = sys.version.split()[0]
 
