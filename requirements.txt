@@ -9,4 +9,3 @@ mypy
 flake8
 pyinstaller
 requests
-argcomplete

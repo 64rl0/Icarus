@@ -31,9 +31,6 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Third Party Library Imports
-import argcomplete
-
 # Local Folder (Relative) Imports
 from . import cli, config, utils
 
@@ -60,9 +57,6 @@ def main() -> int:
 
     # Initialize parser and parse args
     parser = cli.initialize_parser()
-
-    # Initialize autocomplete for bash and zsh
-    argcomplete.autocomplete(parser)
 
     # Parse cli args
     args = cli.parse_args(parser=parser)

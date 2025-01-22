@@ -1,5 +1,3 @@
-# PYTHON_ARGCOMPLETE_OK
-
 # ======================================================================
 # MODULE DETAILS
 # This section provides metadata about the module, including its

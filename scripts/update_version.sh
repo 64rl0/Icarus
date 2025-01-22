@@ -15,10 +15,11 @@
 # Read the current version and date from the file
 version_file="${project_root_dir_abs}/src/icarus/config/constants.py"
 current_version=$(grep "^CLI_VERSION = '" "${version_file}" | cut -d ' ' -f 4)
-echo -e "Current version: ${current_version}"
+
+echo -e "Current version:$(grep "^CLI_VERSION = '" "${version_file}" | cut -d '=' -f 2)"
 
 # Parse the command line
-read -r -p "Enter the version type major, minor or [patch]: " option
+read -r -p "Enter the version type (major, minor or [patch]): " option
 if [[ -z "${option}" ]]; then
     # No option provided, so default to the patch version
     option="patch"

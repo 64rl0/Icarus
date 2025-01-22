@@ -1,0 +1,154 @@
+#compdef icarus
+
+#   __|    \    _ \  |      _ \   __| __ __| __ __|
+#  (      _ \     /  |     (   | (_ |    |      |
+# \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
+
+# zsh completion for icarus
+
+local -a commands
+local -a amazon_args builder_args macos_args unison_args
+
+commands=(
+    'amazon:utilities for Amazon environment'
+    'builder:utilities for software development'
+    'macos:utilities for macOS'
+    'unison:utilities to manage Unison daemon'
+    '--verbose:increase output verbosity'
+    '-v:increase output verbosity'
+    '--version:display version information and exit'
+    '--help:show help message and exit'
+    '-h:show help message and exit'
+)
+
+amazon_args=(
+    'auth-init:run midway authentication on localhost and optional remote DevDsk(s)'
+    'auth-init-exp:run midway authentication express on localhost and optional remote DevDsk(s)'
+    'midway-cookie:check the cookies validity'
+    'devdsk-formation:run DevDsk Formation on a remote DevDsk'
+    'update-hosts:update /etc/hosts file'
+    'update-hosts-d:install a LaunchDaemon to update the hosts file every hour'
+    'brazil-setup:creating case-sensitive volumes (\'workplace\' and \'brazil-pkg-cache\')'
+    'spurdog-ro:check membership for Spurdog Program'
+)
+
+builder_args=(
+    'python-pkg-init:initiate a new Python package in the current folder'
+    'dotfiles-update:update dotfiles from their specified repository'
+)
+
+macos_args=(
+    'find-unencrypted-volumes:find all unencrypted volumes'
+    'make-encrypted-volume:make an encrypted APFS volume'
+    'encrypt-volume:make an encrypted APFS volume'
+    'mount-volume:mount the specified volume at the specified mount point'
+    'mount-at-startup:install a LaunchDaemon to mount the volume at System Startup'
+)
+
+unison_args=(
+    'status:check the running status of each Unison profile'
+    'restart:restart Unison profile(s) sync'
+    'stop:stop Unison profile(s) sync'
+    'clear-locks:clear Unison locks on localhost and an optional remote DevDsk'
+    'start-at-startup:install a LaunchDaemon to start Unison at System Startup'
+    'run-profiles:[DO NOT USE] internally used only to run Unison profiles'
+)
+
+case "$words[2]" in
+    amazon)
+        case "$words[3]" in
+            auth-init)
+                _arguments '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3'
+                _arguments '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
+                ;;
+            auth-init-exp)
+                _arguments '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3'
+                _arguments '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
+                ;;
+            midway-cookie)
+                _arguments '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie'
+                ;;
+            devdsk-formation)
+                _arguments '-i[REQUIRED the DevDsk ID]:REQUIRED the DevDsk ID'
+                ;;
+            update-hosts)
+                :
+                ;;
+            brazil-setup)
+                :
+                ;;
+            spurdog-ro)
+                _arguments '-u[REQUIRED username to check Spurdog Program membership]:REQUIRED username to check Spurdog Program membership'
+                _arguments '--auth[run mwinit before querying]:run mwinit before querying'
+                ;;
+            *)
+                _describe 'args' amazon_args
+                ;;
+        esac
+        ;;
+    builder)
+        case "$words[3]" in
+            python-pkg-init)
+                _arguments '-n[REQUIRED the package name in PascalCase]:REQUIRED the package name in PascalCase'
+                ;;
+            dotfiles-update)
+                :
+                ;;
+            *)
+                _describe 'args' builder_args
+                ;;
+        esac
+        ;;
+    macos)
+        case "$words[3]" in
+            find-unencrypted-volumes)
+                :
+                ;;
+            make-encrypted-volume)
+                _arguments '-n[REQUIRED name of the encrypted volume]:REQUIRED name of the encrypted volume' '-q[OPTIONAL size of the encrypted volume in Gb i.e. -q 50g]:size of the encrypted volume in Gb i.e. -q 50g'
+                ;;
+            encrypt-volume)
+                _arguments '-n[REQUIRED name of the volume to encrypt]:REQUIRED name of the volume to encrypt'
+                ;;
+            mount-volume)
+                _arguments '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount' '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume'
+                ;;
+            mount-at-startup)
+                _arguments '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount' '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume'
+                ;;
+            *)
+                _describe 'args' macos_args
+                ;;
+        esac
+        ;;
+    unison)
+        case "$words[3]" in
+            status)
+                :
+                ;;
+            restart)
+                :
+                ;;
+            stop)
+                :
+                ;;
+            clear-locks)
+                _arguments '-i[OPTIONAL the DevDsk ID]:OPTIONAL the DevDsk ID'
+                ;;
+            start-at-startup)
+                :
+                ;;
+            run-profiles)
+                :
+                ;;
+            *)
+                _describe 'args' unison_args
+                ;;
+        esac
+        ;;
+    *)
+        _describe 'commands' commands
+        ;;
+esac
+
+return 0

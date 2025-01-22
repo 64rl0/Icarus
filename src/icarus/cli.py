@@ -205,7 +205,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         required=False,
         metavar='PATH',
         default='',
-        help='The filepath of the cookie file, if none then ~/.midway/cookie',
+        help='the filepath of the cookie file, if none then ~/.midway/cookie',
     )
 
     amazon_devdsk_formation = amazon_sub.add_parser(
@@ -369,7 +369,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     unison_clear_locks.add_argument(
-        '-i', required=False, metavar='ID', default='', help='the DevDsk id'
+        '-i', required=False, metavar='ID', default='', help='the DevDsk ID'
     )
 
     unison_sub.add_parser(
