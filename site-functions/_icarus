@@ -112,6 +112,7 @@ case "${filtered_words[2]}" in
                 :
                 ;;
             make-encrypted-volume)
+                echo "Completing for make-encrypted-volume"
                 _arguments '-n[REQUIRED name of the encrypted volume]:REQUIRED name of the encrypted volume' '-q[OPTIONAL size of the encrypted volume in Gb i.e. -q 50g]:size of the encrypted volume in Gb i.e. -q 50g'
                 ;;
             encrypt-volume)
