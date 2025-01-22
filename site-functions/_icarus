@@ -19,14 +19,14 @@ commands=(
 )
 
 amazon_args=(
-    'auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
-    'auth-init-exp:Run midway authentication express'
-    'midway-cookie:Check the cookies validity'
-    'devdsk-formation:Run DevDsk Formation on a remote DevDsk'
-    'update-hosts:Update /etc/hosts file'
-    'update-hosts-d:Install a LaunchDaemon to update the hosts file every hour'
-    'brazil-setup:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
-    'spurdog-ro:Check membership for Spurdog Program'
+    '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
+    '--auth-init-exp:Run midway authentication express'
+    '--midway-cookie:Check the cookies validity'
+    '--devdsk-formation:Run DevDsk Formation on a remote DevDsk'
+    '--update-hosts:Update /etc/hosts file'
+    '--update-hosts-d:Install a LaunchDaemon to update the hosts file every hour'
+    '--brazil-setup:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
+    '--spurdog-ro:Check membership for Spurdog Program'
 )
 
 builder_args=(
@@ -53,27 +53,27 @@ unison_args=(
 case "$words[2]" in
     amazon)
         case "$words[3]" in
-            auth-init)
+            --auth-init)
                 _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
                 _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
                 ;;
-            auth-init-exp)
+            --auth-init-exp)
                 _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
                 _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
                 ;;
-            midway-cookie)
+            --midway-cookie)
                 :
                 ;;
-            devdsk-formation)
+            --devdsk-formation)
                 _arguments '-i[REQUIRED DevDsk ID]:REQUIRED DevDsk ID'
                 ;;
-            update-hosts)
+            --update-hosts)
                 :
                 ;;
-            brazil-setup)
+            --brazil-setup)
                 :
                 ;;
-            spurdog-ro)
+            --spurdog-ro)
                 _arguments '-u[REQUIRED Amazon user alias]:REQUIRED Amazon user alias'
                 _arguments '--auth[Run mwinit before querying]:Run mwinit before querying'
                 ;;
