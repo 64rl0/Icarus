@@ -1,4 +1,5 @@
 #compdef icarus
+# vim: ft=sh
 
 #   __|    \    _ \  |      _ \   __| __ __| __ __|
 #  (      _ \     /  |     (   | (_ |    |      |
@@ -6,133 +7,184 @@
 
 # zsh completion for icarus
 
+# Initialize variables
 local -a commands
 local -a amazon_args builder_args macos_args unison_args
+local -a filtered_words
 
 commands=(
-    'amazon:Utilities for Amazon environment'
-    'builder:Utilities for software development'
-    '--macos:Utilities for macOS'
-    '--unison:Utilities to manage Unison daemon'
-    '--help:Show help'
-    '-h:Show help'
+    'amazon:utilities for Amazon environment'
+    'builder:utilities for software development'
+    'macos:utilities for macOS'
+    'unison:utilities to manage Unison daemon'
+    '--verbose:increase output verbosity'
+    '-v:increase output verbosity'
+    '--version:display version information and exit'
+    '--help:show help message and exit'
+    '-h:show help message and exit'
 )
 
 amazon_args=(
-    '--auth-init:Run midway authentication on localhost and optional remote DevDsk(s)'
-    '--auth-init-exp:Run midway authentication express'
-    '--midway-cookie:Check the cookies validity'
-    '--devdsk-formation:Run DevDsk Formation on a remote DevDsk'
-    '--update-hosts:Update /etc/hosts file'
-    '--update-hosts-d:Install a LaunchDaemon to update the hosts file every hour'
-    '--brazil-setup:Creating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')'
-    '--spurdog-ro:Check membership for Spurdog Program'
+    'auth-init:run midway authentication on localhost and optional remote DevDsk(s)'
+    'auth-init-exp:run midway authentication express on localhost and optional remote DevDsk(s)'
+    'midway-cookie:check the cookies validity'
+    'devdsk-formation:run DevDsk Formation on a remote DevDsk'
+    'update-hosts:update /etc/hosts file'
+    'update-hosts-d:install a LaunchDaemon to update the hosts file every hour'
+    'brazil-setup:creating case-sensitive volumes (`workplace` and `brazil-pkg-cache`)'
+    'spurdog-ro:check membership for Spurdog Program'
 )
 
 builder_args=(
-    '--python-package-init:Initiate a new Python package in the current folder'
-    '--dotfiles-update:Update dotfiles from their specified repository'
+    'python-pkg-init:initiate a new Python package in the current folder'
+    'dotfiles-update:update dotfiles from their specified repository'
 )
 
 macos_args=(
-    '--find-unencrypted-volumes:Find unencrypted volumes'
-    '--make-encrypted-volume:Make an encrypted APFS volume'
-    '--encrypt-volume:Encrypt an existing APFS volume'
-    '--mount-volume:Mount the specified volume at the specified mount point'
-    '--mount-at-startup:Install a LaunchDaemon to mount the volume at System Startup'
+    'find-unencrypted-volumes:find all unencrypted volumes'
+    'make-encrypted-volume:make an encrypted APFS volume'
+    'encrypt-volume:encrypt an APFS volume'
+    'mount-volume:mount the specified volume at the specified mount point'
+    'mount-at-startup:install a LaunchDaemon to mount the volume at System Startup'
 )
 
 unison_args=(
-    '--status:Check the running status of each Unison profile'
-    '--start:Start Unison profile(s) sync'
-    '--stop:Stop Unison profile(s) sync'
-    '--clear-locks:Clear Unison locks on localhost and a optional remote DevDsk'
-    '--start-at-startup:Install a LaunchDaemon to start Unison at System Startup'
+    'status:check the running status of each Unison profile'
+    'restart:restart Unison profile(s) sync'
+    'stop:stop Unison profile(s) sync'
+    'clear-locks:clear Unison locks on localhost and an optional remote DevDsk'
+    'start-at-startup:install a LaunchDaemon to start Unison at System Startup'
+    'run-profiles:[DO NOT USE] internally used only to run Unison profiles'
 )
 
-case "$words[2]" in
+# Check for terminal options and prevent further completions
+if [[ " ${words[*]} " == *" -h "* || " ${words[*]} " == *" --help "* || " ${words[*]} " == *" --version "* ]]; then
+    return 0
+fi
+
+# Filter out global options
+filtered_words=("${(@)words:#(-v|--verbose)}")
+
+case "${filtered_words[2]}" in
     amazon)
-        case "$words[3]" in
-            --auth-init)
-                _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
-                _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
+        case "${filtered_words[3]}" in
+            auth-init)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
+                    '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                 ;;
-            --auth-init-exp)
-                _arguments '-i[OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3]:OPTIONAL DevDsk ID, takes multiple ids i.e. -i 1 2 3'
-                _arguments '--mw-args[OPTIONAL Specify one arg to pass to mwinit]:OPTIONAL Specify one arg to pass to mwinit'
+            auth-init-exp)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
+                    '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                 ;;
-            --midway-cookie)
-                :
+            midway-cookie)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie'
                 ;;
-            --devdsk-formation)
-                _arguments '-i[REQUIRED DevDsk ID]:REQUIRED DevDsk ID'
+            devdsk-formation)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-i[REQUIRED the DevDsk ID]:REQUIRED the DevDsk ID'
                 ;;
-            --update-hosts)
-                :
+            update-hosts)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
-            --brazil-setup)
-                :
+            brazil-setup)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
-            --spurdog-ro)
-                _arguments '-u[REQUIRED Amazon user alias]:REQUIRED Amazon user alias'
-                _arguments '--auth[Run mwinit before querying]:Run mwinit before querying'
+            spurdog-ro)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-u[REQUIRED username to check Spurdog Program membership]:REQUIRED username to check Spurdog Program membership' \
+                    '--auth[OPTIONAL run mwinit before querying]:OPTIONAL run mwinit before querying'
                 ;;
             *)
                 _describe 'args' amazon_args
                 ;;
         esac
         ;;
-    --builder)
-        case "$words[3]" in
-            --python-package-init)
-                _arguments '-n[REQUIRED Package name in PascalCase]:REQUIRED Package name in PascalCase'
+    builder)
+        case "${filtered_words[3]}" in
+            python-pkg-init)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-n[REQUIRED the package name in PascalCase]:REQUIRED the package name in PascalCase'
                 ;;
-            --dotfiles-update)
-                :
+            dotfiles-update)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
             *)
                 _describe 'args' builder_args
                 ;;
         esac
         ;;
-    --macos)
-        case "$words[3]" in
-            --find-unencrypted-volumes)
-                :
+    macos)
+        case "${filtered_words[3]}" in
+            find-unencrypted-volumes)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
-            --make-encrypted-volume)
-                _arguments '-n[REQUIRED Name of the volume to create]:REQUIRED Name of the volume to create' '-q[OPTIONAL Quota in Gb i.e. -q 50g]:OPTIONAL Quota in Gb i.e. -q 50g'
+            make-encrypted-volume)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-n[REQUIRED name of the encrypted volume]:REQUIRED name of the encrypted volume' \
+                    '-q[OPTIONAL size of the encrypted volume in Gb i.e. -q 50g]:OPTIONAL size of the encrypted volume in Gb i.e. -q 50g'
                 ;;
-            --encrypt-volume)
-                :
+            encrypt-volume)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-n[REQUIRED name of the volume to encrypt]:REQUIRED name of the volume to encrypt'
                 ;;
-            --mount-volume)
-                _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
+            mount-volume)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount' \
+                    '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume'
                 ;;
-            --mount-at-startup)
-                _arguments '-n[REQUIRED Name of the volume to mount]:REQUIRED Name of the volume to mount' '-p[REQUIRED Mount point]:REQUIRED Mount point'
+            mount-at-startup)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount' \
+                    '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume'
                 ;;
             *)
                 _describe 'args' macos_args
                 ;;
         esac
         ;;
-    --unison)
-        case "$words[3]" in
-            --status)
-                :
+    unison)
+        case "${filtered_words[3]}" in
+            status)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
-            --start)
-                :
+            restart)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
-            --stop)
-                :
+            stop)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
-            --clear-locks)
-                _arguments '-i[OPTIONAL DevDsk ID]:OPTIONAL DevDsk ID'
+            clear-locks)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit' \
+                    '-i[OPTIONAL the DevDsk ID]:OPTIONAL the DevDsk ID'
                 ;;
-            --start-at-startup)
-                :
+            start-at-startup)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
+                ;;
+            run-profiles)
+                _arguments \
+                    '-h[show help message and exit]:show help message and exit'
                 ;;
             *)
                 _describe 'args' unison_args
