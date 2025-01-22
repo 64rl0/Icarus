@@ -53,7 +53,7 @@ unison_args=(
 )
 
 # Check for terminal options and prevent further completions
-if [[ "$words" == *(-h|--help|--version)* ]]; then
+if [[ " ${words[*]} " == *" -h "* || " ${words[*]} " == *" --help "* || " ${words[*]} " == *" --version "* ]]; then
     return 0
 fi
 
