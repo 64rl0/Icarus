@@ -88,9 +88,22 @@ elif [[ -n "$1" ]]; then
     echo -e "\n\n${bold_green}${green_check_mark} Building venv ${venv_name}${end}"
 fi
 
+# Find the most recent Python version in the system
+accepted_python_versions=("3.13" "3.12" "3.11" "3.10" "3.9")
+for version in "${accepted_python_versions[@]}"; do
+    if command -v "python${version}" >/dev/null 2>&1; then
+        python_version_for_venv="${version}"
+        break
+    fi
+done
+
+if [[ -z "${python_version_for_venv}" ]]; then
+    echo -e "\n\n${bold_red}${stop_sign} No Python version found!${end}"
+    exit 1
+fi
+
 # Create Local venv
 echo -e "\n\n${bold_green}${sparkles} Creating ${venv_name} venv...${end}"
-python_version_for_venv="3.12"
 python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}"
 
 # Activate local venv
@@ -103,8 +116,8 @@ echo -e "running: $(python --version)"
 
 # Install requirements
 echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
-pip install --upgrade pip
-pip install "/Users/carlogtt/Dropbox/SDE/Python/CarloCodes/my_utils_library"
+pip install -q --upgrade pip
+find "${project_root_dir_abs}/lib" -type f -exec pip install {} +
 pip install -r "${project_root_dir_abs}/requirements.txt"
 
 # Build complete!

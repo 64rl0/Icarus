@@ -28,8 +28,13 @@ declare -r python_entrypoint_abs
 
 # Ensure the virtual environment exists
 if [ ! -x "${python_interpreter_abs}" ]; then
-    echo "Python interpreter not found. Please create it." >&2
-    exit 1
+    echo -e "Installing icarus CLI please wait..." >&2
+    pushd "${project_root_dir_abs}" >/dev/null 2>&1
+    make build >/dev/null 2>&1
+    echo -e "icarus CLI installed!"
+    echo -e ""
+    echo -e "Running: ${BASH_SOURCE[*]} $*"
+    echo -e ""
 fi
 
 # Execute the main CLI script with the virtual environment's Python

@@ -213,10 +213,6 @@ if [[ "${shfmt}" == "Y" ]]; then
         echo -e "${blue}\ntest/${end}"
         shfmt -l -w "${project_root_dir_abs}/test"
     fi
-    if [[ -d "${project_root_dir_abs}/lib" ]]; then
-        echo -e "${blue}\nlib/${end}"
-        shfmt -l -w "${project_root_dir_abs}/lib"
-    fi
 else
     echo -e "${bold_red}[DISABLED]${end}"
 fi
@@ -247,11 +243,6 @@ if [[ "${nnbsp}" == "Y" ]]; then
     if [[ -d "${project_root_dir_abs}/test" ]]; then
         echo -e "${blue}\ntest/${end}"
         find "${project_root_dir_abs}/test" -type f -not -path '*.pyc' -exec sed -i '' 's/ / /g' {} +
-        echo -e "done!"
-    fi
-    if [[ -d "${project_root_dir_abs}/lib" ]]; then
-        echo -e "${blue}\nlib/${end}"
-        find "${project_root_dir_abs}/lib" -type f -exec sed -i '' 's/ / /g' {} +
         echo -e "done!"
     fi
 else

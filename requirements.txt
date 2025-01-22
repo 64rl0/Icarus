@@ -1,6 +1,3 @@
-# Custom built packages
-# my-utils-library
-
 # Project utils dependencies
 python-dotenv
 black
