@@ -304,7 +304,7 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     macos_encrypt_volume = macos_sub.add_parser(
         name='encrypt-volume',
-        help='make an encrypted APFS volume',
+        help='encrypt an APFS volume',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

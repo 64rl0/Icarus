@@ -30,7 +30,7 @@ amazon_args=(
     'devdsk-formation:run DevDsk Formation on a remote DevDsk'
     'update-hosts:update /etc/hosts file'
     'update-hosts-d:install a LaunchDaemon to update the hosts file every hour'
-    'brazil-setup:creating case-sensitive volumes (workplace and brazil-pkg-cache)'
+    'brazil-setup:creating case-sensitive volumes (`workplace` and `brazil-pkg-cache`)'
     'spurdog-ro:check membership for Spurdog Program'
 )
 
@@ -42,7 +42,7 @@ builder_args=(
 macos_args=(
     'find-unencrypted-volumes:find all unencrypted volumes'
     'make-encrypted-volume:make an encrypted APFS volume'
-    'encrypt-volume:make an encrypted APFS volume'
+    'encrypt-volume:encrypt an APFS volume'
     'mount-volume:mount the specified volume at the specified mount point'
     'mount-at-startup:install a LaunchDaemon to mount the volume at System Startup'
 )
