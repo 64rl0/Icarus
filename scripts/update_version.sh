@@ -12,6 +12,11 @@
 # THIS SCRIPT CAN ONLY BE SOURCE FROM ANOTHER SCRIPT WHERE THE VARIABLES HERE BELOW ARE DEFINED
 # DO NOT RUN THIS SCRIPT DIRECTLY
 
+# Read the current version and date from the file
+version_file="${project_root_dir_abs}/src/icarus/config/constants.py"
+current_version=$(grep "^CLI_VERSION = '" "${version_file}" | cut -d ' ' -f 4)
+echo -e "Current version: ${current_version}"
+
 # Parse the command line
 read -r -p "Enter the version type major, minor or [patch]: " option
 if [[ -z "${option}" ]]; then
@@ -19,10 +24,6 @@ if [[ -z "${option}" ]]; then
     option="patch"
 fi
 echo -e "${option} version selected"
-
-# Read the current version and date from the file
-version_file="${project_root_dir_abs}/src/icarus/config/constants.py"
-current_version=$(grep "^CLI_VERSION = '" "${version_file}" | cut -d ' ' -f 4)
 
 # Extract the major, minor, and patch version numbers
 major=$(echo "${current_version}" | cut -d '.' -f 1)

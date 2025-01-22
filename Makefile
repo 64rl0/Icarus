@@ -9,3 +9,7 @@ build:
 .PHONY: compile
 compile:
 	./scripts/compile_binary.sh
+
+.PHONY: deploy
+deploy:
+	./scripts/deploy.sh

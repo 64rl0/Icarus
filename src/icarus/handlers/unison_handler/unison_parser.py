@@ -63,7 +63,6 @@ def handle_unison_command(args: argparse.Namespace) -> int:
         and any associated options or parameters.
     :return: Exit code of the script.
     :raise ValueError: If an unknown `unison_command` is provided.
-
     """
 
     if args.unison_command == 'status':

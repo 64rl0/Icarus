@@ -4,7 +4,7 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# ProjectNameHere/scripts/formatter.sh
+# scripts/formatter.sh
 # Created 3/3/24 - 11:41 AM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
@@ -216,6 +216,43 @@ if [[ "${shfmt}" == "Y" ]]; then
     if [[ -d "${project_root_dir_abs}/lib" ]]; then
         echo -e "${blue}\nlib/${end}"
         shfmt -l -w "${project_root_dir_abs}/lib"
+    fi
+else
+    echo -e "${bold_red}[DISABLED]${end}"
+fi
+
+echo -e "\n${bold_green}${sparkles} Running 'NNBSP' char replacement...${end}"
+nnbsp="Y"
+if [[ "${nnbsp}" == "Y" ]]; then
+    if [[ -d "${script_dir_abs}" ]]; then
+        echo -e "${blue}scripts/${end}"
+        find "${project_root_dir_abs}/scripts" -type f -not -name "formatter.sh" -exec sed -i '' 's/ / /g' {} +
+        echo -e "done!"
+    fi
+    if [[ -d "${project_root_dir_abs}/cli_scripts" ]]; then
+        echo -e "${blue}\ncli_scripts/${end}"
+        find "${project_root_dir_abs}/cli_scripts" -type f -exec sed -i '' 's/ / /g' {} +
+        echo -e "done!"
+    fi
+    if [[ -d "${project_root_dir_abs}/configuration" ]]; then
+        echo -e "${blue}\nconfiguration/${end}"
+        find "${project_root_dir_abs}/configuration" -type f -exec sed -i '' 's/ / /g' {} +
+        echo -e "done!"
+    fi
+    if [[ -d "${project_root_dir_abs}/src" ]]; then
+        echo -e "${blue}\nsrc/${end}"
+        find "${project_root_dir_abs}/src" -type f -not -path '*.pyc' -exec sed -i '' 's/ / /g' {} +
+        echo -e "done!"
+    fi
+    if [[ -d "${project_root_dir_abs}/test" ]]; then
+        echo -e "${blue}\ntest/${end}"
+        find "${project_root_dir_abs}/test" -type f -not -path '*.pyc' -exec sed -i '' 's/ / /g' {} +
+        echo -e "done!"
+    fi
+    if [[ -d "${project_root_dir_abs}/lib" ]]; then
+        echo -e "${blue}\nlib/${end}"
+        find "${project_root_dir_abs}/lib" -type f -exec sed -i '' 's/ / /g' {} +
+        echo -e "done!"
     fi
 else
     echo -e "${bold_red}[DISABLED]${end}"

@@ -10,7 +10,7 @@
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
 # src/icarus/handlers/macos_handler/macos_parser.py
-# Created 1/19/25 - 4:03 PM UK Time (London) by carlogtt
+# Created 1/19/25 - 4:03 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -63,7 +63,6 @@ def handle_macos_command(args: argparse.Namespace) -> int:
         and any associated options or parameters.
     :return: Exit code of the script.
     :raise ValueError: If an unknown `macos_command` is provided.
-
     """
 
     if args.macos_command == 'find-unencrypted-volumes':
@@ -80,7 +79,7 @@ def handle_macos_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.macos_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'macos_handler' / 'make_encrypted_volume.sh'
-        script_args = None
+        script_args = [args.n, args.q]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 
@@ -90,7 +89,7 @@ def handle_macos_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.macos_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'macos_handler' / 'encrypt_volume.sh'
-        script_args = None
+        script_args = [args.n]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 
@@ -100,7 +99,7 @@ def handle_macos_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.macos_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'macos_handler' / 'mount_volume.sh'
-        script_args = None
+        script_args = [args.n, args.p]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 
@@ -110,7 +109,7 @@ def handle_macos_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.macos_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'macos_handler' / 'mount_at_startup.sh'
-        script_args = None
+        script_args = [args.n, args.p]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 

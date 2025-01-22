@@ -47,7 +47,12 @@ from .. import config
 
 
 # List of public names in the module
-__all__ = ['cli_version', 'set_logger_level', 'run_bash_script', 'capture_exit_code']
+__all__ = [
+    'cli_version',
+    'set_logger_level',
+    'run_bash_script',
+    'capture_exit_code',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

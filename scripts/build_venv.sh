@@ -4,7 +4,7 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# ProjectNameHere/scripts/build_venv.sh
+# scripts/build_venv.sh
 # Created 3/2/24 - 8:09 AM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
