@@ -79,7 +79,7 @@ case "${state}" in
                     'stop[stop Unison profile(s) sync]' \
                     'clear-locks[clear Unison locks on localhost and an optional remote DevDsk]' \
                     'start-at-startup[install a LaunchDaemon to start Unison at System Startup]' \
-                    'run-profiles[[DO NOT USE] internally used only to run Unison profiles]'
+                    'run-profiles[\[DO NOT USE\] internally used only to run Unison profiles]'
                 ;;
         esac
         ;;
