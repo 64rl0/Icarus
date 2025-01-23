@@ -46,7 +46,7 @@ unison_run_profiles() {
     done
 
     # wait to keep the unison profiles running
-    wait
+    #    wait
 }
 
 unison_run_profiles "$@"

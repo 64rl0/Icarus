@@ -41,7 +41,8 @@ unison_terminal_notifier() {
     touch "${log_file}"
 
     # Run unison with profile
-    /opt/homebrew/bin/unison -ui text "$profile" >/dev/null 2>&1 &
+    echo "running unison with profile $profile"
+    nohup /opt/homebrew/bin/unison -ui text "$profile" >/dev/null 2>&1 &
 
     # Follow the log file and process new lines as they are written
     tail -f -n 1 "${log_file}" | while IFS= read -r line; do
