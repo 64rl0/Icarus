@@ -25,6 +25,7 @@ _icarus()
     filtered_words=("${(@)words:#(-v|--verbose)}")
 
     words=("${filtered_words[@]}")
+    OLD_CURRENT="${CURREN}"
     CURRENT="${#words[@]}"
     __icarus_debug "Filtered words: '${words[*]}'"
 
@@ -33,7 +34,7 @@ _icarus()
     __icarus_debug "Truncated words: '${words[*]}'"
 
     # Get last parameter, last character
-    local previousParamIdx="$(( CURRENT - 1 ))"
+    local previousParamIdx="$(( OLD_CURRENT - 1 ))"
     local previousParam="${words[${previousParamIdx}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
