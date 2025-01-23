@@ -20,6 +20,8 @@ cli_script_base="${cli_scripts_dir_abs}/base.sh"
 declare -r cli_script_base
 unison_base="${script_dir_abs}/unison_base.sh"
 declare -r unison_base
+run_profiles_core="${script_dir_abs}/run_profiles_core.sh"
+declare -r cli_scripts_dir_abs
 
 # Sourcing base file
 source "${cli_script_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
@@ -30,59 +32,6 @@ set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
 # User defined variables
-unison_terminal_notifier() {
-    local profile=$1
-    local message=""
-    local end_messages="" # Initialize an empty string to accumulate the [END] lines
-    local log_file="${HOME}/.unison/unison_${profile}.log"
-    local line=""
-
-    # Make sure the log file exists, if not create it
-    touch "${log_file}"
-
-    # Run unison with profile
-    /opt/homebrew/bin/unison -ui text "$profile" >/dev/null 2>&1 &
-
-    # Follow the log file and process new lines as they are written
-    tail -f -n 1 "${log_file}" | while IFS= read -r line; do
-
-        if [[ ${line:0:5} == "[END]" ]]; then
-            end_messages+="$line                                 " # Add a newline for each [END] line
-            continue                                               # Move to the next iteration without further processing this line
-        fi
-
-        if [[ ${line:0:4} == "Sync" ]]; then
-            message=${line:39:$((${#line} - 40))}
-            message="✅ SYNC SUCCESSFUL                                      $message                                 $end_messages"
-            if [[ ${line:0:26} == "Synchronization incomplete" ]]; then
-                message=${line:41:$((${#line} - 42))}
-                message="⚠️ SYNC WARNING                                        $message                                 $end_messages"
-
-            fi
-            echo "$message"
-
-            /opt/homebrew/bin/terminal-notifier -message "$message" \
-                -title "UNISON -> ${profile}" \
-                -sound "Default" -group "UNISON-$(date +%s)" \
-                -open "file://${log_file}"
-
-            end_messages="" # Reset end_messages after sending notification to accumulate the [END] lines
-
-        elif [[ ${line:0:11} == "Fatal error" ]]; then
-            message=$line
-            message="🚨 SYNC ALERT                                             $message"
-
-            echo "$message"
-
-            /opt/homebrew/bin/terminal-notifier -message "$message" \
-                -title "UNISON ERROR -> ${profile}" \
-                -sound "Default" -group "UNISON-$(date +%s)" \
-                -open "file://${log_file}"
-
-        fi
-    done
-}
-
 unison_run_profiles() {
     local -a unison_profiles=(
         "prof_workplace"
@@ -93,7 +42,7 @@ unison_run_profiles() {
     )
 
     for unison_profile in "${unison_profiles[@]}"; do
-        nohup unison_terminal_notifier "${unison_profile}" &
+        nohup "${run_profiles_core}" "${unison_profile}" >'/tmp/com.unison.run_profiles_core.log' 2>&1 &
     done
 
     # wait to keep the unison profiles running
