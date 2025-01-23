@@ -93,7 +93,7 @@ unison_run_profiles() {
     )
 
     for unison_profile in "${unison_profiles[@]}"; do
-        unison_terminal_notifier "${unison_profile}" &
+        nohup unison_terminal_notifier "${unison_profile}" &
     done
 
     # wait to keep the unison profiles running
