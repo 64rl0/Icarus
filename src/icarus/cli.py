@@ -72,21 +72,24 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     tl_par.add_argument(
         '--version',
-        action='version',
-        version=utils.cli_version(),
+        required=False,
+        action='store_const',
+        const='--version',
+        default='',
         help='display version information and exit',
     )
 
     tl_par.add_argument(
         '--verbose',
         '-v',
+        required=False,
         action='count',
         default=0,
         help='increase output verbosity',
     )
 
     sl_par = tl_par.add_subparsers(
-        title='commands', dest='tl_command', required=True, metavar='<command>'
+        title='commands', dest='tl_command', required=False, metavar='<command>'
     )
 
     # =============
@@ -417,7 +420,15 @@ def execute(args: argparse.Namespace) -> int:
     :return: Exit code of the script.
     """
 
-    # Execute
+    # Check for global commands first
+    if args.version:
+        module_logger.debug(f"Running {args=} handler={handlers.handle_global_command.__name__}")
+
+        return_code = handlers.handle_global_command(args=args)
+
+        return return_code
+
+    # Dispatch tl_command
     if args.tl_command == 'amazon':
         module_logger.debug(
             f"Running {args.tl_command=} handler={handlers.handle_amazon_command.__name__}"
@@ -451,5 +462,5 @@ def execute(args: argparse.Namespace) -> int:
         return return_code
 
     else:
-        module_logger.debug(f"Running {args.tl_command=}")
-        raise ValueError('Unknown command')
+        module_logger.debug(f"Running {args.tl_command=} -> this argument is required")
+        raise ValueError('the following arguments are required: <command>')

@@ -101,20 +101,20 @@ case "${state}" in
                 case "${words[3]}" in
                     auth-init)
                         _arguments \
-                            '-h[show help message and exit]' \
-                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]' \
-                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]'
+                            '-h[show help message and exit]:show help message and exit' \
+                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
+                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                         ;;
                     auth-init-exp)
                         _arguments \
-                            '-h[show help message and exit]' \
-                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]' \
-                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]'
+                            '-h[show help message and exit]:show help message and exit' \
+                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
+                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
                         ;;
                     midway-cookie)
                         _arguments \
-                            '-h[show help message and exit]' \
-                            '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]'
+                            '-h[show help message and exit]:show help message and exit' \
+                            '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie'
                         ;;
                     devdsk-formation)
                         _arguments \

@@ -68,6 +68,10 @@ def main() -> int:
     module_logger.debug(f"Arguments parsed:{args=}")
 
     # Execute the command
-    return_cose = cli.execute(args=args)
+    try:
+        return_cose = cli.execute(args=args)
+    except ValueError as ex:
+        module_logger.debug(repr(ex))
+        parser.error(str(ex))
 
     return return_cose

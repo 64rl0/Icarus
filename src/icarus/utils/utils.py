@@ -63,7 +63,32 @@ OriginalFunction = Callable[..., Any]
 InnerFunction = Callable[..., Any]
 
 
-def cli_version() -> str:
+def capture_exit_code(original_function: OriginalFunction) -> InnerFunction:
+    """
+    Decorator function to capture the exit code of a Python function.
+
+    :param original_function: The Python function to be decorated.
+    :return: Exit code of the Python function.
+    """
+
+    @functools.wraps(original_function)
+    def inner(*args: Any, **kwargs: Any) -> int:
+        try:
+            original_function(*args, **kwargs)
+            return 0
+
+        except Exception as ex:
+            module_logger.debug(
+                f"Exception occurred while running function: '{original_function.__name__}' |"
+                f" exception: {repr(ex)}"
+            )
+            return 1
+
+    return inner
+
+
+@capture_exit_code
+def cli_version() -> None:
     """
     Display the version of the CLI.
 
@@ -82,7 +107,7 @@ def cli_version() -> str:
 
     version = f'icarus-cli: {icarus_version}\nicarus-hash: {icarus_build}\npython: {python_version}'
 
-    return version
+    print(version, flush=True)
 
 
 def set_logger_level(level: int) -> None:
@@ -154,27 +179,3 @@ def run_bash_script(
         module_logger.debug(f"Exception occurred while running {command=} | exception: {repr(ex)}")
 
         return 1
-
-
-def capture_exit_code(original_function: OriginalFunction) -> InnerFunction:
-    """
-    Decorator function to capture the exit code of a Python function.
-
-    :param original_function: The Python function to be decorated.
-    :return: Exit code of the Python function.
-    """
-
-    @functools.wraps(original_function)
-    def inner(*args: Any, **kwargs: Any) -> int:
-        try:
-            original_function(*args, **kwargs)
-            return 0
-
-        except Exception as ex:
-            module_logger.debug(
-                f"Exception occurred while running function: '{original_function.__name__}' |"
-                f" exception: {repr(ex)}"
-            )
-            return 1
-
-    return inner

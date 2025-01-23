@@ -9,8 +9,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# src/icarus/handlers/__init__.py
-# Created 1/19/25 - 11:09 AM UK Time (London) by carlogtt
+# src/icarus/handlers/global_handler/__init__.py
+# Created 1/23/25 - 12:02 AM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -32,11 +32,7 @@ This module ...
 # ======================================================================
 
 # Local Folder (Relative) Imports
-from .amazon_handler import *
-from .builder_handler import *
-from .global_handler import *
-from .macos_handler import *
-from .unison_handler import *
+from .global_parser import *
 
 # END IMPORTS
 # ======================================================================

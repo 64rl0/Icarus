@@ -117,4 +117,4 @@ def handle_unison_command(args: argparse.Namespace) -> int:
 
     else:
         module_logger.debug(f"Running {args.unison_command=}")
-        raise ValueError('Unknown command')
+        raise ValueError('the following arguments are required: <subcommand>')

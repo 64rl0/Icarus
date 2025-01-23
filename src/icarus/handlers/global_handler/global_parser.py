@@ -9,8 +9,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# src/icarus/handlers/__init__.py
-# Created 1/19/25 - 11:09 AM UK Time (London) by carlogtt
+# src/icarus/handlers/global_handler/global_parser.py
+# Created 1/23/25 - 12:03 AM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -24,29 +24,54 @@ This module ...
 # These exceptions may be necessary due to specific coding requirements
 # or to bypass false positives.
 # ======================================================================
-# flake8: noqa
+#
 
 # ======================================================================
 # IMPORTS
 # Importing required libraries and modules for the application.
 # ======================================================================
 
+# Standard Library Imports
+import argparse
+
 # Local Folder (Relative) Imports
-from .amazon_handler import *
-from .builder_handler import *
-from .global_handler import *
-from .macos_handler import *
-from .unison_handler import *
+from ... import config, utils
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-# __all__ = []
+__all__ = ['handle_global_command']
 
 # Setting up logger for current module
-# module_logger =
+module_logger = config.master_logger.get_child_logger(__name__)
 
 # Type aliases
 #
+
+
+def handle_global_command(args: argparse.Namespace) -> int:
+    """
+    Handle execution of subcommands under the 'global' top-level
+    command.
+
+    This function routes the parsed arguments to the appropriate logic
+    based on the value of the `global_command` argument.
+
+    :param args: The parsed arguments containing the `global_command`
+        and any associated options or parameters.
+    :return: Exit code of the script.
+    :raise ValueError: If an unknown `global_command` is provided.
+    """
+
+    if args.version == '--version':
+        module_logger.debug(f"Running {args.version=}")
+
+        return_code = utils.cli_version()
+
+        return return_code
+
+    else:
+        module_logger.debug(f"Running {args=}")
+        raise ValueError('Unknown command from global handler')
