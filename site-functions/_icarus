@@ -102,24 +102,24 @@ case "${state}" in
                     auth-init)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
-                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
+                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3:_guard ".*" "DevDsk ID(s)"' \
+                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl:_guard ".*" "MW arg"'
                         ;;
                     auth-init-exp)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3' \
-                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
+                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3:_guard ".*" "DevDsk ID(s)"' \
+                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl:_guard ".*" "MW arg"'
                         ;;
                     midway-cookie)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie'
+                            '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie:_files'
                         ;;
                     devdsk-formation)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-i[REQUIRED the DevDsk ID]:REQUIRED the DevDsk ID'
+                            '-i[REQUIRED the DevDsk ID]:REQUIRED the DevDsk ID:_guard ".*" "DevDsk ID"'
                         ;;
                     update-hosts)
                         _arguments \
@@ -136,7 +136,7 @@ case "${state}" in
                     spurdog-ro)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-u[REQUIRED username to check Spurdog Program membership]:REQUIRED username to check Spurdog Program membership' \
+                            '-u[REQUIRED username to check Spurdog Program membership]:REQUIRED username to check Spurdog Program membership:_guard ".*" "alias"' \
                             '--auth[OPTIONAL run mwinit before querying]:OPTIONAL run mwinit before querying'
                         ;;
                 esac
@@ -146,7 +146,7 @@ case "${state}" in
                     python-pkg-init)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED the package name in PascalCase]:REQUIRED the package name in PascalCase'
+                            '-n[REQUIRED the package name in PascalCase]:REQUIRED the package name in PascalCase:_guard ".*" "pkg name"'
                     ;;
                     dotfiles-update)
                         _arguments \
@@ -163,25 +163,25 @@ case "${state}" in
                     make-encrypted-volume)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the encrypted volume]:REQUIRED name of the encrypted volume' \
-                            '-q[OPTIONAL size of the encrypted volume in Gb i.e. -q 50g]:OPTIONAL size of the encrypted volume in Gb i.e. -q 50g'
+                            '-n[REQUIRED name of the encrypted volume]:REQUIRED name of the encrypted volume:_guard ".*" "volume name"' \
+                            '-q[OPTIONAL size of the encrypted volume in Gb i.e. -q 50g]:OPTIONAL size of the encrypted volume in Gb i.e. -q 50g:_guard ".*" "volume size"'
                     ;;
                     encrypt-volume)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the volume to encrypt]:REQUIRED name of the volume to encrypt'
+                            '-n[REQUIRED name of the volume to encrypt]:REQUIRED name of the volume to encrypt:_guard ".*" "volume name"'
                     ;;
                     mount-volume)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount' \
-                            '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume'
+                            '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount:_guard ".*" "volume name"' \
+                            '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume:_guard ".*" "mount point"'
                     ;;
                     mount-at-startup)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount' \
-                            '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume'
+                            '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount:_guard ".*" "volume name"' \
+                            '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume:_guard ".*" "mount point"'
                     ;;
                 esac
                 ;;
@@ -202,7 +202,7 @@ case "${state}" in
                     clear-locks)
                         _arguments \
                             '-h[show help message and exit]:show help message and exit' \
-                            '-i[OPTIONAL the DevDsk ID]:OPTIONAL the DevDsk ID'
+                            '-i[OPTIONAL the DevDsk ID]:OPTIONAL the DevDsk ID:_guard ".*" "DevDsk ID"'
                     ;;
                     start-at-startup)
                         _arguments \

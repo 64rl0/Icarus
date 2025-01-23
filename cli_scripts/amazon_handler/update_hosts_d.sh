@@ -55,6 +55,7 @@ update_etc_hosts_daemon() {
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
+            <string>-v</string>
             <string>amazon</string>
             <string>update-hosts</string>
         </array>

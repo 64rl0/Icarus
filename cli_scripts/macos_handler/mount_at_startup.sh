@@ -83,6 +83,7 @@ macos_install_mount_volume_launchd() {
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
+            <string>-v</string>
             <string>macos</string>
             <string>mount-volume</string>
             <string>-n</string>

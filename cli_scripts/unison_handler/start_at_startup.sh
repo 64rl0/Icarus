@@ -58,6 +58,7 @@ unison_install_launchd() {
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
+            <string>-v</string>
             <string>unison</string>
             <string>run-profiles</string>
         </array>
@@ -93,6 +94,7 @@ EOF
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
+            <string>-v</string>
             <string>unison</string>
             <string>restart</string>
         </array>
