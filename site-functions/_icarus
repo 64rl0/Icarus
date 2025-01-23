@@ -261,7 +261,7 @@ _icarus()
     # Format is "value:description", so no need for a TAB.
     # If you prefer 'compadd', you can do that too.
     __icarus_debug "Final completions: ${completions[*]}"
-    if [[ -n $completions ]]; then
+    if [[ -n "${completions}" ]]; then
         _describe -t icarus 'completions' completions
         return 0
     else
