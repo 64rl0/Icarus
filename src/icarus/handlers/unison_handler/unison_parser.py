@@ -115,6 +115,16 @@ def handle_unison_command(args: argparse.Namespace) -> int:
 
         return return_code
 
+    elif args.unison_command == 'run-profiles':
+        module_logger.debug(f"Running {args.unison_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'unison_handler' / 'run_profiles.sh'
+        script_args = None
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
     else:
         module_logger.debug(f"Running {args.unison_command=}")
         raise ValueError('the following arguments are required: <subcommand>')
