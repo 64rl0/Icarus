@@ -47,6 +47,12 @@ _icarus()
     local -a completions  # array of possible completions
     local directive=0     # (if you use any directive bits)
 
+    # Make Zsh complete file paths
+    if [[ "${lastParam}" == "--filepath" || "${lastParam}" == "-p" ]]; then
+        _files
+        return
+    fi
+
     # If the user typed only `icarus [TAB]`
     if (( CURRENT == 2 )); then
         completions+=(
@@ -268,7 +274,8 @@ _icarus()
         # If no completions found, you can optionally do file completion or
         # just return 1 to let Zsh try normal completions.
         __icarus_debug "No completions found; fallback to file completion"
-        _files
+        # _files
+        return 1
     fi
 }
 
