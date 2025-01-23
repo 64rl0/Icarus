@@ -268,8 +268,7 @@ _icarus()
         # If no completions found, you can optionally do file completion or
         # just return 1 to let Zsh try normal completions.
         __icarus_debug "No completions found; fallback to file completion"
-        # _files
-        return 1
+        _files
     fi
 }
 
