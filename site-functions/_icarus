@@ -36,7 +36,7 @@ _icarus()
     __icarus_debug "Truncated words: '${words[*]}'"
 
     # Get last parameter, last character
-    local previousParamIdx="$(( CURRENT - 1 ))"
+    local previousParamIdx="$(( CURRENT_CURSOR - 1 ))"
     local previousParam="${words[${previousParamIdx}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
