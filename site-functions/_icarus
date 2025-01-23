@@ -17,7 +17,7 @@ __icarus_debug()
 _icarus()
 {
     __icarus_debug "\n========= _icarus starting ========="
-    __icarus_debug "ORIGINAL words: ${words[*]}"
+    __icarus_debug "ORIGINAL words: '${words[*]}'"
     __icarus_debug "CURRENT: ${CURRENT}"
 
     # Filter out -v / --verbose from $words
@@ -26,16 +26,20 @@ _icarus()
 
     words=("${filtered_words[@]}")
     CURRENT="${#words[@]}"
-    __icarus_debug "Filtered words: ${words[*]}"
+    __icarus_debug "Filtered words: '${words[*]}'"
 
     # We only want to parse up to $CURRENT in case the user moved the cursor backward.
     words=("${=words[1,CURRENT]}")
-    __icarus_debug "Truncated words: ${words[*]}"
+    __icarus_debug "Truncated words: '${words[*]}'"
 
     # Get last parameter, last character
+    local previousParamIdx="$(( CURRENT - 1 ))"
+    local previousParam="${words[${#previousParamIdx[@]}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
-    __icarus_debug "lastParam: ${lastParam}, lastChar: ${lastChar}"
+    __icarus_debug "previousParam: '${previousParam}'"
+    __icarus_debug "lastParam: '${lastParam}'"
+    __icarus_debug "lastChar: '${lastChar}'"
 
     # We’ll decide what to complete based on how many words have been typed
     #    words[1] is "icarus"
@@ -48,7 +52,7 @@ _icarus()
     local directive=0     # (if you use any directive bits)
 
     # Make Zsh complete file paths
-    if [[ "${lastParam}" =~ '^--filepath' || "${lastParam}" =~ '^-p' ]]; then
+    if [[ "${previousParam}" =~ '^--filepath' || "${previousParam}" =~ '^-p' ]]; then
         _files
         return
     fi
