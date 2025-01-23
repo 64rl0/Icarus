@@ -25,19 +25,21 @@ _icarus()
     filtered_words=("${(@)words:#(-v|--verbose)}")
 
     words=("${filtered_words[@]}")
-    OLD_CURRENT="$(( CURREN ))"
     CURRENT="${#words[@]}"
     __icarus_debug "Filtered words: '${words[*]}'"
+    __icarus_debug "CURRENT: ${CURRENT}"
 
     # We only want to parse up to $CURRENT in case the user moved the cursor backward.
     words=("${=words[1,CURRENT]}")
     __icarus_debug "Truncated words: '${words[*]}'"
+    __icarus_debug "CURRENT: ${CURRENT}"
 
     # Get last parameter, last character
-    local previousParamIdx="$(( OLD_CURRENT - 1 ))"
+    local previousParamIdx="$(( CURRENT - 1 ))"
     local previousParam="${words[${previousParamIdx}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
+    __icarus_debug "previousParamIdx: '${previousParamIdx}'"
     __icarus_debug "previousParam: '${previousParam}'"
     __icarus_debug "lastParam: '${lastParam}'"
     __icarus_debug "lastChar: '${lastChar}'"
