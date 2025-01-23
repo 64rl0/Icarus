@@ -1,39 +1,43 @@
 #compdef icarus
+# vim: ft=sh
+
+#   __|    \    _ \  |      _ \   __| __ __| __ __|
+#  (      _ \     /  |     (   | (_ |    |      |
+# \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
+
+# zsh completion for icarus
 
 # Optional debug logger: writes debug lines to $BASH_COMP_DEBUG_FILE if set
 __icarus_debug()
 {
-    local file="$BASH_COMP_DEBUG_FILE"
-    [[ -n $file ]] && print -- "$*" >> "$file"
+    local file="${BASH_COMP_DEBUG_FILE}"
+    [[ -n "${file}" ]] && print -- "$*" >> "${file}"
 }
 
 _icarus()
 {
     __icarus_debug "\n========= _icarus starting ========="
-    __icarus_debug "ORIGINAL words: $words[*]"
-    __icarus_debug "CURRENT: $CURRENT"
+    __icarus_debug "ORIGINAL words: ${words[*]}"
+    __icarus_debug "CURRENT: ${CURRENT}"
 
-    # 1) If you want to filter out -v / --verbose from $words, do it here
-    #    but be mindful you can break indexing. In many cases it's easier
-    #    to let them remain in $words and simply ignore them in your logic.
+    # Filter out -v / --verbose from $words
     local -a filtered_words
     filtered_words=("${(@)words:#(-v|--verbose)}")
 
     words=("${filtered_words[@]}")
-    CURRENT=$#words
-    __icarus_debug "Filtered words: $words[*]"
+    CURRENT="${#words[@]}"
+    __icarus_debug "Filtered words: ${words[*]}"
 
-    # 2) Like in your snippet, we only want to parse up to $CURRENT
-    #    in case the user moved the cursor backward.
+    # We only want to parse up to $CURRENT in case the user moved the cursor backward.
     words=("${=words[1,CURRENT]}")
-    __icarus_debug "Truncated words: $words[*]"
+    __icarus_debug "Truncated words: ${words[*]}"
 
-    # 3) Get last parameter, last character
-    local lastParam=${words[-1]}
-    local lastChar=${lastParam[-1]}
-    __icarus_debug "lastParam: $lastParam, lastChar: $lastChar"
+    # Get last parameter, last character
+    local lastParam="${words[-1]}"
+    local lastChar="${lastParam[-1]}"
+    __icarus_debug "lastParam: ${lastParam}, lastChar: ${lastChar}"
 
-    # 4) We’ll decide what to complete based on how many words have been typed
+    # We’ll decide what to complete based on how many words have been typed
     #    words[1] is "icarus"
     #    words[2] might be "macos", "amazon", etc. (the "subcommand")
     #    words[3] might be "encrypt-volume", "auth-init", etc. (the "action")
@@ -43,171 +47,208 @@ _icarus()
     local -a completions  # array of possible completions
     local directive=0     # (if you use any directive bits)
 
-    # If the user typed only `icarus [TAB]` or up to second word
+    # If the user typed only `icarus [TAB]`
     if (( CURRENT == 2 )); then
-        # Step 1: Offer top-level subcommands
         completions+=(
-            "amazon:utilities for Amazon environment"
-            "builder:utilities for software development"
-            "macos:utilities for macOS"
-            "unison:utilities for Unison daemon"
-            "--verbose:increase output verbosity"
-            "-v:increase output verbosity"
-            "--version:display version information"
-            "--help:show help message"
-            "-h:show help message"
+            'amazon:utilities for Amazon environment'
+            'builder:utilities for software development'
+            'macos:utilities for macOS'
+            'unison:utilities for Unison daemon'
+            '--verbose:increase output verbosity'
+            '-v:increase output verbosity'
+            '--version:display version information'
+            '--help:show help message'
+            '-h:show help message'
         )
 
-    # If the user typed `icarus SUBCMD [TAB]` or up to third word
+    # If the user typed `icarus SUBCMD [TAB]`
     elif (( CURRENT == 3 )); then
-        case $subcmd in
+        case "${subcmd}" in
             amazon)
                 completions+=(
-                    "auth-init:run midway authentication"
-                    "auth-init-exp:express version of auth-init"
-                    "midway-cookie:check cookie validity"
-                    "devdsk-formation:run DevDsk Formation"
-                    "update-hosts:update /etc/hosts file"
-                    "update-hosts-d:daemon to update hosts hourly"
-                    "brazil-setup:create case-sensitive volumes"
-                    "spurdog-ro:check membership for Spurdog Program"
-                    "--help:show help message"
-                    "-h:show help message"
+                    'auth-init:run midway authentication on localhost and optional remote DevDsk(s)'
+                    'auth-init-exp:run midway authentication express on localhost and optional remote DevDsk(s)'
+                    'midway-cookie:check the cookies validity'
+                    'devdsk-formation:run DevDsk Formation on a remote DevDsk'
+                    'update-hosts:update /etc/hosts file'
+                    'update-hosts-d:install a LaunchDaemon to update the hosts file every hour'
+                    'brazil-setup:creating case-sensitive volumes (`workplace` and `brazil-pkg-cache`)'
+                    'spurdog-ro:check membership for Spurdog Program'
+                    '--help:show help message'
+                    '-h:show help message'
                 )
                 ;;
             builder)
                 completions+=(
-                    "python-pkg-init:init a new Python package"
-                    "dotfiles-update:update dotfiles"
-                    "--help:show help message"
-                    "-h:show help message"
+                    'python-pkg-init:initiate a new Python package in the current folder'
+                    'dotfiles-update:update dotfiles from their specified repository'
+                    '--help:show help message'
+                    '-h:show help message'
                 )
                 ;;
             macos)
                 completions+=(
-                    "find-unencrypted-volumes:find unencrypted volumes"
-                    "make-encrypted-volume:make an encrypted APFS volume"
-                    "encrypt-volume:encrypt an APFS volume"
-                    "mount-volume:mount the specified volume"
-                    "mount-at-startup:daemon to mount volume at startup"
-                    "--help:show help message"
-                    "-h:show help message"
+                    'find-unencrypted-volumes:find all unencrypted volumes'
+                    'make-encrypted-volume:make an encrypted APFS volume'
+                    'encrypt-volume:encrypt an APFS volume'
+                    'mount-volume:mount the specified volume at the specified mount point'
+                    'mount-at-startup:install a LaunchDaemon to mount the volume at System Startup'
+                    '--help:show help message'
+                    '-h:show help message'
                 )
                 ;;
             unison)
                 completions+=(
-                    "status:check Unison profiles"
-                    "restart:restart Unison sync"
-                    "stop:stop Unison sync"
-                    "clear-locks:clear Unison locks"
-                    "start-at-startup:daemon to start Unison at boot"
-                    "run-profiles:[DO NOT USE] internal for Unison"
-                    "--help:show help message"
-                    "-h:show help message"
+                    'status:check the running status of each Unison profile'
+                    'restart:restart Unison profile(s) sync'
+                    'stop:stop Unison profile(s) sync'
+                    'clear-locks:clear Unison locks on localhost and an optional remote DevDsk'
+                    'start-at-startup:install a LaunchDaemon to start Unison at System Startup'
+                    'run-profiles:[DO NOT USE] internally used only to run Unison profiles'
+                    '--help:show help message'
+                    '-h:show help message'
                 )
                 ;;
         esac
 
-    # If the user typed `icarus SUBCMD ACTION [TAB]` or more
+    # If the user typed `icarus SUBCMD ACTION [TAB]`
     # This is where you’d define "options" for each sub-subcommand:
     else
-        case $subcmd in
+        case "${subcmd}" in
             amazon)
-                case $action in
+                case "${action}" in
                     auth-init)
                         completions+=(
-                            "-h:show help"
-                            "-i:multiple DevDsk IDs"
-                            "--mw-args:one arg to pass to mwinit"
+                            '-i:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3'
+                            '--mw-args:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
+                            '-h:show help message'
                         )
                         ;;
                     auth-init-exp)
                         completions+=(
-                            "-h:show help"
-                            "-i:multiple DevDsk IDs"
-                            "--mw-args:one arg to pass to mwinit"
+                            '-i:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3'
+                            '--mw-args:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl'
+                            '-h:show help message'
                         )
                         ;;
                     midway-cookie)
                         completions+=(
-                            "-h:show help"
-                            "--filepath:filepath of the cookie file"
+                            '--filepath:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie'
+                            '-h:show help message'
                         )
                         ;;
                     devdsk-formation)
                         completions+=(
-                            "-h:show help"
-                            "-i:REQUIRED the DevDsk ID"
+                            '-i:REQUIRED the DevDsk ID'
+                            '-h:show help message'
                         )
                         ;;
-                    update-hosts|update-hosts-d|brazil-setup)
-                        completions+=( "-h:show help" )
+                    update-hosts)
+                        completions+=(
+                            '-h:show help message'
+                        )
+                        ;;
+                    update-hosts-d)
+                        completions+=(
+                            '-h:show help message'
+                        )
+                        ;;
+                    brazil-setup)
+                        completions+=(
+                            '-h:show help message'
+                        )
                         ;;
                     spurdog-ro)
                         completions+=(
-                            "-h:show help"
-                            "-u:REQUIRED username to check membership"
-                            "--auth:OPTIONAL run mwinit before querying"
+                            '-u:REQUIRED username to check Spurdog Program membership'
+                            '--auth:OPTIONAL run mwinit before querying'
+                            '-h:show help message'
                         )
                         ;;
                 esac
                 ;;
             builder)
-                case $action in
+                case "${action}" in
                     python-pkg-init)
                         completions+=(
-                            "-h:show help"
-                            "-n:REQUIRED package name in PascalCase"
+                            '-n:REQUIRED the package name in PascalCase'
+                            '-h:show help message'
                         )
                         ;;
                     dotfiles-update)
-                        completions+=( "-h:show help" )
+                        completions+=(
+                            '-h:show help message'
+                        )
                         ;;
                 esac
                 ;;
             macos)
-                case $action in
+                case "${action}" in
                     find-unencrypted-volumes)
-                        completions+=( "-h:show help" )
+                        completions+=(
+                            '-h:show help message'
+                        )
                         ;;
                     make-encrypted-volume)
                         completions+=(
-                            "-h:show help"
-                            "-n:REQUIRED name of the volume"
-                            "-q:OPTIONAL size in Gb (e.g., -q 50g)"
+                            '-n:REQUIRED name of the encrypted volume'
+                            '-q:OPTIONAL size of the encrypted volume in Gb i.e. -q 50g'
+                            '-h:show help message'
                         )
                         ;;
                     encrypt-volume)
                         completions+=(
-                            "-h:show help"
-                            "-n:REQUIRED name of the volume"
+                            '-n:REQUIRED name of the volume to encrypt'
+                            '-h:show help message'
                         )
                         ;;
                     mount-volume)
                         completions+=(
-                            "-h:show help"
-                            "-n:REQUIRED volume name"
-                            "-p:REQUIRED mount point"
+                            '-n:REQUIRED name of the volume to mount'
+                            '-p:REQUIRED mount point for the volume'
+                            '-h:show help message'
                         )
                         ;;
                     mount-at-startup)
                         completions+=(
-                            "-h:show help"
-                            "-n:REQUIRED volume name"
-                            "-p:REQUIRED mount point"
+                            '-n:REQUIRED name of the volume to mount'
+                            '-p:REQUIRED mount point for the volume'
+                            '-h:show help message'
                         )
                         ;;
                 esac
                 ;;
             unison)
-                case $action in
-                    status|restart|stop|start-at-startup|run-profiles)
-                        completions+=( "-h:show help" )
+                case "${action}" in
+                    status)
+                        completions+=(
+                            '-h:show help message'
+                        )
+                        ;;
+                    restart)
+                        completions+=(
+                            '-h:show help message'
+                        )
+                        ;;
+                    stop)
+                        completions+=(
+                            '-h:show help message'
+                        )
                         ;;
                     clear-locks)
                         completions+=(
-                            "-h:show help"
-                            "-i:OPTIONAL DevDsk ID"
+                            '-i:OPTIONAL the DevDsk ID'
+                            '-h:show help message'
+                        )
+                        ;;
+                    start-at-startup)
+                        completions+=(
+                            '-h:show help message'
+                        )
+                        ;;
+                    run-profiles)
+                        completions+=(
+                            '-h:show help message'
                         )
                         ;;
                 esac
@@ -219,15 +260,16 @@ _icarus()
     # Use _describe (or compadd) to present them.
     # Format is "value:description", so no need for a TAB.
     # If you prefer 'compadd', you can do that too.
-    __icarus_debug "Final completions: ${completions[@]}"
-    if [[ -n $completions ]]; then
+    __icarus_debug "Final completions: ${completions[*]}"
+    if [[ -n "${completions[0]}" ]]; then
         _describe -t icarus 'completions' completions
-        return
+        return 0
     else
         # If no completions found, you can optionally do file completion or
         # just return 1 to let Zsh try normal completions.
         __icarus_debug "No completions found; fallback to file completion"
-        _files
+        # _files
+        return 1
     fi
 }
 
