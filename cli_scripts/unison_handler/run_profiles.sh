@@ -42,7 +42,7 @@ unison_run_profiles() {
     )
 
     for unison_profile in "${unison_profiles[@]}"; do
-        nohup "${run_profiles_core}" "${unison_profile}" >'/tmp/com.unison.run_profiles_core.log' 2>&1 &
+        nohup bash "${run_profiles_core}" "${unison_profile}" >'/tmp/com.unison.run_profiles_core.log' 2>&1 &
     done
 
     # wait to keep the unison profiles running
