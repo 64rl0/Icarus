@@ -48,7 +48,7 @@ _icarus()
     local directive=0     # (if you use any directive bits)
 
     # Make Zsh complete file paths
-    if [[ "${lastParam}" == "--filepath" || "${lastParam}" == "-p" ]]; then
+    if [[ "${lastParam}" =~ '^--filepath' || "${lastParam}" =~ '^-p' ]]; then
         _files
         return
     fi
