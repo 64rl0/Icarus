@@ -25,7 +25,7 @@ _icarus()
     filtered_words=("${(@)words:#(-v|--verbose)}")
 
     words=("${filtered_words[@]}")
-    OLD_CURRENT="${CURREN}"
+    OLD_CURRENT="$(( CURREN ))"
     CURRENT="${#words[@]}"
     __icarus_debug "Filtered words: '${words[*]}'"
 
