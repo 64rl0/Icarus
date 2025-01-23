@@ -34,7 +34,7 @@ _icarus()
 
     # Get last parameter, last character
     local previousParamIdx="$(( CURRENT - 1 ))"
-    local previousParam="${words[${#previousParamIdx[@]}]}"
+    local previousParam="${words[${previousParamIdx}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
     __icarus_debug "previousParam: '${previousParam}'"
