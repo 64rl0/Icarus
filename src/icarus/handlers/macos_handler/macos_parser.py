@@ -117,4 +117,4 @@ def handle_macos_command(args: argparse.Namespace) -> int:
 
     else:
         module_logger.debug(f"Running {args.macos_command=}")
-        raise ValueError('the following arguments are required: <subcommand>')
+        raise utils.IcarusParserException('the following arguments are required: <subcommand>')

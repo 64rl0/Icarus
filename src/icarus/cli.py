@@ -463,4 +463,4 @@ def execute(args: argparse.Namespace) -> int:
 
     else:
         module_logger.debug(f"Running {args.tl_command=} -> this argument is required")
-        raise ValueError('the following arguments are required: <command>')
+        raise utils.IcarusParserException('the following arguments are required: <command>')

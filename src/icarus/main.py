@@ -31,6 +31,9 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
+# Standard Library Imports
+import sys
+
 # Local Folder (Relative) Imports
 from . import cli, config, utils
 
@@ -70,8 +73,12 @@ def main() -> int:
     # Execute the command
     try:
         return_cose = cli.execute(args=args)
-    except ValueError as ex:
+        return return_cose
+
+    except utils.IcarusParserException as ex:
         module_logger.debug(repr(ex))
         parser.error(str(ex))
 
-    return return_cose
+    except Exception as ex:
+        module_logger.debug(f"unexpected error: {repr(ex)}")
+        sys.exit(1)

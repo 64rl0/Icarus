@@ -145,4 +145,4 @@ def handle_amazon_command(args: argparse.Namespace) -> int:
 
     else:
         module_logger.debug(f"Running {args.amazon_command=}")
-        raise ValueError('the following arguments are required: <subcommand>')
+        raise utils.IcarusParserException('the following arguments are required: <subcommand>')

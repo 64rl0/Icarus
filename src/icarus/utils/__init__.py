@@ -33,6 +33,7 @@ This module ...
 
 # Local Folder (Relative) Imports
 from .custom_argparse import *
+from .exceptions import *
 from .utils import *
 
 # END IMPORTS

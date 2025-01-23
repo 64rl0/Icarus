@@ -9,8 +9,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# src/icarus/handlers/global_handler/global_parser.py
-# Created 1/23/25 - 12:03 AM UK Time (London) by carlogtt
+# src/icarus/handlers/global_handler/cli_version.py
+# Created 1/23/25 - 3:26 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -32,18 +32,19 @@ This module ...
 # ======================================================================
 
 # Standard Library Imports
-import argparse
+import os
+import subprocess
+import sys
 
 # Local Folder (Relative) Imports
 from ... import config, utils
-from . import cli_version
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['handle_global_command']
+__all__ = ['cli_version']
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)
@@ -52,27 +53,24 @@ module_logger = config.master_logger.get_child_logger(__name__)
 #
 
 
-def handle_global_command(args: argparse.Namespace) -> int:
+@utils.capture_exit_code
+def cli_version() -> None:
     """
-    Handle execution of subcommands under the 'global' top-level
-    command.
+    Display the version of the CLI.
 
-    This function routes the parsed arguments to the appropriate logic
-    based on the value of the `global_command` argument.
-
-    :param args: The parsed arguments containing the `global_command`
-        and any associated options or parameters.
-    :return: Exit code of the script.
-    :raise ValueError: If an unknown `global_command` is provided.
+    :return: The CLI version.
     """
 
-    if args.version == '--version':
-        module_logger.debug(f"Running {args.version=}")
+    icarus_version = config.CLI_VERSION
+    icarus_build = subprocess.run(
+        ['git', 'describe', '--always'],
+        cwd=os.path.expanduser("~/.icarus"),
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.replace('\n', '')
+    python_version = sys.version.split()[0]
 
-        return_code = cli_version.cli_version()
+    version = f'icarus-cli: {icarus_version}\nicarus-hash: {icarus_build}\npython: {python_version}'
 
-        return return_code
-
-    else:
-        module_logger.debug(f"Running {args=}")
-        raise utils.IcarusParserException(f"Unknown command from {handle_global_command.__name__}")
+    print(version, flush=True)

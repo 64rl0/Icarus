@@ -33,10 +33,8 @@ This module ...
 
 # Standard Library Imports
 import functools
-import os
 import pathlib
 import subprocess
-import sys
 from collections.abc import Callable
 from typing import Any, Optional, Union
 
@@ -49,7 +47,6 @@ from .. import config
 
 # List of public names in the module
 __all__ = [
-    'cli_version',
     'set_logger_level',
     'run_bash_script',
     'capture_exit_code',
@@ -85,29 +82,6 @@ def capture_exit_code(original_function: OriginalFunction) -> InnerFunction:
             return 1
 
     return inner
-
-
-@capture_exit_code
-def cli_version() -> None:
-    """
-    Display the version of the CLI.
-
-    :return: The CLI version.
-    """
-
-    icarus_version = config.CLI_VERSION
-    icarus_build = subprocess.run(
-        ['git', 'describe', '--always'],
-        cwd=os.path.expanduser("~/.icarus"),
-        check=True,
-        text=True,
-        capture_output=True,
-    ).stdout.replace('\n', '')
-    python_version = sys.version.split()[0]
-
-    version = f'icarus-cli: {icarus_version}\nicarus-hash: {icarus_build}\npython: {python_version}'
-
-    print(version, flush=True)
 
 
 def set_logger_level(level: int) -> None:

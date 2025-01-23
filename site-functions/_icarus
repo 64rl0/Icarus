@@ -1,221 +1,235 @@
 #compdef icarus
-# vim: ft=sh
 
-#   __|    \    _ \  |      _ \   __| __ __| __ __|
-#  (      _ \     /  |     (   | (_ |    |      |
-# \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
+# Optional debug logger: writes debug lines to $BASH_COMP_DEBUG_FILE if set
+__icarus_debug()
+{
+    local file="$BASH_COMP_DEBUG_FILE"
+    [[ -n $file ]] && print -- "$*" >> "$file"
+}
 
-# zsh completion for icarus
+_icarus()
+{
+    __icarus_debug "\n========= _icarus starting ========="
+    __icarus_debug "ORIGINAL words: $words[*]"
+    __icarus_debug "CURRENT: $CURRENT"
 
-# 1) Check for terminal options and prevent further completions
-if [[ " ${words[*]} " == *" -h "* || " ${words[*]} " == *" --help "* || " ${words[*]} " == *" --version "* ]]; then
-    return 0
-fi
+    # 1) If you want to filter out -v / --verbose from $words, do it here
+    #    but be mindful you can break indexing. In many cases it's easier
+    #    to let them remain in $words and simply ignore them in your logic.
+    local -a filtered_words
+    filtered_words=("${(@)words:#(-v|--verbose)}")
 
-# 2) Filter out global options -v / --verbose
-local -a filtered_words
-filtered_words=("${(@)words:#(-v|--verbose)}")
+    words=("${filtered_words[@]}")
+    CURRENT=$#words
+    __icarus_debug "Filtered words: $words[*]"
 
-# 3) Reassign $words/$CURRENT so that subcommand logic ignores -v/--verbose
-words=("${filtered_words[@]}")
-CURRENT=$#words
+    # 2) Like in your snippet, we only want to parse up to $CURRENT
+    #    in case the user moved the cursor backward.
+    words=("${=words[1,CURRENT]}")
+    __icarus_debug "Truncated words: $words[*]"
 
-# 4) Use a stateful _arguments approach
-_arguments -C \
-    '1:subcommand:->subcmd' \
-    '2:action:->action' \
-    '*::options:->options'
+    # 3) Get last parameter, last character
+    local lastParam=${words[-1]}
+    local lastChar=${lastParam[-1]}
+    __icarus_debug "lastParam: $lastParam, lastChar: $lastChar"
 
-case "${state}" in
-    #################################
-    # Step 1: Complete the subcommand
-    #################################
-    subcmd)
-        _values 'subcommand' \
-            'amazon[utilities for Amazon environment]' \
-            'builder[utilities for software development]' \
-            'macos[utilities for macOS]' \
-            'unison[utilities to manage Unison daemon]' \
-            '--verbose[increase output verbosity]' \
-            '-v[increase output verbosity]' \
-            '--version[display version information and exit]' \
-            '--help[show help message and exit]' \
-            '-h[show help message and exit]'
-        ;;
+    # 4) We’ll decide what to complete based on how many words have been typed
+    #    words[1] is "icarus"
+    #    words[2] might be "macos", "amazon", etc. (the "subcommand")
+    #    words[3] might be "encrypt-volume", "auth-init", etc. (the "action")
+    local subcmd=${words[2]}
+    local action=${words[3]}
 
-    #################################################################
-    # Step 2: Once subcommand is chosen, complete the sub-subcommand
-    #################################################################
-    action)
-        case "${words[2]}" in
+    local -a completions  # array of possible completions
+    local directive=0     # (if you use any directive bits)
+
+    # If the user typed only `icarus [TAB]` or up to second word
+    if (( CURRENT == 2 )); then
+        # Step 1: Offer top-level subcommands
+        completions+=(
+            "amazon:utilities for Amazon environment"
+            "builder:utilities for software development"
+            "macos:utilities for macOS"
+            "unison:utilities for Unison daemon"
+            "--verbose:increase output verbosity"
+            "-v:increase output verbosity"
+            "--version:display version information"
+            "--help:show help message"
+            "-h:show help message"
+        )
+
+    # If the user typed `icarus SUBCMD [TAB]` or up to third word
+    elif (( CURRENT == 3 )); then
+        case $subcmd in
             amazon)
-                _values 'amazon subcommand' \
-                    'auth-init[run midway authentication on localhost and optional remote DevDsk(s)]' \
-                    'auth-init-exp[run midway authentication express on localhost and optional remote DevDsk(s)]' \
-                    'midway-cookie[check the cookies validity]' \
-                    'devdsk-formation[run DevDsk Formation on a remote DevDsk]' \
-                    'update-hosts[update /etc/hosts file]' \
-                    'update-hosts-d[install a LaunchDaemon to update the hosts file every hour]' \
-                    'brazil-setup[creating case-sensitive volumes (`workplace` and `brazil-pkg-cache`)]' \
-                    'spurdog-ro[check membership for Spurdog Program]' \
-                    '--help[show help message and exit]' \
-                    '-h[show help message and exit]'
+                completions+=(
+                    "auth-init:run midway authentication"
+                    "auth-init-exp:express version of auth-init"
+                    "midway-cookie:check cookie validity"
+                    "devdsk-formation:run DevDsk Formation"
+                    "update-hosts:update /etc/hosts file"
+                    "update-hosts-d:daemon to update hosts hourly"
+                    "brazil-setup:create case-sensitive volumes"
+                    "spurdog-ro:check membership for Spurdog Program"
+                    "--help:show help message"
+                    "-h:show help message"
+                )
                 ;;
             builder)
-                _values 'builder subcommand' \
-                    'python-pkg-init[initiate a new Python package in the current folder]' \
-                    'dotfiles-update[update dotfiles from their specified repository]' \
-                    '--help[show help message and exit]' \
-                    '-h[show help message and exit]'
+                completions+=(
+                    "python-pkg-init:init a new Python package"
+                    "dotfiles-update:update dotfiles"
+                    "--help:show help message"
+                    "-h:show help message"
+                )
                 ;;
             macos)
-                _values 'macos subcommand' \
-                    'find-unencrypted-volumes[find all unencrypted volumes]' \
-                    'make-encrypted-volume[make an encrypted APFS volume]' \
-                    'encrypt-volume[encrypt an APFS volume]' \
-                    'mount-volume[mount the specified volume at the specified mount point]' \
-                    'mount-at-startup[install a LaunchDaemon to mount the volume at System Startup]' \
-                    '--help[show help message and exit]' \
-                    '-h[show help message and exit]'
+                completions+=(
+                    "find-unencrypted-volumes:find unencrypted volumes"
+                    "make-encrypted-volume:make an encrypted APFS volume"
+                    "encrypt-volume:encrypt an APFS volume"
+                    "mount-volume:mount the specified volume"
+                    "mount-at-startup:daemon to mount volume at startup"
+                    "--help:show help message"
+                    "-h:show help message"
+                )
                 ;;
             unison)
-                _values 'unison subcommand' \
-                    'status[check the running status of each Unison profile]' \
-                    'restart[restart Unison profile(s) sync]' \
-                    'stop[stop Unison profile(s) sync]' \
-                    'clear-locks[clear Unison locks on localhost and an optional remote DevDsk]' \
-                    'start-at-startup[install a LaunchDaemon to start Unison at System Startup]' \
-                    'run-profiles[\[DO NOT USE\] internally used only to run Unison profiles]' \
-                    '--help[show help message and exit]' \
-                    '-h[show help message and exit]'
+                completions+=(
+                    "status:check Unison profiles"
+                    "restart:restart Unison sync"
+                    "stop:stop Unison sync"
+                    "clear-locks:clear Unison locks"
+                    "start-at-startup:daemon to start Unison at boot"
+                    "run-profiles:[DO NOT USE] internal for Unison"
+                    "--help:show help message"
+                    "-h:show help message"
+                )
                 ;;
         esac
-        ;;
 
-    ##################################################################
-    # Step 3: Complete any options/flags for the chosen sub-subcommand
-    ##################################################################
-    options)
-        case "${words[2]}" in
+    # If the user typed `icarus SUBCMD ACTION [TAB]` or more
+    # This is where you’d define "options" for each sub-subcommand:
+    else
+        case $subcmd in
             amazon)
-                case "${words[3]}" in
+                case $action in
                     auth-init)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3:_guard ".*" "DevDsk ID(s)"' \
-                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl:_guard ".*" "MW arg"'
+                        completions+=(
+                            "-h:show help"
+                            "-i:multiple DevDsk IDs"
+                            "--mw-args:one arg to pass to mwinit"
+                        )
                         ;;
                     auth-init-exp)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-i[OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3]:OPTIONAL takes multiple DevDsk IDs i.e. -i 1 2 3:_guard ".*" "DevDsk ID(s)"' \
-                            '--mw-args[OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl]:OPTIONAL specify one arg to pass to mwinit i.e. --mw-arg=--ncl:_guard ".*" "MW arg"'
+                        completions+=(
+                            "-h:show help"
+                            "-i:multiple DevDsk IDs"
+                            "--mw-args:one arg to pass to mwinit"
+                        )
                         ;;
                     midway-cookie)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '--filepath[OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie]:OPTIONAL the filepath of the cookie file, if none then ~/.midway/cookie:_files'
+                        completions+=(
+                            "-h:show help"
+                            "--filepath:filepath of the cookie file"
+                        )
                         ;;
                     devdsk-formation)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-i[REQUIRED the DevDsk ID]:REQUIRED the DevDsk ID:_guard ".*" "DevDsk ID"'
+                        completions+=(
+                            "-h:show help"
+                            "-i:REQUIRED the DevDsk ID"
+                        )
                         ;;
-                    update-hosts)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
+                    update-hosts|update-hosts-d|brazil-setup)
+                        completions+=( "-h:show help" )
                         ;;
-                    update-hosts-d)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                       ;;
-                    brazil-setup)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                       ;;
                     spurdog-ro)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-u[REQUIRED username to check Spurdog Program membership]:REQUIRED username to check Spurdog Program membership:_guard ".*" "alias"' \
-                            '--auth[OPTIONAL run mwinit before querying]:OPTIONAL run mwinit before querying'
+                        completions+=(
+                            "-h:show help"
+                            "-u:REQUIRED username to check membership"
+                            "--auth:OPTIONAL run mwinit before querying"
+                        )
                         ;;
                 esac
                 ;;
             builder)
-                case "${words[3]}" in
+                case $action in
                     python-pkg-init)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED the package name in PascalCase]:REQUIRED the package name in PascalCase:_guard ".*" "pkg name"'
-                    ;;
+                        completions+=(
+                            "-h:show help"
+                            "-n:REQUIRED package name in PascalCase"
+                        )
+                        ;;
                     dotfiles-update)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
+                        completions+=( "-h:show help" )
+                        ;;
                 esac
                 ;;
             macos)
-                case "${words[3]}" in
+                case $action in
                     find-unencrypted-volumes)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
+                        completions+=( "-h:show help" )
+                        ;;
                     make-encrypted-volume)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the encrypted volume]:REQUIRED name of the encrypted volume:_guard ".*" "volume name"' \
-                            '-q[OPTIONAL size of the encrypted volume in Gb i.e. -q 50g]:OPTIONAL size of the encrypted volume in Gb i.e. -q 50g:_guard ".*" "volume size"'
-                    ;;
+                        completions+=(
+                            "-h:show help"
+                            "-n:REQUIRED name of the volume"
+                            "-q:OPTIONAL size in Gb (e.g., -q 50g)"
+                        )
+                        ;;
                     encrypt-volume)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the volume to encrypt]:REQUIRED name of the volume to encrypt:_guard ".*" "volume name"'
-                    ;;
+                        completions+=(
+                            "-h:show help"
+                            "-n:REQUIRED name of the volume"
+                        )
+                        ;;
                     mount-volume)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount:_guard ".*" "volume name"' \
-                            '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume:_guard ".*" "mount point"'
-                    ;;
+                        completions+=(
+                            "-h:show help"
+                            "-n:REQUIRED volume name"
+                            "-p:REQUIRED mount point"
+                        )
+                        ;;
                     mount-at-startup)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-n[REQUIRED name of the volume to mount]:REQUIRED name of the volume to mount:_guard ".*" "volume name"' \
-                            '-p[REQUIRED mount point for the volume]:REQUIRED mount point for the volume:_guard ".*" "mount point"'
-                    ;;
+                        completions+=(
+                            "-h:show help"
+                            "-n:REQUIRED volume name"
+                            "-p:REQUIRED mount point"
+                        )
+                        ;;
                 esac
                 ;;
             unison)
-                case "${words[3]}" in
-                    status)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
-                    restart)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
-                    stop)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
+                case $action in
+                    status|restart|stop|start-at-startup|run-profiles)
+                        completions+=( "-h:show help" )
+                        ;;
                     clear-locks)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit' \
-                            '-i[OPTIONAL the DevDsk ID]:OPTIONAL the DevDsk ID:_guard ".*" "DevDsk ID"'
-                    ;;
-                    start-at-startup)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
-                    run-profiles)
-                        _arguments \
-                            '-h[show help message and exit]:show help message and exit'
-                    ;;
+                        completions+=(
+                            "-h:show help"
+                            "-i:OPTIONAL DevDsk ID"
+                        )
+                        ;;
                 esac
                 ;;
         esac
-        ;;
-esac
+    fi
 
-return 0
+    # We have an array of possible completions in $completions.
+    # Use _describe (or compadd) to present them.
+    # Format is "value:description", so no need for a TAB.
+    # If you prefer 'compadd', you can do that too.
+    __icarus_debug "Final completions: ${completions[@]}"
+    if [[ -n $completions ]]; then
+        _describe -t icarus 'completions' completions
+        return
+    else
+        # If no completions found, you can optionally do file completion or
+        # just return 1 to let Zsh try normal completions.
+        __icarus_debug "No completions found; fallback to file completion"
+        _files
+    fi
+}
+
+# Register the _icarus function for the `icarus` command
+compdef _icarus icarus
