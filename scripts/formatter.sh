@@ -197,6 +197,10 @@ if [[ "${shfmt}" == "Y" ]]; then
         echo -e "${blue}scripts/${end}"
         shfmt -l -w "${script_dir_abs}"
     fi
+    if [[ -d "${project_root_dir_abs}/site-functions" ]]; then
+        echo -e "${blue}\nsite-functions/${end}"
+        shfmt -l -w "${project_root_dir_abs}/site-functions"
+    fi
     if [[ -d "${project_root_dir_abs}/cli_scripts" ]]; then
         echo -e "${blue}\ncli_scripts/${end}"
         shfmt -l -w "${project_root_dir_abs}/cli_scripts"
