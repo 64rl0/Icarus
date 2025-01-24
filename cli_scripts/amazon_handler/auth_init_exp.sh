@@ -112,4 +112,17 @@ EOF
     expect "/tmp/auth-init-expect.exp"
 }
 
-auth_init_express "$@"
+parse_args() {
+    local -a devdsk_ids=($1)
+    local -a mw_args=($2)
+
+    # Prefix each element with --mw-args
+    local -a mw_args_expanded=()
+    for arg in "${mw_args[@]}"; do
+        mw_args_expanded+=("--mw-args" "${arg}")
+    done
+
+    auth_init_express "-i" "${devdsk_ids[@]}" "${mw_args_expanded[@]}"
+}
+
+parse_args "$@"

@@ -114,13 +114,16 @@ auth_init_ssh() {
     done
 }
 
-# Parsing args
-declare -a devdsk_ids=($1)
-declare -a mw_args=($2)
+parse_args() {
+    local -a devdsk_ids=($1)
+    local -a mw_args=($2)
 
-if [[ -z "${devdsk_ids[0]}" ]]; then
-    auth_init_local_machine "${mw_args[*]}"
-else
-    auth_init_local_machine "${mw_args[*]}"
-    auth_init_ssh "${devdsk_ids[*]}" "${mw_args[*]}"
-fi
+    if [[ -z "${devdsk_ids[0]}" ]]; then
+        auth_init_local_machine "${mw_args[*]}"
+    else
+        auth_init_local_machine "${mw_args[*]}"
+        auth_init_ssh "${devdsk_ids[*]}" "${mw_args[*]}"
+    fi
+}
+
+parse_args "$@"

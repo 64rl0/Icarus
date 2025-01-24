@@ -44,13 +44,16 @@ clear_locks_ssh() {
     echo -e "SSH ${hostname} clear"
 }
 
-# Parsing args
-declare devdsk_id="$1"
+parse_args() {
+    local devdsk_id="$1"
 
-if [[ -z "${devdsk_id}" ]]; then
-    clear_locks_local_machine
-else
-    clear_locks_ssh "${devdsk_id}"
-    echo -e "\n"
-    clear_locks_ssh "${devdsk_id}"
-fi
+    if [[ -z "${devdsk_id}" ]]; then
+        clear_locks_local_machine
+    else
+        clear_locks_ssh "${devdsk_id}"
+        echo -e "\n"
+        clear_locks_ssh "${devdsk_id}"
+    fi
+}
+
+parse_args "$@"
