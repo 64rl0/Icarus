@@ -1,9 +1,11 @@
-# Runtime
+# My Library
 carlogtt-python-library
+
+# Runtime dependencies
 python-dotenv
 requests
 
-# Dev
+# Development dependencies
 black
 isort
 mypy
