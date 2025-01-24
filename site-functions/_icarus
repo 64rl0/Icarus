@@ -38,7 +38,10 @@ _icarus() {
     # Replace words with the filtered array
     words=("${filtered_words[@]}")
 
-    # Adjust CURRENT by the number of removed items that were before $CURRENT
+    # Capturing $CURRENT before changing it
+    local previousParamIdx="$((CURRENT - 1))"
+
+    # Adjust $CURRENT by the number of removed items that were before $CURRENT
     ((CURRENT -= count_removed))
 
     __icarus_debug "FILTERED words: '${words[*]}'"
@@ -49,7 +52,6 @@ _icarus() {
     __icarus_debug "TRUNCATED words: '${words[*]}'"
 
     # Get last parameter, last character
-    local previousParamIdx="$((CURRENT - 1))"
     local previousParam="${words[${previousParamIdx}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
