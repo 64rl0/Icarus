@@ -8,8 +8,8 @@
 # zsh completion for icarus
 
 # Optional debug logger: writes debug lines to $BASH_COMP_DEBUG_FILE if set
-DEBUG=true
-if "${DEBUG}"; then
+ICARUS_COMP_DEBUG=false
+if "${ICARUS_COMP_DEBUG}"; then
     BASH_COMP_DEBUG_FILE='/tmp/icarus_comp_debug.log'
 fi
 
@@ -70,8 +70,8 @@ _icarus() {
     local -a completions # array of possible completions
     local directive=0    # (if you use any directive bits)
 
-    # Make Zsh complete file paths
-    if [[ "${previousParam}" =~ '^--filepath' || "${previousParam}" =~ '^-p' ]]; then
+    # Make Zsh complete file paths after certain words
+    if [[ "${previousParam}" == '--filepath' || "${previousParam}" == '-p' ]]; then
         _files
         return
     fi
