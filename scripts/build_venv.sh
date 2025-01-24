@@ -116,9 +116,8 @@ echo -e "running: $(python --version)"
 
 # Install requirements
 echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
-pip install -q --upgrade pip
-find "${project_root_dir_abs}/lib" -type f -exec pip install {} +
-pip install -r "${project_root_dir_abs}/requirements.txt"
+pip install --upgrade pip
+pip install -I -r "${project_root_dir_abs}/requirements.txt"
 
 # Build complete!
 echo -e "\n\n${bold_green}${sparkles} ${venv_name} venv build complete & Ready for use!...${end}"

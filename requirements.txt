@@ -1,8 +1,10 @@
-# Project utils dependencies
+# Runtime
+carlogtt-python-library
 python-dotenv
+requests
+
+# Dev
 black
 isort
 mypy
 flake8
-pyinstaller
-requests
