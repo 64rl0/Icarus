@@ -21,7 +21,7 @@ __icarus_debug() {
 _icarus() {
     __icarus_debug "\n========= _icarus starting ========="
     __icarus_debug "ORIGINAL words: '${words[*]}'"
-    __icarus_debug "CURRENT BEFORE: ${CURRENT}"
+    __icarus_debug "CURRENT UNMODIFIED: ${CURRENT}"
 
     # Count how many -v/--verbose occur before or at $CURRENT
     local count_removed=0
@@ -38,21 +38,23 @@ _icarus() {
     # Replace words with the filtered array
     words=("${filtered_words[@]}")
 
-    # 3) Adjust CURRENT by the number of removed items that were before $CURRENT
+    # Adjust CURRENT by the number of removed items that were before $CURRENT
     ((CURRENT -= count_removed))
-    local CURRENT_CURSOR=$CURRENT
 
-    CURRENT="${#words[@]}"
-    __icarus_debug "CURRENT AFTER: ${CURRENT}"
-    __icarus_debug "CURRENT CURSOR: ${CURRENT_CURSOR}"
+    # Capture the value of $CURRENT_CURSOR after having removed the filtered words
+#    local CURRENT_CURSOR=$CURRENT
+
+#    CURRENT="${#words[@]}"
+    __icarus_debug "CURRENT W/O FILTERED WORDS: ${CURRENT}"
+#    __icarus_debug "CURRENT CURSOR: ${CURRENT_CURSOR}"
     __icarus_debug "Filtered words: '${words[*]}'"
 
-    # We only want to parse up to $CURRENT_CURSOR in case the user moved the cursor backward
-    words=("${(@)words[1,CURRENT_CURSOR]}")
+    # We only want to parse up to $CURRENT in case the user moved the cursor backward
+    words=("${(@)words[1,CURRENT]}")
     __icarus_debug "Truncated words: '${words[*]}'"
 
     # Get last parameter, last character
-    local previousParamIdx="$((CURRENT_CURSOR - 1))"
+    local previousParamIdx="$((CURRENT - 1))"
     local previousParam="${words[${previousParamIdx}]}"
     local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
@@ -78,7 +80,7 @@ _icarus() {
     fi
 
     # If the user typed only `icarus [TAB]`
-    if ((CURRENT_CURSOR == 2)); then
+    if ((CURRENT == 2)); then
         completions+=(
             'amazon:utilities for Amazon environment'
             'builder:utilities for software development'
@@ -92,7 +94,7 @@ _icarus() {
         )
 
     # If the user typed `icarus SUBCMD [TAB]`
-    elif ((CURRENT_CURSOR == 3)); then
+    elif ((CURRENT == 3)); then
         case "${subcmd}" in
         amazon)
             completions+=(
