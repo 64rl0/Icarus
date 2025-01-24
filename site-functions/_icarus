@@ -23,6 +23,10 @@ _icarus() {
     __icarus_debug "ORIGINAL words: '${words[*]}'"
     __icarus_debug "ORIGINAL CURRENT: ${CURRENT}"
 
+    # Capturing previous param from $CURRENT
+    local previousParamIdx="$((CURRENT - 1))"
+    local previousParam="${words[${previousParamIdx}]}"
+
     # Count how many -v/--verbose occur before or at $CURRENT
     local count_removed=0
     for ((i=1; i <= CURRENT; i++)); do
@@ -31,19 +35,12 @@ _icarus() {
         fi
     done
 
-    # Capturing ORIGINAL words
-    local -a original_words
-    original_words=("${words[@]}")
-
     # Build the filtered array
     local -a filtered_words
     filtered_words=("${(@)words:#(-v|--verbose)}")
 
     # Replace words with the filtered array
     words=("${filtered_words[@]}")
-
-    # Capturing $CURRENT before changing it
-    local previousParamIdx="$((CURRENT - 1))"
 
     # Adjust $CURRENT by the number of removed items that were before $CURRENT
     ((CURRENT -= count_removed))
@@ -56,8 +53,7 @@ _icarus() {
     __icarus_debug "TRUNCATED words: '${words[*]}'"
 
     # Get last parameter, last character
-    local previousParam="${words[${previousParamIdx}]}"
-    local lastParam="${original_words[-1]}"
+    local lastParam="${words[-1]}"
     local lastChar="${lastParam[-1]}"
     __icarus_debug "previousParamIdx: ${previousParamIdx}"
     __icarus_debug "previousParam: '${previousParam}'"
