@@ -31,6 +31,10 @@ _icarus() {
         fi
     done
 
+    # Capturing ORIGINAL words
+    local -a original_words
+    original_words=("${words[@]}")
+
     # Build the filtered array
     local -a filtered_words
     filtered_words=("${(@)words:#(-v|--verbose)}")
@@ -53,7 +57,7 @@ _icarus() {
 
     # Get last parameter, last character
     local previousParam="${words[${previousParamIdx}]}"
-    local lastParam="${words[-1]}"
+    local lastParam="${original_words[-1]}"
     local lastChar="${lastParam[-1]}"
     __icarus_debug "previousParamIdx: ${previousParamIdx}"
     __icarus_debug "previousParam: '${previousParam}'"
