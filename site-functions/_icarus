@@ -21,12 +21,12 @@ __icarus_debug() {
 _icarus() {
     __icarus_debug "\n========= _icarus starting ========="
     __icarus_debug "ORIGINAL words: '${words[*]}'"
-    __icarus_debug "CURRENT UNMODIFIED: ${CURRENT}"
+    __icarus_debug "ORIGINAL CURRENT: ${CURRENT}"
 
     # Count how many -v/--verbose occur before or at $CURRENT
     local count_removed=0
-    for i in {1..${CURRENT}}; do
-        if [[ ${words[i]} = -v || ${words[i]} = --verbose ]]; then
+    for ((i=1; i <= CURRENT; i++)); do
+        if [[ "${words[i]}" = '-v' || "${words[i]}" = '--verbose' ]]; then
             ((count_removed++))
         fi
     done
@@ -41,17 +41,12 @@ _icarus() {
     # Adjust CURRENT by the number of removed items that were before $CURRENT
     ((CURRENT -= count_removed))
 
-    # Capture the value of $CURRENT_CURSOR after having removed the filtered words
-#    local CURRENT_CURSOR=$CURRENT
-
-#    CURRENT="${#words[@]}"
-    __icarus_debug "CURRENT W/O FILTERED WORDS: ${CURRENT}"
-#    __icarus_debug "CURRENT CURSOR: ${CURRENT_CURSOR}"
-    __icarus_debug "Filtered words: '${words[*]}'"
+    __icarus_debug "FILTERED words: '${words[*]}'"
+    __icarus_debug "FILTERED CURRENT: ${CURRENT}"
 
     # We only want to parse up to $CURRENT in case the user moved the cursor backward
     words=("${(@)words[1,CURRENT]}")
-    __icarus_debug "Truncated words: '${words[*]}'"
+    __icarus_debug "TRUNCATED words: '${words[*]}'"
 
     # Get last parameter, last character
     local previousParamIdx="$((CURRENT - 1))"
