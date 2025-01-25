@@ -28,11 +28,10 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 auth_init_express() {
-    # Check that MWPIN and AMZPSW are exported
-    if [[ -z "${MWPIN}" || -z "${AMZPSW}" ]]; then
-        echo -e "${red}MWPIN and/or AMZPSW env variable(s) not found! Run the following command to set them.${end}"
-        echo -e "${red}export MWPIN=<your midway pin>${end}"
-        echo -e "${red}export AMZPSW=<your amazon password>${end}"
+    if [[ -z "${CARLOGTT_SECRET_MIDWAY_PIN}" || -z "${CARLOGTT_SECRET_AMZ_ANT_PASSWORD}" ]]; then
+        echo -e "${red}CARLOGTT_SECRET_MIDWAY_PIN and/or CARLOGTT_SECRET_AMZ_ANT_PASSWORD env variable(s) not found! Run the following command to set them.${end}"
+        echo -e "${red}export CARLOGTT_SECRET_MIDWAY_PIN=<your midway pin>${end}"
+        echo -e "${red}export CARLOGTT_SECRET_AMZ_ANT_PASSWORD=<your amazon password>${end}"
         return
     fi
 
@@ -45,8 +44,8 @@ auth_init_express() {
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
 set timeout -1
-set mwpin \$env(MWPIN)
-set amzpsw \$env(AMZPSW)
+set mwpin \$env(CARLOGTT_SECRET_MIDWAY_PIN)
+set amzpsw \$env(CARLOGTT_SECRET_AMZ_ANT_PASSWORD)
 
 # Start the script
 log_user 0
