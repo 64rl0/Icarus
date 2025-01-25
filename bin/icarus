@@ -26,6 +26,23 @@ declare -r python_interpreter_abs
 python_entrypoint_abs="${project_root_dir_abs}/entrypoint.py"
 declare -r python_entrypoint_abs
 
+# Check if the --update option is called
+if [[ "$1" == '--update' ]]; then
+    echo -e "Updating icarus CLI please wait..." >&2
+    {
+        pushd "${HOME}/.icarus"
+        git fetch
+        git reset --hard origin/HEAD
+        rm -rf "build_venv"
+        make build
+        popd
+    } >/dev/null 2>&1
+    echo -e "icarus CLI updated!"
+    echo -e ""
+    # Calling the cli with the --version option
+    exec "${HOME}/.icarus/bin/icarus" --version
+fi
+
 # Ensure the virtual environment exists
 if [ ! -x "${python_interpreter_abs}" ]; then
     echo -e "Installing icarus CLI please wait..." >&2

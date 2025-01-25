@@ -83,6 +83,7 @@ _icarus() {
             'builder:utilities for software development'
             'macos:utilities for macOS'
             'unison:utilities for Unison daemon'
+            '--update:update icarus cli to the latest version'
             '--verbose:increase output verbosity'
             '-v:increase output verbosity'
             '--version:display version information'

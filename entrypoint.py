@@ -52,4 +52,9 @@ from src.icarus.main import main
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    try:
+        sys.exit(main())
+
+    except Exception as ex:
+        print(f"unexpected error: {repr(ex)}")
+        sys.exit(1)
