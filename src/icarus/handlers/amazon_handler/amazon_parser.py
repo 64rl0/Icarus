@@ -100,7 +100,7 @@ def handle_amazon_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.amazon_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'amazon_handler' / 'devdsk_formation.sh'
-        script_args = None
+        script_args = [args.i]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 

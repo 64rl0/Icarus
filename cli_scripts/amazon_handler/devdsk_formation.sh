@@ -28,7 +28,7 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 devdsk_formation() {
-    local filepath='/Users/carlogtt/Dropbox/SDE/Shell/CarloCodes/MyScripts/DevDskFormation/devdsk_formation.sh'
+    local filepath='/Users/carlogtt/Dropbox/SDE/Shell/CarloCodes/DevDskFormation/devdsk_formation.sh'
     local hostname="devdsk$1"
 
     echo -e "Transferring devdsk_formation to ${hostname}..."
