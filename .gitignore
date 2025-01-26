@@ -292,3 +292,4 @@ cython_debug/
 build_undefined/
 build_venv/
 !lib
+.icarus_dev_env

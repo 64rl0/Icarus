@@ -72,6 +72,7 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     tl_par.add_argument(
         '--version',
+        '--update',
         required=False,
         action='store_const',
         const='--version',
