@@ -109,7 +109,7 @@ fi
 
 # Ensure the virtual environment exists
 if [ ! -x "${python_interpreter_abs}" ]; then
-    echo -e "Installing icarus CLI please wait..." >&2
+    echo -e "Installing icarus CLI please wait..."
     {
         pushd "${project_root_dir_abs}"
         rm -rf "build_venv"
