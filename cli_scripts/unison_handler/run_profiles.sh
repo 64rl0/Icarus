@@ -90,6 +90,7 @@ unison_run_profiles() {
         "prof_my_lib"
         "prof_devdsk7"
         "prof_devdsk8"
+        "prof_devdsk10"
     )
 
     for unison_profile in "${unison_profiles[@]}"; do
