@@ -85,11 +85,17 @@ unison_terminal_notifier() {
 
 unison_run_profiles() {
     local -a unison_profiles=(
+        # devdsk7
+        "prof_devdsk7"
+
+        # devdsk8
+        "prof_devdsk8"
         "prof_workplace"
         # "prof_brazil-pkg-cache"
-        "prof_my_lib"
-        "prof_devdsk7"
-        "prof_devdsk8"
+        "prof_my_lib_src"
+        "prof_my_lib_test"
+
+        # devdsk10
         "prof_devdsk10"
     )
 
