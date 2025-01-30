@@ -26,52 +26,30 @@ source "${cli_script_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Fail
 set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
-# User defined variables
-auth_init_local_machine() {
-    local -a mw_args=($1)
+_authenticate_midway() {
+    local -a mw_args=($@)
 
     # Temporarily disable 'errexit' to allow for retries
     set +e
 
-    # Local machine
-    echo -e "${bold_yellow}${circle_arrows} Authentication started for $(uname -n)...\n${end}"
+    local attempt=1
+    local max_attempts=3
 
-    # Authenticate Kerberos
-    while true; do
-        echo -e "${blue}Kerberos Authentication${end}"
-        echo -e "${blue}cmd: kinit -f${end}"
-        # echo -e "${red}[DISABLED] Kerberos${end}" && true
-        kinit -f
-        kinit_status=$?
+    while [[ ${attempt} -le ${max_attempts} ]]; do
+        ((attempt++))
 
-        # Check if Kerberos was successful
-        if [[ $kinit_status -eq 0 ]]; then
-            echo -e "${bold_green}${key} Successfully authenticated!${end}"
-            break
-        else
-            echo -e "${bold_red}Authentication failed! Please try again.\n${end}"
-            # continue
-            break # break the loop as on AL2023 we do not have Kerberos
-        fi
-    done
-
-    # Break line
-    echo ""
-
-    # Authenticate Midway
-    while true; do
         echo -e "${blue}Midway Authentication${end}"
         if [ -n "$SSH_CONNECTION" ]; then
-            echo -e "${blue}cmd: mwinit --otp-auth -s ${mw_args[*]} ${end}"
+            echo -e "${blue}cmd: mwinit -o -s ${mw_args[*]} ${end}"
             mwinit --otp-auth -s "${mw_args[@]}"
         else
-            echo -e "${blue}cmd: mwinit --fido2 -s ${mw_args[*]} ${end}"
+            echo -e "${blue}cmd: mwinit -f -s ${mw_args[*]} ${end}"
             mwinit --fido2 -s "${mw_args[@]}"
         fi
         mwinit_status=$?
 
         # Check if Midway was successful
-        if [[ $mwinit_status -eq 0 ]]; then
+        if [[ ${mwinit_status} -eq 0 ]]; then
             echo -e "${bold_green}${key} Successfully authenticated!${end}"
             break
         else
@@ -80,12 +58,64 @@ auth_init_local_machine() {
         fi
     done
 
-    # Break line
-    echo ""
-    echo ""
+    # Re-enable 'errexit'
+    set -e
+}
+
+_authenticate_kerberos() {
+    # Temporarily disable 'errexit' to allow for retries
+    set +e
+
+    local attempt=1
+    local max_attempts=3
+
+    while [[ ${attempt} -le ${max_attempts} ]]; do
+        ((attempt++))
+
+        echo -e "${blue}Kerberos Authentication${end}"
+        if kinit_path=$(command -v \kinit); then
+            echo -e "${blue}cmd: kinit -f${end}"
+            ${kinit_path} -f
+            kinit_status=$?
+        else
+            echo -e "${bold_red}[DISABLED] Kerberos not found!${end}"
+            kinit_status=0
+        fi
+
+        # Check if Kerberos was successful
+        if [[ ${kinit_status} -eq 0 ]]; then
+            echo -e "${bold_green}${key} Successfully authenticated!${end}"
+            break
+        else
+            echo -e "${bold_red}Authentication failed! Please try again.\n${end}"
+            # continue
+            break # break the loop as sometimes we do not have Kerberos
+        fi
+    done
 
     # Re-enable 'errexit'
     set -e
+}
+
+# User defined variables
+auth_init_local_machine() {
+    local -a mw_args=($1)
+
+    # Local machine
+    echo -e "${bold_yellow}${circle_arrows} Authentication started for $(uname -n)...\n${end}"
+
+    # Authenticate Kerberos
+    _authenticate_kerberos
+
+    # Break line
+    echo ""
+
+    # Authenticate Midway
+    _authenticate_midway "${mw_args[@]}"
+
+    # Break line
+    echo ""
+    echo ""
 }
 
 auth_init_ssh() {
