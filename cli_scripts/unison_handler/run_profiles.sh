@@ -95,8 +95,8 @@ unison_run_profiles() {
         "prof_my_lib_src"
         "prof_my_lib_test"
 
-        # devdsk10
-        "prof_devdsk10"
+        # devdsk9
+        "prof_devdsk9"
     )
 
     for unison_profile in "${unison_profiles[@]}"; do
