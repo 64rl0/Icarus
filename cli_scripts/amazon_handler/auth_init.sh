@@ -79,12 +79,14 @@ _authenticate_kerberos() {
             kinit_status=$?
         else
             echo -e "${bold_red}[DISABLED] Kerberos not found!${end}"
-            kinit_status=0
+            kinit_status=20
         fi
 
         # Check if Kerberos was successful
         if [[ ${kinit_status} -eq 0 ]]; then
             echo -e "${bold_green}${key} Successfully authenticated!${end}"
+            break
+        elif [[ ${kinit_status} -eq 20 ]]; then
             break
         else
             echo -e "${bold_red}Authentication failed! Please try again.\n${end}"
