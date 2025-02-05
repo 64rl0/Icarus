@@ -121,7 +121,11 @@ parse_args() {
         mw_args_expanded+=("--mw-args" "${arg}")
     done
 
-    auth_init_express "-i" "${devdsk_ids[@]}" "${mw_args_expanded[@]}"
+    if [[ -n "${devdsk_ids[*]}" ]]; then
+        auth_init_express "-i" "${devdsk_ids[@]}" "${mw_args_expanded[@]}"
+    else
+        auth_init_express "${devdsk_ids[@]}" "${mw_args_expanded[@]}"
+    fi
 }
 
 parse_args "$@"
