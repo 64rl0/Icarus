@@ -85,9 +85,6 @@ unison_terminal_notifier() {
 
 unison_run_profiles() {
     local -a unison_profiles=(
-        # devdsk7
-        "prof_devdsk7"
-
         # devdsk8
         "prof_devdsk8"
         "prof_workplace"
