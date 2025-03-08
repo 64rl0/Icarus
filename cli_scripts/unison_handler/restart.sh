@@ -78,9 +78,12 @@ unison_restart() {
 
     echo -e "Configuration loaded\n"
 
-    echo -e "Starting up Unison..."
-    echo -e ""
-    sleep 10
+    echo -e "Starting up Unison service..."
+    for i in {1..10}; do
+        printf "\r${clear_line}Please wait %d" $((10 - i))
+        sleep 1
+    done
+    printf "\r${clear_line}\n"
     ${this_cli_fullpath} unison status
 }
 
