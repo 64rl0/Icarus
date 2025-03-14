@@ -86,6 +86,7 @@ python_package_init() {
     sed -i '' "12s|.*|# src/${project_name_snake_case}/main.py|" "${project_src_folder}/main.py"
     sed -i '' "12s|.*|# src/${project_name_snake_case}/config/__init__.py|" "${project_src_folder}/config/__init__.py"
     sed -i '' "12s|.*|# src/${project_name_snake_case}/config/aaa_env_vars.py|" "${project_src_folder}/config/aaa_env_vars.py"
+    sed -i '' "12s|.*|# src/${project_name_snake_case}/config/constants.py|" "${project_src_folder}/config/constants.py"
 
     echo -e "\nInitiating Git repository..."
     cd "${project_absolute_path}"

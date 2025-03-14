@@ -97,7 +97,7 @@ if [[ "$1" == '--update' ]]; then
     echo -e "Updating icarus CLI please wait..."
     {
         pushd "${project_root_dir_abs}"
-        rm -rf "build_venv"
+        rm -rf "${project_root_dir_abs}/build_venv"
         git fetch
         git reset --hard origin/HEAD
         git pull
@@ -112,7 +112,7 @@ if [ ! -x "${python_interpreter_abs}" ]; then
     echo -e "Installing icarus CLI please wait..."
     {
         pushd "${project_root_dir_abs}"
-        rm -rf "build_venv"
+        rm -rf "${project_root_dir_abs}/build_venv"
         make build
     } >/dev/null 2>&1
     echo -e "icarus CLI installed!"

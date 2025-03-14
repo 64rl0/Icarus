@@ -72,8 +72,8 @@ def main() -> int:
 
     # Execute the command
     try:
-        return_cose = cli.execute(args=args)
-        return return_cose
+        return_code = cli.execute(args=args)
+        return return_code
 
     except utils.IcarusParserException as ex:
         module_logger.debug(repr(ex))
