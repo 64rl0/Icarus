@@ -35,6 +35,7 @@ dotfiles_update() {
         "${HOME}/.zsh/completion"
         "${HOME}/.carlogtt_alias"
         "${HOME}/.carlogtt_script"
+        "${HOME}/.aws"
         "${HOME}/.vim"
         "${HOME}/.icarus"
         "${HOME}/.config/alacritty"
@@ -49,7 +50,7 @@ dotfiles_update() {
     )
 
     for dotfile in "${dotfiles[@]}"; do
-        if [[ -d "${dotfile}" ]]; then
+        if [[ -d "${dotfile}/.git" ]]; then
             echo -e "${sparkles}${bold_yellow}${dotfile}${end}"
             pushd "${dotfile}" >/dev/null
             git fetch
