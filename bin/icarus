@@ -19,16 +19,6 @@ declare -r magenta=$'\033[35m'
 declare -r cyan=$'\033[36m'
 declare -r white=$'\033[37m'
 
-# Bold/Bright Foreground Colors
-declare -r bold_black=$'\033[1;30m'
-declare -r bold_red=$'\033[1;31m'
-declare -r bold_green=$'\033[1;32m'
-declare -r bold_yellow=$'\033[1;33m'
-declare -r bold_blue=$'\033[1;34m'
-declare -r bold_magenta=$'\033[1;35m'
-declare -r bold_cyan=$'\033[1;36m'
-declare -r bold_white=$'\033[1;37m'
-
 # Basic Background Colors
 declare -r bg_black=$'\033[40m'
 declare -r bg_red=$'\033[41m'
@@ -86,6 +76,12 @@ declare -r python_interpreter_abs
 python_entrypoint_abs="${project_root_dir_abs}/entrypoint.py"
 declare -r python_entrypoint_abs
 
+log_path="${project_root_dir_abs}/log"
+declare -r log_path
+
+log_filepath="${project_root_dir_abs}/log/icarus.log"
+declare -r log_filepath
+
 # Check if the --update option is called
 if [[ "$1" == '--update' ]]; then
     if [[ -f "${project_root_dir_abs}/.icarus_dev_env" ]]; then
@@ -95,6 +91,7 @@ if [[ "$1" == '--update' ]]; then
         exit 1
     fi
     echo -e "Updating icarus CLI please wait..."
+    mkdir -p "${log_path}"
     {
         pushd "${project_root_dir_abs}"
         rm -rf "${project_root_dir_abs}/build_venv"
@@ -102,7 +99,7 @@ if [[ "$1" == '--update' ]]; then
         git reset --hard origin/HEAD
         git pull
         make build
-    } >/dev/null 2>&1
+    } >"${log_filepath}" 2>&1
     echo -e "icarus CLI updated!"
     echo -e ""
 fi
@@ -110,11 +107,12 @@ fi
 # Ensure the virtual environment exists
 if [ ! -x "${python_interpreter_abs}" ]; then
     echo -e "Installing icarus CLI please wait..."
+    mkdir -p "${log_path}"
     {
         pushd "${project_root_dir_abs}"
         rm -rf "${project_root_dir_abs}/build_venv"
         make build
-    } >/dev/null 2>&1
+    } >"${log_filepath}" 2>&1
     echo -e "icarus CLI installed!"
     echo -e ""
 fi
