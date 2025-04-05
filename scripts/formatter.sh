@@ -217,6 +217,10 @@ if [[ "${shfmt}" == "Y" ]]; then
         echo -e "${blue}\ntest/${end}"
         shfmt -l -w "${project_root_dir_abs}/test"
     fi
+    if [[ -d "${project_root_dir_abs}/bin" ]]; then
+        echo -e "${blue}\nbin/${end}"
+        shfmt -l -w "${project_root_dir_abs}/bin"
+    fi
 else
     echo -e "${bold_red}[DISABLED]${end}"
 fi

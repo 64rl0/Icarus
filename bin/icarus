@@ -60,8 +60,8 @@ declare -r package="\xF0\x9F\x93\xA6"
 declare -r network_world="\xF0\x9F\x8C\x90"
 
 # Script Options
-set -o errexit   # Exit immediately if a command exits with a non-zero status
-set -o pipefail  # Exit status of a pipeline is the status of the last cmd to exit with non-zero
+set -o errexit  # Exit immediately if a command exits with a non-zero status
+set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
 # Script Paths
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
@@ -84,37 +84,45 @@ declare -r log_filepath
 
 # Check if the --update option is called
 if [[ "$1" == '--update' ]]; then
-    if [[ -f "${project_root_dir_abs}/.icarus_dev_env" ]]; then
-        echo -e "${bg_red}${black}[WARNING]${end}"
-        echo -e " You are about to run ${red}git reset --hard${end} on the dev env!"
-        echo -e " Operation Interrupted! Only available in PROD!"
-        exit 1
-    fi
-    echo -e "Updating icarus CLI please wait..."
-    mkdir -p "${log_path}"
-    {
-        pushd "${project_root_dir_abs}"
-        rm -rf "${project_root_dir_abs}/build_venv"
-        git fetch
-        git reset --hard origin/HEAD
-        git pull
-        make build
-    } >"${log_filepath}" 2>&1 || echo -e "${bg_red}${black}[WARNING]${end} - Failed to install icarus CLI" && exit 1
-    echo -e "icarus CLI updated!"
-    echo -e ""
+	if [[ -f "${project_root_dir_abs}/.icarus_dev_env" ]]; then
+		echo -e "${bg_red}${black}[WARNING]${end}"
+		echo -e " You are about to run ${red}git reset --hard${end} on the dev env!"
+		echo -e " Operation Interrupted! Only available in PROD!"
+		exit 1
+	fi
+	echo -e "Updating icarus CLI please wait..."
+	mkdir -p "${log_path}"
+	{
+		pushd "${project_root_dir_abs}"
+		rm -rf "${project_root_dir_abs}/build_venv"
+		git fetch
+		git reset --hard origin/HEAD
+		git pull
+		make build
+	} >"${log_filepath}" 2>&1 || {
+		echo -e "${bg_red}${black}[ERROR]${end} - Failed to install icarus CLI"
+		echo -e " logs saved in ${log_filepath}"
+		exit 1
+	}
+	echo -e "icarus CLI updated!"
+	echo -e ""
 fi
 
 # Ensure the virtual environment exists
 if [ ! -x "${python_interpreter_abs}" ]; then
-    echo -e "Installing icarus CLI please wait..."
-    mkdir -p "${log_path}"
-    {
-        pushd "${project_root_dir_abs}"
-        rm -rf "${project_root_dir_abs}/build_venv"
-        make build
-    } >"${log_filepath}" 2>&1 || echo -e "${bg_red}${black}[WARNING]${end} - Failed to install icarus CLI" && exit 1
-    echo -e "icarus CLI installed!"
-    echo -e ""
+	echo -e "Installing icarus CLI please wait..."
+	mkdir -p "${log_path}"
+	{
+		pushd "${project_root_dir_abs}"
+		rm -rf "${project_root_dir_abs}/build_venv"
+		make build
+	} >"${log_filepath}" 2>&1 || {
+		echo -e "${bg_red}${black}[ERROR]${end} - Failed to install icarus CLI"
+		echo -e " logs saved in ${log_filepath}"
+		exit 1
+	}
+	echo -e "icarus CLI installed!"
+	echo -e ""
 fi
 
 # Execute the main CLI script with the virtual environment's Python
