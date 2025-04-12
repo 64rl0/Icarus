@@ -92,11 +92,9 @@ def set_logger_level(level: int) -> None:
     """
 
     if level > 0:
-        config.master_logger.app_logger.setLevel('DEBUG')
-        config.master_logger.add_console_handler()
+        config.master_logger.change_logger_level('DEBUG')
     else:
-        config.master_logger.app_logger.setLevel('WARNING')
-        config.master_logger.add_console_handler()
+        config.master_logger.change_logger_level('WARNING')
 
 
 def run_bash_script(

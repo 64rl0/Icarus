@@ -55,3 +55,4 @@ master_logger = carlogtt_python_library.Logger(
     log_fmt='%(levelname)-8s | %(asctime)s | %(filename)-20s:%(lineno)-3d | %(message)s',
     log_level='WARNING',
 )
+master_logger.add_console_handler()
