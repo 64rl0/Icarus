@@ -91,6 +91,7 @@ unison_run_profiles() {
         # "prof_brazil-pkg-cache"
         "prof_my_lib_src"
         "prof_my_lib_test"
+        "prof_my_lib_playground"
 
         # devdsk9
         "prof_devdsk9"
