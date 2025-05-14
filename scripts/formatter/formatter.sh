@@ -85,9 +85,9 @@ project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 formatter_ignore=($(cat "${script_dir_abs}/formatter/.formatterignore"))
 declare -r formatter_ignore
-all_files_l1=($(find "${project_root_dir_abs}" -type f -mindepth 1 -maxdepth 1))
+all_files_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type f))
 declare -r all_files_l1
-all_dirs_l1=($(find "${project_root_dir_abs}" -type d -mindepth 1 -maxdepth 1))
+all_dirs_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type d))
 declare -r all_dirs_l1
 
 # Select the correct venv with the tools installed
@@ -99,6 +99,11 @@ flake8="Y"
 mypy="Y"
 shfmt="Y"
 nnbsp="Y"
+
+function echo_title() {
+    title="${1}"
+    echo -e "\n${sparkles} ${bg_cyan}${bold_black} ${title} ${end}"
+}
 
 function activate_venv() {
     # Use brazil runtime farm
@@ -144,10 +149,10 @@ function activate_venv() {
     echo -e "OS Version: $(uname)"
     echo -e "Kernel Version: $(uname -r)"
     echo -e "running: $(python3 --version)"
+    echo
 }
 
 function deactivate_venv() {
-    echo -e "\n${bold_yellow}${warning_sign} Virtual environment deactivated!${end}"
     if [[ -n "${OLD_PATH}" ]]; then
         PATH="${OLD_PATH}"
     else
@@ -156,8 +161,8 @@ function deactivate_venv() {
 }
 
 function run_isort() {
-    echo -e "\n${bg_cyan}${bold_black} ${sparkles} Running iSort... ${end}"
-    for el in "${final_list[@]}"; do
+    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    for el in "${elements[@]}"; do
         if [[ "${isort}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
             isort "${el}" || :
@@ -169,8 +174,8 @@ function run_isort() {
 }
 
 function run_black() {
-    echo -e "\n${bg_cyan}${bold_black} ${sparkles} Running Black... ${end}"
-    for el in "${final_list[@]}"; do
+    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    for el in "${elements[@]}"; do
         if [[ "${black_fmt}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
             black "${el}" || :
@@ -182,8 +187,8 @@ function run_black() {
 }
 
 function run_flake8() {
-    echo -e "\n${bg_cyan}${bold_black} ${sparkles} Running Flake8... ${end}"
-    for el in "${final_list[@]}"; do
+    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    for el in "${elements[@]}"; do
         if [[ "${flake8}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
             flake8 -v "${el}" || :
@@ -195,8 +200,8 @@ function run_flake8() {
 }
 
 function run_mypy() {
-    echo -e "\n${bg_cyan}${bold_black} ${sparkles} Running mypy... ${end}"
-    for el in "${final_list[@]}"; do
+    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    for el in "${elements[@]}"; do
         if [[ "${mypy}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
             mypy "${el}" || :
@@ -208,8 +213,8 @@ function run_mypy() {
 }
 
 function run_shfmt() {
-    echo -e "\n${bg_cyan}${bold_black} ${sparkles} Running shfmt (bash formatter)... ${end}"
-    for el in "${final_list[@]}"; do
+    elements=("${active_dirs[@]}" "${active_sh_files[@]}")
+    for el in "${elements[@]}"; do
         if [[ "${shfmt}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
             shfmt -l -w "${el}" || :
@@ -221,11 +226,17 @@ function run_shfmt() {
 }
 
 function run_char_replacement() {
-    echo -e "\n${bg_cyan}${bold_black} ${sparkles} Running 'NNBSP' char replacement... ${end}"
-    for el in "${final_list[@]}"; do
+    elements=("${active_dirs[@]}" "${active_py_files[@]}" "${active_sh_files[@]}" "${active_other_files[@]}")
+    for el in "${elements[@]}"; do
         if [[ "${nnbsp}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
-            find "${el}" -type f -not -name "${this_file_name}" -exec sed -i '' 's/ / /g' {} + || :
+            if [[ $(uname -s) == "Darwin" ]]; then
+                # macOS
+                find "${el}" -type f -not -name "${this_file_name}" -not -name '*.pyc' -exec sed -i '' 's/ / /g' {} + || :
+            else
+                # Linux
+                find "${el}" -type f -not -name "${this_file_name}" -not -name '*.pyc' -exec sed -i 's/ / /g' {} + || :
+            fi
             echo -e "done!"
             echo
         else
@@ -251,10 +262,14 @@ function build_active_dirs() {
             active_dirs+=("${dir}")
         fi
     done
+
+    declare -r active_dirs
 }
 
 function build_active_files() {
-    active_files=()
+    active_py_files=()
+    active_sh_files=()
+    active_other_files=()
 
     for file in "${all_files_l1[@]}"; do
         unset ignore_file
@@ -267,42 +282,47 @@ function build_active_files() {
         done
 
         if [[ "${ignore_file}" != true ]]; then
-            active_files+=("${file}")
-        fi
-    done
-}
-
-function build_active_list() {
-    build_active_dirs
-    build_active_files
-
-    final_list=()
-
-    for dir in "${active_dirs[@]}"; do
-        final_list+=("${dir}")
-    done
-
-    for file in "${active_files[@]}"; do
-        if [[ "${file}" =~ .+\.py$ ]]; then
-            final_list+=("${file}")
+            if [[ "${file}" =~ .+\.py$ ]]; then
+                active_py_files+=("${file}")
+            elif [[ "${file}" =~ .+\.sh$ ]]; then
+                active_sh_files+=("${file}")
+            else
+                active_other_files+=("${file}")
+            fi
         fi
     done
 
-    declare -r final_list
+    declare -r active_py_files
+    declare -r active_sh_files
+    declare -r active_other_files
 }
 
 function main() {
+    echo_title "Project info"
     activate_venv
 
-    build_active_list
+    build_active_dirs
+    build_active_files
 
+    echo_title "Running iSort..."
     run_isort
+
+    echo_title "Running Black..."
     run_black
+
+    echo_title "Running Flake8..."
     run_flake8
+
+    echo_title "Running mypy..."
     run_mypy
+
+    echo_title "Running shfmt (bash formatter)..."
     run_shfmt
+
+    echo_title "Running 'NNBSP' char replacement..."
     run_char_replacement
 
+    echo_title "Virtual environment deactivated!"
     deactivate_venv
 }
 
