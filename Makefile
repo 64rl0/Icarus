@@ -1,6 +1,6 @@
 .PHONY: format
 format:
-	./scripts/formatter.sh
+	./scripts/formatter/formatter.sh
 
 .PHONY: build
 build:
