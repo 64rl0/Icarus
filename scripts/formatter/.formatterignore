@@ -1,9 +1,7 @@
 .git/
 .github/
 .mypy_cache/
+.pytest_cache/
 .idea/
-
-*/__pycache__/
-__pycache__/
 
 build*/

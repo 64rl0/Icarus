@@ -122,3 +122,10 @@ pretty = true
 
 # Warns about unneeded '# type: ignore' comments.
 warn_unused_ignores = true
+
+
+[tool.pytest.ini_options]
+addopts = "-vvv"
+testpaths = [
+    "test",
+]

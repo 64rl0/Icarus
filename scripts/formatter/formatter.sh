@@ -9,9 +9,6 @@
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
-# Command used in the external tool is:
-# --login -c "./scripts/formatter/formatter.sh"
-
 # Basic Foreground Colors
 declare -r black=$'\033[30m'
 declare -r red=$'\033[31m'
@@ -90,159 +87,177 @@ declare -r all_files_l1
 all_dirs_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type d))
 declare -r all_dirs_l1
 
-# Select the correct venv with the tools installed
-devdsk="devdsk8"
-python_runtime="python3.11"
+# User defined variables
+formatters=("isort" "black" "flake8" "mypy" "shfmt" "whitespaces" "pytest")
 isort="Y"
 black_fmt="Y"
 flake8="Y"
 mypy="Y"
 shfmt="Y"
-nnbsp="Y"
+whitespaces="Y"
+if [[ "${1}" == "--with-pytest" ]]; then
+    pytest="Y"
+else
+    pytest="N"
+fi
 
 function echo_title() {
     title="${1}"
     echo -e "\n${sparkles} ${bg_cyan}${bold_black} ${title} ${end}"
 }
 
-function activate_venv() {
-    # Use brazil runtime farm
-    if [[ -d "${project_root_dir_abs}/build/private" ]]; then
-        brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${python_runtime}/bin"
-    fi
-
-    # Use project build_venv venv
-    if [[ -d "${project_root_dir_abs}/build_venv" ]]; then
-        path_to_venv_root="${project_root_dir_abs}/build_venv"
-    # Use DevDsk dev_tools venv if we are on a DevDsk
-    elif [[ -d "${HOME}/${devdsk}" ]]; then
-        path_to_venv_root="${HOME}/${devdsk}/venvs/dev_tools"
-    # Use Dropbox dev_tools venv if we are on local macbook
-    elif [[ -d "${HOME}/Library/CloudStorage/Dropbox" ]]; then
-        path_to_venv_root="${HOME}/Library/CloudStorage/Dropbox/SDE/VirtualEnvs/dev_tools"
-    fi
-
-    # Display Project info
-    echo -e "\n${bold_green}${hammer_and_wrench} Project Root:${end}"
-    echo "${project_root_dir_abs}"
-
-    # Activate brazil runtime env first as it takes precedence
-    if [[ -n "${brazil_bin_dir}" ]]; then
-        OLD_PATH="${PATH}"
-        PATH="${brazil_bin_dir}:${PATH}"
-        echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
-        echo -e "${brazil_bin_dir}"
-    # Activate venv if we are not in brazil venv
-    elif [[ -n "${path_to_venv_root}" ]]; then
-        source "${path_to_venv_root}/bin/activate"
-        echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
-        echo -e "venv: ${VIRTUAL_ENV}"
-    #  Cannot activate any venv
-    else
-        echo -e "\n${bold_red}Cannot find any venv to activate!${end}"
-        echo -e "${bold_red}Have you selected the correct DevDsk and/or build_venv in the formatter file?${end}"
-        echo -e "${bold_red}Run 'make build' to build a local build_venv in ${project_root_dir_abs}/build_venv${end}\n"
-        exit 1
-    fi
-
-    # Display env info
-    echo -e "OS Version: $(uname)"
-    echo -e "Kernel Version: $(uname -r)"
-    echo -e "running: $(python3 --version)"
-    echo
-}
-
-function deactivate_venv() {
-    if [[ -n "${OLD_PATH}" ]]; then
-        PATH="${OLD_PATH}"
-    else
-        deactivate
-    fi
-}
-
 function run_isort() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    isort_summary_status="${bold_black}${bg_green} PASS ${end}"
+
     for el in "${elements[@]}"; do
         if [[ "${isort}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
-            isort "${el}" || :
+            isort "${el}" 2>&1 || {
+                isort_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                exit_code=1
+            }
             echo
         else
+            isort_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
             echo -e "${bold_red}[DISABLED]${end}"
+            echo
+            break
         fi
     done
 }
 
 function run_black() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    black_summary_status="${bold_black}${bg_green} PASS ${end}"
+
     for el in "${elements[@]}"; do
         if [[ "${black_fmt}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
-            black "${el}" || :
+            black "${el}" 2>&1 || {
+                black_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                exit_code=1
+            }
             echo
         else
+            black_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
             echo -e "${bold_red}[DISABLED]${end}"
+            echo
+            break
         fi
     done
 }
 
 function run_flake8() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    flake8_summary_status="${bold_black}${bg_green} PASS ${end}"
+
     for el in "${elements[@]}"; do
         if [[ "${flake8}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
-            flake8 -v "${el}" || :
+            flake8 -v "${el}" 2>&1 || {
+                flake8_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                exit_code=1
+            }
             echo
         else
+            flake8_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
             echo -e "${bold_red}[DISABLED]${end}"
+            echo
+            break
         fi
     done
 }
 
 function run_mypy() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    mypy_summary_status="${bold_black}${bg_green} PASS ${end}"
+
     for el in "${elements[@]}"; do
         if [[ "${mypy}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
-            mypy "${el}" || :
+            output=$(mypy "${el}" 2>&1 | tee /dev/tty) || {
+                if [[ ! "${output}" =~ ^There\ are\ no\ \.py\[i\]\ files\ in\ directory ]]; then
+                    mypy_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                    exit_code=1
+                fi
+            }
             echo
         else
+            mypy_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
             echo -e "${bold_red}[DISABLED]${end}"
+            echo
+            break
         fi
     done
 }
 
 function run_shfmt() {
     elements=("${active_dirs[@]}" "${active_sh_files[@]}")
+    shfmt_summary_status="${bold_black}${bg_green} PASS ${end}"
+
     for el in "${elements[@]}"; do
         if [[ "${shfmt}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
-            shfmt -l -w "${el}" || :
+            shfmt -l -w "${el}" 2>&1 || {
+                shfmt_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                exit_code=1
+            }
             echo
         else
+            shfmt_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
             echo -e "${bold_red}[DISABLED]${end}"
+            echo
+            break
         fi
     done
 }
 
 function run_char_replacement() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}" "${active_sh_files[@]}" "${active_other_files[@]}")
+    whitespaces_summary_status="${bold_black}${bg_green} PASS ${end}"
+
     for el in "${elements[@]}"; do
-        if [[ "${nnbsp}" == "Y" ]]; then
+        if [[ "${whitespaces}" == "Y" ]]; then
             echo -e "${blue}${el}${end}"
             if [[ $(uname -s) == "Darwin" ]]; then
                 # macOS
-                find "${el}" -type f -not -name "${this_file_name}" -not -name '*.pyc' -exec sed -i '' 's/ / /g' {} + || :
+                find "${el}" -type f -not -name "${this_file_name}" -not -name '*.pyc' -exec sed -i '' 's/ / /g' {} + 2>&1 || {
+                    whitespaces_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                    exit_code=1
+                }
             else
                 # Linux
-                find "${el}" -type f -not -name "${this_file_name}" -not -name '*.pyc' -exec sed -i 's/ / /g' {} + || :
+                find "${el}" -type f -not -name "${this_file_name}" -not -name '*.pyc' -exec sed -i 's/ / /g' {} + 2>&1 || {
+                    whitespaces_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                    exit_code=1
+                }
             fi
             echo -e "done!"
             echo
         else
+            whitespaces_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
             echo -e "${bold_red}[DISABLED]${end}"
+            echo
+            break
         fi
     done
+}
+
+function run_pytest() {
+    pytest_summary_status="${bold_black}${bg_green} PASS ${end}"
+
+    if [[ "${pytest}" == "Y" ]]; then
+        pytest 2>&1 || {
+            pytest_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            exit_code=1
+        }
+        echo
+    else
+        pytest_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        echo -e "${bold_red}[DISABLED]${end}"
+        echo
+    fi
 }
 
 function build_active_dirs() {
@@ -297,9 +312,31 @@ function build_active_files() {
     declare -r active_other_files
 }
 
+function echo_summary() {
+    echo
+    echo -e "${runtime}"
+    echo
+
+    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+    printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
+    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+
+    for formatter in "${formatters[@]}"; do
+        tool="$(printf '%s' "${formatter} ..................................." | cut -c1-35)"
+        eval status='$'"${formatter}_summary_status"
+        printf "%-35s | %-7s\n" "${tool}" "${status}"
+    done
+
+    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+
+    echo
+}
+
 function main() {
+    exit_code=0
+
     echo_title "Project info"
-    activate_venv
+    . "${script_dir_abs}/_activate_venv.sh"
 
     build_active_dirs
     build_active_files
@@ -322,8 +359,16 @@ function main() {
     echo_title "Running 'NNBSP' char replacement..."
     run_char_replacement
 
-    echo_title "Virtual environment deactivated!"
-    deactivate_venv
+    echo_title "Running pytest..."
+    run_pytest
+
+    echo_title "Deactivating virtual environment..."
+    . "${script_dir_abs}/_deactivate_venv.sh"
+
+    echo_title "Summary"
+    echo_summary
+
+    return "${exit_code}"
 }
 
 main

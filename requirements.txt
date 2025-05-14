@@ -5,6 +5,9 @@ carlogtt-python-library
 python-dotenv
 requests
 
+# Test dependencies
+pytest
+
 # Development dependencies
 black
 isort

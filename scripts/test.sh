@@ -4,8 +4,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# scripts/deploy.sh
-# Created 1/21/25 - 10:02 PM UK Time (London) by carlogtt
+# scripts/test.sh
+# Created 5/14/25 - 10:14 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -54,6 +54,7 @@ declare -r end_dim=$'\033[22m'
 declare -r end_italic_underline=$'\033[23m'
 declare -r end_invert=$'\033[27m'
 declare -r end_hidden=$'\033[28m'
+declare -r clear_line=$'\033[2K'
 
 # Emoji
 declare -r green_check_mark="\xE2\x9C\x85"
@@ -78,21 +79,34 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
-update_version="${script_dir_abs}/update_version.sh"
-declare -r update_version
 
-pushd "${project_root_dir_abs}" >/dev/null 2>&1
+exit_code=0
 
-make format
+# Activate local venv
+. "${script_dir_abs}/_activate_venv.sh"
 
-echo -e "\n\n"
+# Run tests
+pytest_summary_status="${bold_black}${bg_green} PASS ${end}"
+pytest 2>&1 || {
+    pytest_summary_status="${bold_black}${bg_red} FAIL ${end}"
+    exit_code=1
+}
 
-git fetch
+# Deactivate local venv
+. "${script_dir_abs}/_deactivate_venv.sh"
 
-# Update version if fetch is successful
-. "${update_version}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source update_version.sh"
+# Print summary
+tool="$(printf '%s' "pytest ..................................." | cut -c1-35)"
+status="${pytest_summary_status}"
 
-git add .
-git commit -m "REFACTOR: update version to 'build ${new_major}.${new_minor}.${new_patch} built on ${today}'"
+echo
+echo -e "${runtime}"
+echo
+printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
+printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+printf "%-35s | %-7s\n" "${tool}" "${status}"
+printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+echo
 
-git push
+exit "${exit_code}"
