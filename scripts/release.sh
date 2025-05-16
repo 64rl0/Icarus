@@ -80,4 +80,4 @@ declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 
-"${script_dir_abs}/formatter/formatter.sh" "--with-pytest"
+icarus builder forge --all

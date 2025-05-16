@@ -4,8 +4,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# scripts/deploy.sh
-# Created 1/21/25 - 10:02 PM UK Time (London) by carlogtt
+# scripts/formatter.sh
+# Created 5/16/25 - 8:44 AM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -54,6 +54,7 @@ declare -r end_dim=$'\033[22m'
 declare -r end_italic_underline=$'\033[23m'
 declare -r end_invert=$'\033[27m'
 declare -r end_hidden=$'\033[28m'
+declare -r clear_line=$'\033[2K'
 
 # Emoji
 declare -r green_check_mark="\xE2\x9C\x85"
@@ -78,21 +79,5 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
-update_version="${script_dir_abs}/update_version.sh"
-declare -r update_version
 
-pushd "${project_root_dir_abs}" >/dev/null 2>&1
-
-#make release
-
-echo -e "\n\n"
-
-git fetch
-
-# Update version if fetch is successful
-. "${update_version}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source update_version.sh"
-
-git add .
-git commit -m "REFACTOR: update version to 'build ${new_major}.${new_minor}.${new_patch} built on ${today}'"
-
-git push
+icarus builder forge --format

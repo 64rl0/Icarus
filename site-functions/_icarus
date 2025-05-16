@@ -112,6 +112,7 @@ _icarus() {
             completions+=(
                 'python-pkg-init:initiate a new Python package in the current folder'
                 'dotfiles-update:update dotfiles from their specified repository'
+                'forge:invoke the Forge build system'
                 '--help:show help message'
                 '-h:show help message'
             )
@@ -210,6 +211,23 @@ _icarus() {
                     '-h:show help message'
                 )
                 ;;
+            forge)
+                completions+=(
+                    '--with-isort:'
+                    '--with-black:'
+                    '--with-flake8:'
+                    '--with-mypy:'
+                    '--with-shfmt:'
+                    '--with-whitespaces:'
+                    '--with-trailing:'
+                    '--with-eofnewline:'
+                    '--with-gitleaks:'
+                    '--with-pytest:'
+                    '--format:'
+                    '--test:'
+                    '--all:'
+                    '--build-venv:'
+                )
             esac
             ;;
         macos)

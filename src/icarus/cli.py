@@ -68,6 +68,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         description=config.CLI_DESCRIPTION,
         epilog=config.CLI_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     tl_par.add_argument(
@@ -107,6 +108,7 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' development\n  and operational tasks within Amazon\'s infrastructure.'
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     amazon_sub = amazon_par.add_subparsers(
         title='subcommands', dest='amazon_command', required=True, metavar='<subcommand>'
@@ -123,6 +125,7 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' software projects.'
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     builder_sub = builder_par.add_subparsers(
         title='subcommands', dest='builder_command', required=True, metavar='<subcommand>'
@@ -139,6 +142,7 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' system workflows.'
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     macos_sub = macos_par.add_subparsers(
         title='subcommands', dest='macos_command', required=True, metavar='<subcommand>'
@@ -155,6 +159,7 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' clearing locks, and automating startup configuration for Unison operations.'
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     unison_sub = unison_par.add_subparsers(
         title='subcommands', dest='unison_command', required=True, metavar='<subcommand>'
@@ -188,6 +193,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='run midway authentication on localhost and optional remote DevDsk(s)',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     amazon_sub.add_parser(
@@ -196,6 +202,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='run midway authentication express on localhost and optional remote DevDsk(s)',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     amazon_midway_cookie = amazon_sub.add_parser(
@@ -203,6 +210,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='check the cookies validity',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     amazon_midway_cookie.add_argument(
         '--filepath',
@@ -217,6 +225,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='run DevDsk Formation on a remote DevDsk',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     amazon_devdsk_formation.add_argument('-i', required=True, metavar='ID', help='the DevDsk ID')
 
@@ -225,6 +234,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='update /etc/hosts file',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     amazon_sub.add_parser(
@@ -232,6 +242,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='install a LaunchDaemon to update the hosts file every hour',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     amazon_sub.add_parser(
@@ -239,6 +250,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='creating case-sensitive volumes (\'workplace\' and \'brazil-pkg-cache\')',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     amazon_spurdog_ro = amazon_sub.add_parser(
@@ -246,6 +258,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='check membership for Spurdog Program',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     amazon_spurdog_ro.add_argument(
         '-u', required=True, metavar='ALIAS', help='username to check Spurdog Program membership'
@@ -267,6 +280,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='initiate a new Python package in the current folder',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     builder_python_pkg_init.add_argument(
         '-n', required=True, metavar='PACKAGE_NAME', help='the package name in PascalCase'
@@ -277,6 +291,128 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='update dotfiles from their specified repository',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+
+    builder_forge = builder_sub.add_parser(
+        name='forge',
+        help='invoke the Forge build system',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_forge.add_argument(
+        '--with-isort',
+        required=False,
+        action='store_const',
+        const='--with-isort',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-black',
+        required=False,
+        action='store_const',
+        const='--with-black',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-flake8',
+        required=False,
+        action='store_const',
+        const='--with-flake8',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-mypy',
+        required=False,
+        action='store_const',
+        const='--with-mypy',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-shfmt',
+        required=False,
+        action='store_const',
+        const='--with-shfmt',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-whitespaces',
+        required=False,
+        action='store_const',
+        const='--with-whitespaces',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-trailing',
+        required=False,
+        action='store_const',
+        const='--with-trailing',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-eofnewline',
+        required=False,
+        action='store_const',
+        const='--with-eofnewline',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-gitleaks',
+        required=False,
+        action='store_const',
+        const='--with-gitleaks',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--with-pytest',
+        required=False,
+        action='store_const',
+        const='--with-pytest',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--format',
+        required=False,
+        action='store_const',
+        const='--format',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--test',
+        required=False,
+        action='store_const',
+        const='--test',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--all',
+        required=False,
+        action='store_const',
+        const='--all',
+        default='',
+        help='',
+    )
+    builder_forge.add_argument(
+        '--build-venv',
+        required=False,
+        nargs='?',
+        const='',
+        metavar='NAME',
+        default=None,
+        help='create a virtual-env',
     )
 
     # =================
@@ -287,6 +423,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='find all unencrypted volumes',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     macos_make_encrypted_volume = macos_sub.add_parser(
@@ -294,6 +431,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='make an encrypted APFS volume',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     macos_make_encrypted_volume.add_argument(
         '-n', required=True, metavar='NAME', help='name of the encrypted volume'
@@ -311,6 +449,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='encrypt an APFS volume',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     macos_encrypt_volume.add_argument(
         '-n', required=True, metavar='NAME', help='name of the volume to encrypt'
@@ -321,6 +460,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='mount the specified volume at the specified mount point',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     macos_mount_volume.add_argument(
         '-n', required=True, metavar='NAME', help='name of the volume to mount'
@@ -334,6 +474,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='install a LaunchDaemon to mount the volume at System Startup',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     macos_mount_at_startup.add_argument(
         '-n', required=True, metavar='NAME', help='name of the volume to mount'
@@ -350,6 +491,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='check the running status of each Unison profile',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     unison_sub.add_parser(
@@ -357,6 +499,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='restart Unison profile(s) sync',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     unison_sub.add_parser(
@@ -364,6 +507,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='stop Unison profile(s) sync',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     unison_clear_locks = unison_sub.add_parser(
@@ -371,6 +515,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='clear Unison locks on localhost and an optional remote DevDsk',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
     unison_clear_locks.add_argument(
         '-i', required=False, metavar='ID', default='', help='the DevDsk ID'
@@ -381,6 +526,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='install a LaunchDaemon to start Unison at System Startup',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     unison_sub.add_parser(
@@ -388,6 +534,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='[DO NOT USE] internally used only to run Unison profiles',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     return tl_par

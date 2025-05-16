@@ -80,33 +80,4 @@ declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 
-exit_code=0
-
-# Activate local venv
-. "${script_dir_abs}/_activate_venv.sh"
-
-# Run tests
-pytest_summary_status="${bold_black}${bg_green} PASS ${end}"
-pytest 2>&1 || {
-    pytest_summary_status="${bold_black}${bg_red} FAIL ${end}"
-    exit_code=1
-}
-
-# Deactivate local venv
-. "${script_dir_abs}/_deactivate_venv.sh"
-
-# Print summary
-tool="$(printf '%s' "pytest ..................................." | cut -c1-35)"
-status="${pytest_summary_status}"
-
-echo
-echo -e "${runtime}"
-echo
-printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
-printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-printf "%-35s | %-7s\n" "${tool}" "${status}"
-printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-echo
-
-exit "${exit_code}"
+icarus builder forge --test

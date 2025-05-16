@@ -85,6 +85,35 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
+    elif args.builder_command == 'forge':
+        module_logger.debug(f"Running {args.builder_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'forge.sh'
+        script_args = [
+            args.with_isort,
+            args.with_black,
+            args.with_flake8,
+            args.with_mypy,
+            args.with_shfmt,
+            args.with_whitespaces,
+            args.with_trailing,
+            args.with_eofnewline,
+            args.with_gitleaks,
+            args.with_pytest,
+            args.format,
+            args.test,
+            args.all,
+        ]
+        if args.build_venv is not None:
+            script_args += ['--build-venv', args.build_venv]
+
+        # Normalize empty values
+        script_args = [arg for arg in script_args if arg != '']
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
     else:
         module_logger.debug(f"Running {args.builder_command=}")
         raise utils.IcarusParserException('the following arguments are required: <subcommand>')
