@@ -76,12 +76,12 @@ function run_isort() {
 
 function run_black() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
-    black_summary_status="${bold_black}${bg_green} PASS ${end}"
+    blackfmt_summary_status="${bold_black}${bg_green} PASS ${end}"
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         black "${el}" 2>&1 || {
-            black_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            blackfmt_summary_status="${bold_black}${bg_red} FAIL ${end}"
             exit_code=1
         }
         echo
@@ -568,11 +568,11 @@ function preflight_tools() {
         isort_summary_status="${skipped}"
     fi
 
-    if [[ "${black_fmt}" == "Y" ]]; then
+    if [[ "${blackfmt}" == "Y" ]]; then
         echo_title "Running Black..."
         run_black
     else
-        black_summary_status="${skipped}"
+        blackfmt_summary_status="${skipped}"
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
@@ -650,7 +650,7 @@ function parse_args() {
     # If we are not building a venv, run preflight tools
     forge_hooks=(
         "isort"
-        "black"
+        "blackfmt"
         "flake8"
         "mypy"
         "shfmt"
@@ -677,9 +677,9 @@ function parse_args() {
     fi
 
     if [[ "${3}" =~ "--with-black" ]]; then
-        black_fmt="Y"
+        blackfmt="Y"
     else
-        black_fmt="N"
+        blackfmt="N"
     fi
 
     if [[ "${4}" =~ "--with-flake8" ]]; then
@@ -732,7 +732,7 @@ function parse_args() {
 
     if [[ "${12}" =~ "--format" ]]; then
         isort="Y"
-        black_fmt="Y"
+        blackfmt="Y"
         flake8="Y"
         mypy="Y"
         shfmt="Y"
@@ -747,7 +747,7 @@ function parse_args() {
 
     if [[ "${14}" =~ "--all" ]]; then
         isort="Y"
-        black_fmt="Y"
+        blackfmt="Y"
         flake8="Y"
         mypy="Y"
         shfmt="Y"

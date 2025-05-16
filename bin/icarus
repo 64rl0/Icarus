@@ -85,7 +85,7 @@ declare -r log_filepath
 # Check if the --update option is called
 if [[ "$1" == '--update' ]]; then
 	if [[ -f "${project_root_dir_abs}/.icarus_dev_env" ]]; then
-		echo -e "${bg_red}${black}[WARNING]${end}"
+		echo -e "${bg_red}${bold_black}[WARNING]${end}"
 		echo -e " You are about to run ${red}git reset --hard${end} on the dev env!"
 		echo -e " Operation Interrupted! Only available in PROD!"
 		exit 1
@@ -100,7 +100,7 @@ if [[ "$1" == '--update' ]]; then
 		git pull
 		make build
 	} >"${log_filepath}" 2>&1 || {
-		echo -e "${bg_red}${black}[ERROR]${end} - Failed to install icarus CLI"
+		echo -e "${bg_red}${bold_black}[ERROR]${end} - Failed to install icarus CLI"
 		echo -e " logs saved in ${log_filepath}"
 		exit 1
 	}
@@ -117,7 +117,7 @@ if [ ! -x "${python_interpreter_abs}" ]; then
 		rm -rf "${project_root_dir_abs}/build_venv"
 		make build
 	} >"${log_filepath}" 2>&1 || {
-		echo -e "${bg_red}${black}[ERROR]${end} - Failed to install icarus CLI"
+		echo -e "${bg_red}${bold_black}[ERROR]${end} - Failed to install icarus CLI"
 		echo -e " logs saved in ${log_filepath}"
 		exit 1
 	}
