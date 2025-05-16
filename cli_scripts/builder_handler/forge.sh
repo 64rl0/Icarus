@@ -33,17 +33,6 @@ declare -r user_current_path
 project_root_dir_abs="$(realpath -- "${user_current_path}")"
 declare -r project_root_dir_abs
 
-icarusignore="${project_root_dir_abs}/.icarusignore"
-declare -r icarusignore
-
-# Initial validation
-if [[ ! -e "${icarusignore}" ]]; then
-    echo -e "${bold_black}${bg_red} ERROR! ${end}"
-    echo -e " You are not in an icarus build enabled directory!"
-    echo -e " No \`.icarusignore\` file found. To enable icarus build create a \`.icarusignore\` in the project root directory."
-    exit 1
-fi
-
 function echo_title() {
     local title="${1}"
 
@@ -304,29 +293,41 @@ function run_gitleaks() {
     fi
 }
 
-function read_icarusignore() {
-    declare -a -g icarusignore_content
+function parse_icarus_config() {
+    icarus_config="${project_root_dir_abs}/icarus.cfg"
+    declare -g -r icarus_config
 
-    while IFS= read -r line || [[ -n ${line} ]]; do
-        # strip leading & trailing blanks
-        trimmed=$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<<"${line}")
+    # Initial validation
+    if [[ ! -e "${icarus_config}" ]]; then
+        echo -e "${bold_black}${bg_red} ERROR! ${end}"
+        echo -e " You are not in an icarus build enabled directory!"
+        echo -e " No \`icarus.cfg\` file found. To enable icarus build create a \`icarus.cfg\` in the project root directory."
+        exit 1
+    fi
 
-        # ignore empty/blank lines
-        if [[ -z "${trimmed}" ]]; then
-            continue
-        fi
+    declare -a -g icarus_ignore_array
 
-        # ignore comments
-        if [[ "${trimmed}" =~ ^#.* ]]; then
-            continue
-        fi
+    IFS=' ' read -r -a icarus_ignore_array <<<"$(
+        python3 - <<-'PY'
+with open('icarus.cfg', 'r') as file:
+    started = False
+    for idx, line in enumerate(file):
+        line = line.strip()
+        if line == 'ignore:':
+            idx_start = idx + 1
+            started = True
+        if started and line == '':
+            idx_end = idx
+            break
+    else:
+        idx_end = idx + 1
+    file.seek(0)
+    lines = ' '.join([line.strip().split()[1] for line in file.readlines()[idx_start:idx_end]])
+    print(lines)
+PY
+    )"
 
-        # keep only the first whitespace-separated field
-        read -r first _ <<<"${trimmed}"
-        icarusignore_content+=("${first}")
-    done <"${icarusignore}"
-
-    declare -r -g icarusignore_content
+    declare -r -g icarus_ignore_array
 }
 
 function build_active_dirs_l1() {
@@ -339,7 +340,7 @@ function build_active_dirs_l1() {
     for dir in "${all_dirs_l1[@]}"; do
         unset ignore_dir
 
-        for ignored in "${icarusignore_content[@]}"; do
+        for ignored in "${icarus_ignore_array[@]}"; do
             if [[ "${ignored}" =~ ^\*\/.+ ]]; then
                 if [[ "${dir}/" == "${project_root_dir_abs}"${ignored} ]]; then
                     ignore_dir=true
@@ -375,7 +376,7 @@ function build_active_files_l1() {
     for file in "${all_files_l1[@]}"; do
         unset ignore_file
 
-        for ignored in "${icarusignore_content[@]}"; do
+        for ignored in "${icarus_ignore_array[@]}"; do
             if [[ "${ignored}" =~ ^\*\/.+ ]]; then
                 if [[ "${file}" == "${project_root_dir_abs}"${ignored} ]]; then
                     ignore_file=true
@@ -415,7 +416,7 @@ function build_all_active_files() {
     for file in "${all_files[@]}"; do
         unset ignore_file
 
-        for ignored in "${icarusignore_content[@]}"; do
+        for ignored in "${icarus_ignore_array[@]}"; do
             if [[ "${ignored}" =~ ^\*\/.+ ]]; then
                 if [[ "${file}" == "${project_root_dir_abs}"${ignored}* ]]; then
                     ignore_file=true
@@ -584,7 +585,6 @@ function preflight_tools() {
     echo_title "Project info"
     activate_venv
 
-    read_icarusignore
     build_active_dirs_l1
     build_active_files_l1
     build_all_active_files
@@ -806,4 +806,9 @@ function parse_args() {
     return "${exit_code}"
 }
 
-parse_args "${@}"
+function main() {
+    parse_icarus_config
+    parse_args "${@}"
+}
+
+main "${@}"
