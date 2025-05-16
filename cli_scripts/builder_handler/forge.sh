@@ -45,18 +45,55 @@ if [[ ! -e "${icarusignore}" ]]; then
 fi
 
 function echo_title() {
-    title="${1}"
-    echo -e "\n${sparkles} ${bg_cyan}${bold_black} ${title} ${end}"
+    local title="${1}"
+
+    local total_width=100
+    local gap=2
+    local title_len=${#title}
+
+    # How many “=” are still available once we subtract the title and the gaps?
+    local free=$((total_width - title_len - gap))
+
+    # Split that space into left and right pads
+    local left=$((free / 2))
+    local right=$((free - left))
+
+    # Build the pieces
+    local left_pad=$(printf '%*s' "${left}" '' | tr ' ' '=')
+    local right_pad=$(printf '%*s' "${right}" '' | tr ' ' '=')
+    local border=$(printf '=%.0s' $(seq 1 $total_width))
+
+    # Output
+    echo
+    echo -e "${bold_white}${left_pad} ${title} ${right_pad}${end}"
     echo
 }
 
 function echo_running_hooks() {
-    echo -e "\n${sparkles} ${bg_cyan}${bold_black} Running Info ${end}"
-    echo
+    echo_title "Running Info"
     echo -e "Collected and preparing to run ${running_hooks_count} hook(s)."
     for hook in "${running_hooks_name[@]}"; do
         echo -e "--| ${blue}${hook}${end}"
     done
+    echo
+}
+
+function echo_summary() {
+    echo -e "${runtime}"
+    echo
+
+    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+    printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
+    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+
+    for hook in "${forge_hooks[@]}"; do
+        tool="$(printf '%s' "${hook} ..................................." | cut -c1-35)"
+        eval status='$'"${hook}_summary_status"
+        printf "%-35s | %-7s\n" "${tool}" "${status}"
+    done
+
+    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+
     echo
 }
 
@@ -223,7 +260,8 @@ function run_trailingwhitespaces() {
 
     # TODO(carlogtt): implement this tool
 
-    echo -e "Tool not implemented yet"
+    echo -e "${bold_yellow}Tool not implemented yet!${end}"
+
     echo
 }
 
@@ -399,34 +437,17 @@ function build_all_active_files() {
     declare -r -g active_files_all
 }
 
-function echo_summary() {
-    echo -e "${runtime}"
-    echo
-
-    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-    printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
-    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-
-    for hook in "${forge_hooks[@]}"; do
-        tool="$(printf '%s' "${hook} ..................................." | cut -c1-35)"
-        eval status='$'"${hook}_summary_status"
-        printf "%-35s | %-7s\n" "${tool}" "${status}"
-    done
-
-    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-
-    echo
-}
-
 function build_venv() {
     venv_name="${2}"
     python_version_for_venv="${3}"
 
+    echo_title "Building venv"
+
     if [[ -z "${venv_name}" ]]; then
         venv_name="build_undefined"
-        echo -e "\n\n${bold_red}${warning_sign} No venv name supplied! Using default: '${venv_name}'${end}"
+        echo -e "\n${bold_red}${warning_sign} No venv name supplied! Using default: '${venv_name}'${end}"
     elif [[ -n "${venv_name}" ]]; then
-        echo -e "\n\n${bold_green}${green_check_mark} Building '${venv_name}' venv...${end}"
+        echo -e "\n${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
     fi
 
     # Find the most recent Python version in the system if not manually passed as arg
@@ -447,7 +468,7 @@ function build_venv() {
 
     # Create Local venv
     echo -e "\n\n${bold_green}${sparkles} Creating '${venv_name}' venv...${end}"
-    python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}"
+    python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}" && echo -e "done!"
 
     # Activate local venv
     . "${project_root_dir_abs}/${venv_name}/bin/activate"
@@ -511,13 +532,15 @@ function activate_venv() {
         OLD_PATH="${PATH}"
         PATH="${brazil_bin_dir}:${PATH}"
         venv_name="venv (Brazil ENV)"
+        venv_in_use_path="${brazil_bin_dir}"
         echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
         echo -e "${brazil_bin_dir}"
     # Activate venv if we are not in brazil venv
     elif [[ -n "${path_to_venv_root}" ]]; then
-        source "${path_to_venv_root}/bin/activate"
+        . "${path_to_venv_root}/bin/activate"
         echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
         echo -e "venv: ${VIRTUAL_ENV}"
+        venv_in_use_path="${path_to_venv_root}"
     #  Cannot activate any venv
     else
         echo -e "\n${bold_red}Cannot find any venv to activate!${end}"
@@ -528,7 +551,12 @@ function activate_venv() {
     fi
 
     # Set runtime to be used in summary
-    runtime="${bold_yellow}Runtime:${end} \n--| $(python3 --version)\n--| ${venv_name}"
+    runtime="${bold_blue}Runtime:${end} \
+        \n--| project ${project_root_dir_abs} \
+        \n--| venv ${venv_in_use_path} \
+        \n--| ${venv_name} \
+        \n--| $(python3 --version)"
+    declare -r -g runtime
 
     # Display env info
     echo -e "OS Version: $(uname)"
@@ -543,7 +571,7 @@ function deactivate_venv() {
     else
         deactivate
     fi
-    echo -e "${bold_yellow}${warning_sign} Virtual environment deactivated!${end}"
+    echo -e "Virtual environment deactivated!"
     echo
     echo
 }
@@ -562,76 +590,76 @@ function preflight_tools() {
     build_all_active_files
 
     if [[ "${isort}" == "Y" ]]; then
-        echo_title "Running iSort..."
+        echo_title "Running iSort"
         run_isort
     else
         isort_summary_status="${skipped}"
     fi
 
     if [[ "${blackfmt}" == "Y" ]]; then
-        echo_title "Running Black..."
+        echo_title "Running Black"
         run_black
     else
         blackfmt_summary_status="${skipped}"
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
-        echo_title "Running Flake8..."
+        echo_title "Running Flake8"
         run_flake8
     else
         flake8_summary_status="${skipped}"
     fi
 
     if [[ "${mypy}" == "Y" ]]; then
-        echo_title "Running mypy..."
+        echo_title "Running mypy"
         run_mypy
     else
         mypy_summary_status="${skipped}"
     fi
 
     if [[ "${shfmt}" == "Y" ]]; then
-        echo_title "Running shfmt (bash formatter)..."
+        echo_title "Running shfmt (bash formatter)"
         run_shfmt
     else
         shfmt_summary_status="${skipped}"
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
-        echo_title "Running 'NNBSP' char replacement..."
+        echo_title "Running 'NNBSP' char replacement"
         run_char_replacement
     else
         whitespaces_summary_status="${skipped}"
     fi
 
     if [[ "${trailing}" == "Y" ]]; then
-        echo_title "Running trailing-whitespaces..."
+        echo_title "Running trailing-whitespaces"
         run_trailingwhitespaces
     else
         trailing_summary_status="${skipped}"
     fi
 
     if [[ "${eofnewline}" == "Y" ]]; then
-        echo_title "Running eof-newline..."
+        echo_title "Running eof-newline"
         run_eofnewline
     else
         eofnewline_summary_status="${skipped}"
     fi
 
     if [[ "${gitleaks}" == "Y" ]]; then
-        echo_title "Running gitleaks..."
+        echo_title "Running gitleaks"
         run_gitleaks
     else
         gitleaks_summary_status="${skipped}"
     fi
 
     if [[ "${pytest}" == "Y" ]]; then
-        echo_title "Running pytest..."
+        echo_title "Running pytest"
         run_pytest
     else
         pytest_summary_status="${skipped}"
     fi
 
-    echo_title "Deactivating virtual environment..."
+    echo_title "Deactivating virtual environment"
     deactivate_venv
 
     echo_title "Forge Summary"
