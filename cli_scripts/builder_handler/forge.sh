@@ -403,9 +403,16 @@ function build_active_dirs_l1() {
         unset ignore_dir
 
         for ignored in "${icarusignore_content[@]}"; do
-            if [[ "${dir}/" == "${project_root_dir_abs}/"${ignored} ]]; then
-                ignore_dir=true
-                break
+            if [[ "${ignored}" =~ ^\*\/.+ ]]; then
+                if [[ "${dir}/" == "${project_root_dir_abs}"${ignored} ]]; then
+                    ignore_dir=true
+                    break
+                fi
+            else
+                if [[ "${dir}/" == "${project_root_dir_abs}/"${ignored} ]]; then
+                    ignore_dir=true
+                    break
+                fi
             fi
         done
 
@@ -432,9 +439,16 @@ function build_active_files_l1() {
         unset ignore_file
 
         for ignored in "${icarusignore_content[@]}"; do
-            if [[ "${file}" == "${project_root_dir_abs}/"${ignored}* ]]; then
-                ignore_file=true
-                break
+            if [[ "${ignored}" =~ ^\*\/.+ ]]; then
+                if [[ "${file}" == "${project_root_dir_abs}"${ignored} ]]; then
+                    ignore_file=true
+                    break
+                fi
+            else
+                if [[ "${file}" == "${project_root_dir_abs}/"${ignored} ]]; then
+                    ignore_file=true
+                    break
+                fi
             fi
         done
 
@@ -465,9 +479,16 @@ function build_all_active_files() {
         unset ignore_file
 
         for ignored in "${icarusignore_content[@]}"; do
-            if [[ "${file}" == "${project_root_dir_abs}/"${ignored}* ]]; then
-                ignore_file=true
-                break
+            if [[ "${ignored}" =~ ^\*\/.+ ]]; then
+                if [[ "${file}" == "${project_root_dir_abs}"${ignored}* ]]; then
+                    ignore_file=true
+                    break
+                fi
+            else
+                if [[ "${file}" == "${project_root_dir_abs}/"${ignored}* ]]; then
+                    ignore_file=true
+                    break
+                fi
             fi
         done
 
@@ -597,6 +618,8 @@ function deactivate_venv() {
 }
 
 function preflight_tools() {
+    skipped="${bold_black}${bg_yellow} SKIP ${end}"
+
     echo_title "Project info"
     activate_venv
 
@@ -609,70 +632,70 @@ function preflight_tools() {
         echo_title "Running iSort..."
         run_isort
     else
-        isort_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        isort_summary_status="${skipped}"
     fi
 
     if [[ "${black_fmt}" == "Y" ]]; then
         echo_title "Running Black..."
         run_black
     else
-        black_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        black_summary_status="${skipped}"
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
         echo_title "Running Flake8..."
         run_flake8
     else
-        flake8_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        flake8_summary_status="${skipped}"
     fi
 
     if [[ "${mypy}" == "Y" ]]; then
         echo_title "Running mypy..."
         run_mypy
     else
-        mypy_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        mypy_summary_status="${skipped}"
     fi
 
     if [[ "${shfmt}" == "Y" ]]; then
         echo_title "Running shfmt (bash formatter)..."
         run_shfmt
     else
-        shfmt_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        shfmt_summary_status="${skipped}"
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
         echo_title "Running 'NNBSP' char replacement..."
         run_char_replacement
     else
-        whitespaces_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        whitespaces_summary_status="${skipped}"
     fi
 
     if [[ "${trailing}" == "Y" ]]; then
         echo_title "Running trailing-whitespaces..."
         run_trailingwhitespaces
     else
-        trailing_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        trailing_summary_status="${skipped}"
     fi
 
     if [[ "${eofnewline}" == "Y" ]]; then
         echo_title "Running eof-newline..."
         run_eofnewline
     else
-        eofnewline_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        eofnewline_summary_status="${skipped}"
     fi
 
     if [[ "${gitleaks}" == "Y" ]]; then
         echo_title "Running gitleaks..."
         run_gitleaks
     else
-        gitleaks_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        gitleaks_summary_status="${skipped}"
     fi
 
     if [[ "${pytest}" == "Y" ]]; then
         echo_title "Running pytest..."
         run_pytest
     else
-        pytest_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
+        pytest_summary_status="${skipped}"
     fi
 
     echo_title "Deactivating virtual environment..."
