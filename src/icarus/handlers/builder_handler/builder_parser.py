@@ -89,23 +89,29 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'forge.sh'
-        script_args = [
-            args.with_isort,
-            args.with_black,
-            args.with_flake8,
-            args.with_mypy,
-            args.with_shfmt,
-            args.with_whitespaces,
-            args.with_trailing,
-            args.with_eofnewline,
-            args.with_gitleaks,
-            args.with_pytest,
-            args.format,
-            args.test,
-            args.all,
-        ]
+        script_args = []
+
+        # If --build-venv then ignore checks
         if args.build_venv is not None:
             script_args += ['--build-venv', args.build_venv]
+            if args.py_version is not None:
+                script_args += ['--py-version', args.py_version]
+        else:
+            script_args += [
+                args.with_isort,
+                args.with_black,
+                args.with_flake8,
+                args.with_mypy,
+                args.with_shfmt,
+                args.with_whitespaces,
+                args.with_trailing,
+                args.with_eofnewline,
+                args.with_gitleaks,
+                args.with_pytest,
+                args.format,
+                args.test,
+                args.all,
+            ]
 
         # Normalize empty values
         script_args = [arg for arg in script_args if arg != '']

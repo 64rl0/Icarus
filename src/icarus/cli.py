@@ -307,7 +307,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-isort',
         default='',
-        help='',
+        help='enable import-sorting with isort',
     )
     builder_forge.add_argument(
         '--with-black',
@@ -315,7 +315,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-black',
         default='',
-        help='',
+        help='enable code formatting with black',
     )
     builder_forge.add_argument(
         '--with-flake8',
@@ -323,7 +323,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-flake8',
         default='',
-        help='',
+        help='run static analysis with flake8',
     )
     builder_forge.add_argument(
         '--with-mypy',
@@ -331,7 +331,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-mypy',
         default='',
-        help='',
+        help='type-check the codebase with mypy',
     )
     builder_forge.add_argument(
         '--with-shfmt',
@@ -339,7 +339,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-shfmt',
         default='',
-        help='',
+        help='format shell scripts with shfmt',
     )
     builder_forge.add_argument(
         '--with-whitespaces',
@@ -347,7 +347,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-whitespaces',
         default='',
-        help='',
+        help='check for mixed or excessive whitespace',
     )
     builder_forge.add_argument(
         '--with-trailing',
@@ -355,7 +355,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-trailing',
         default='',
-        help='',
+        help='remove trailing whitespace',
     )
     builder_forge.add_argument(
         '--with-eofnewline',
@@ -363,7 +363,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-eofnewline',
         default='',
-        help='',
+        help='ensure files end with a single newline',
     )
     builder_forge.add_argument(
         '--with-gitleaks',
@@ -371,7 +371,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-gitleaks',
         default='',
-        help='',
+        help='scan for secrets with gitleaks',
     )
     builder_forge.add_argument(
         '--with-pytest',
@@ -379,7 +379,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--with-pytest',
         default='',
-        help='',
+        help='execute the unit-/integration-test suite via pytest',
     )
     builder_forge.add_argument(
         '--format',
@@ -387,7 +387,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--format',
         default='',
-        help='',
+        help='run only formatting steps',
     )
     builder_forge.add_argument(
         '--test',
@@ -395,7 +395,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--test',
         default='',
-        help='',
+        help='run only the test suite',
     )
     builder_forge.add_argument(
         '--all',
@@ -403,16 +403,25 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--all',
         default='',
-        help='',
+        help='run every available step',
     )
     builder_forge.add_argument(
         '--build-venv',
         required=False,
         nargs='?',
         const='',
-        metavar='NAME',
+        metavar='PATH',
         default=None,
-        help='create a virtual-env',
+        help='create a virtual-env at ProjectRootDir/<path>',
+    )
+    builder_forge.add_argument(
+        '--py-version',
+        required=False,
+        nargs='?',
+        const='',
+        metavar='VER',
+        default=None,
+        help='python m.m version to use for the virtual-env. i.e. 3.10',
     )
 
     # =================

@@ -50,10 +50,6 @@ if [[ ! -e "${icarusignore}" ]]; then
 fi
 
 # User defined variables
-devdsk="devdsk8"
-brazil_python_runtime="python3.11"
-python_version_for_venv="3.12"
-
 forge_preflight_tools=(
     "isort"
     "black"
@@ -521,11 +517,29 @@ function echo_summary() {
 
 function build_venv() {
     venv_name="${2}"
+    python_version_for_venv="${4}"
+
     if [[ -z "${venv_name}" ]]; then
         venv_name="build_undefined"
         echo -e "\n\n${bold_red}${warning_sign} No venv name supplied! Using default: '${venv_name}'${end}"
     elif [[ -n "${venv_name}" ]]; then
         echo -e "\n\n${bold_green}${green_check_mark} Building '${venv_name}' venv...${end}"
+    fi
+
+    # Find the most recent Python version in the system if not manually passed as arg
+    if [[ -z "${python_version_for_venv}" ]]; then
+        accepted_python_versions=("3.13" "3.12" "3.11" "3.10" "3.9")
+        for version in "${accepted_python_versions[@]}"; do
+            if command -v "python${version}" >/dev/null 2>&1; then
+                python_version_for_venv="${version}"
+                break
+            fi
+        done
+    fi
+
+    if [[ -z "${python_version_for_venv}" ]]; then
+        echo -e "\n\n${bold_red}${stop_sign} No Python version found for venv!${end}"
+        exit 1
     fi
 
     # Create Local venv
@@ -553,6 +567,12 @@ function build_venv() {
 }
 
 function activate_venv() {
+
+    #TODO: review this function
+
+    devdsk="devdsk8"
+    brazil_python_runtime="python3.11"
+
     # Use brazil runtime farm
     if [[ -d "${project_root_dir_abs}/build/private" ]]; then
         brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"

@@ -213,20 +213,21 @@ _icarus() {
                 ;;
             forge)
                 completions+=(
-                    '--with-isort:'
-                    '--with-black:'
-                    '--with-flake8:'
-                    '--with-mypy:'
-                    '--with-shfmt:'
-                    '--with-whitespaces:'
-                    '--with-trailing:'
-                    '--with-eofnewline:'
-                    '--with-gitleaks:'
-                    '--with-pytest:'
-                    '--format:'
-                    '--test:'
-                    '--all:'
-                    '--build-venv:'
+                  '--with-isort:enable import-sorting with isort'
+                  '--with-black:enable code formatting with black'
+                  '--with-flake8:run static analysis with flake8'
+                  '--with-mypy:type-check the codebase with mypy'
+                  '--with-shfmt:format shell scripts with shfmt'
+                  '--with-whitespaces:check for mixed or excessive whitespace'
+                  '--with-trailing:remove trailing whitespace'
+                  '--with-eofnewline:ensure files end with a single newline'
+                  '--with-gitleaks:scan for secrets with gitleaks'
+                  '--with-pytest:execute the unit-/integration-test suite via pytest'
+                  '--format:run only formatting steps'
+                  '--test:run only the test suite'
+                  '--all:run every available step'
+                  '--build-venv:create a virtual-env at ProjectRootDir/<path>'
+                  '--py-version:python m.m version to use for the virtual-env. i.e. 3.10'
                 )
             esac
             ;;
