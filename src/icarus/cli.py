@@ -302,6 +302,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_forge.add_argument(
+        '--venv',
+        required=False,
+        nargs='?',
+        const='',
+        metavar='PATH',
+        default='',
+        help='path to a virtual-env at ProjectRootDir/<path> to use',
+    )
+    builder_forge.add_argument(
         '--with-isort',
         required=False,
         action='store_const',
@@ -420,7 +429,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         nargs='?',
         const='',
         metavar='VER',
-        default=None,
+        default='',
         help='python m.m version to use for the virtual-env. i.e. 3.10',
     )
 

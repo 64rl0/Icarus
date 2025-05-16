@@ -37,11 +37,6 @@ icarusignore="${project_root_dir_abs}/.icarusignore"
 declare -r icarusignore
 
 # Initial validation
-if [[ -z "${*}" ]]; then
-    echo -e "${bold_black}${bg_red} ERROR! ${end}"
-    echo -e " No arguments provided!"
-    exit 1
-fi
 if [[ ! -e "${icarusignore}" ]]; then
     echo -e "${bold_black}${bg_red} ERROR! ${end}"
     echo -e " You are not in an icarus build enabled directory!"
@@ -49,111 +44,19 @@ if [[ ! -e "${icarusignore}" ]]; then
     exit 1
 fi
 
-# User defined variables
-forge_preflight_tools=(
-    "isort"
-    "black"
-    "flake8"
-    "mypy"
-    "shfmt"
-    "whitespaces"
-    "trailing"
-    "eofnewline"
-    "gitleaks"
-    "pytest"
-)
-
-if [[ "${*}" =~ "--with-isort" ]]; then
-    isort="Y"
-else
-    isort="N"
-fi
-
-if [[ "${*}" =~ "--with-black" ]]; then
-    black_fmt="Y"
-else
-    black_fmt="N"
-fi
-
-if [[ "${*}" =~ "--with-flake8" ]]; then
-    flake8="Y"
-else
-    flake8="N"
-fi
-
-if [[ "${*}" =~ "--with-mypy" ]]; then
-    mypy="Y"
-else
-    mypy="N"
-fi
-
-if [[ "${*}" =~ "--with-shfmt" ]]; then
-    shfmt="Y"
-else
-    shfmt="N"
-fi
-
-if [[ "${*}" =~ "--with-whitespaces" ]]; then
-    whitespaces="Y"
-else
-    whitespaces="N"
-fi
-
-if [[ "${*}" =~ "--with-eofnewline" ]]; then
-    eofnewline="Y"
-else
-    eofnewline="N"
-fi
-
-if [[ "${*}" =~ "--with-trailing" ]]; then
-    trailing="Y"
-else
-    trailing="N"
-fi
-
-if [[ "${*}" =~ "--with-pytest" ]]; then
-    pytest="Y"
-else
-    pytest="N"
-fi
-
-if [[ "${*}" =~ "--with-gitleaks" ]]; then
-    gitleaks="Y"
-else
-    gitleaks="N"
-fi
-
-if [[ "${*}" =~ "--format" ]]; then
-    isort="Y"
-    black_fmt="Y"
-    flake8="Y"
-    mypy="Y"
-    shfmt="Y"
-    whitespaces="Y"
-    eofnewline="Y"
-    trailing="Y"
-fi
-
-if [[ "${*}" =~ "--test" ]]; then
-    pytest="Y"
-fi
-
-if [[ "${*}" =~ "--all" ]]; then
-    isort="Y"
-    black_fmt="Y"
-    flake8="Y"
-    mypy="Y"
-    shfmt="Y"
-    whitespaces="Y"
-    eofnewline="Y"
-    trailing="Y"
-    pytest="Y"
-    gitleaks="Y"
-fi
-
 function echo_title() {
     title="${1}"
     echo -e "\n${sparkles} ${bg_cyan}${bold_black} ${title} ${end}"
+    echo
+}
+
+function echo_running_hooks() {
+    echo -e "\n${sparkles} ${bg_cyan}${bold_black} Running Info ${end}"
+    echo
+    echo -e "Collected and preparing to run ${running_hooks_count} hook(s)."
+    for hook in "${running_hooks_name[@]}"; do
+        echo -e "--| ${blue}${hook}${end}"
+    done
     echo
 }
 
@@ -504,9 +407,9 @@ function echo_summary() {
     printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
     printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
 
-    for pftool in "${forge_preflight_tools[@]}"; do
-        tool="$(printf '%s' "${pftool} ..................................." | cut -c1-35)"
-        eval status='$'"${pftool}_summary_status"
+    for hook in "${forge_hooks[@]}"; do
+        tool="$(printf '%s' "${hook} ..................................." | cut -c1-35)"
+        eval status='$'"${hook}_summary_status"
         printf "%-35s | %-7s\n" "${tool}" "${status}"
     done
 
@@ -517,7 +420,7 @@ function echo_summary() {
 
 function build_venv() {
     venv_name="${2}"
-    python_version_for_venv="${4}"
+    python_version_for_venv="${3}"
 
     if [[ -z "${venv_name}" ]]; then
         venv_name="build_undefined"
@@ -567,29 +470,36 @@ function build_venv() {
 }
 
 function activate_venv() {
+    # Useer has passed in a venv to use
+    if [[ -n "${venv_name}" ]]; then
+        path_to_venv_root="${project_root_dir_abs}/${venv_name}"
+        if [[ -e "${path_to_venv_root}/bin/activate" ]]; then
+            venv_name="venv (${venv_name})"
+        else
+            echo -e "\n${bold_red}Cannot find the requested venv: \`${venv_name}\` to activate!${end}"
+            echo -e "venv: ${path_to_venv_root}"
+            echo
+            exit 1
+        fi
+    # We try to detect the venv to use for the user
+    else
+        devdsk="devdsk8"
+        brazil_python_runtime="python3.11"
 
-    #TODO: review this function
+        # Use brazil runtime farm
+        if [[ -d "${project_root_dir_abs}/build/private" ]]; then
+            brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
+        fi
 
-    devdsk="devdsk8"
-    brazil_python_runtime="python3.11"
-
-    # Use brazil runtime farm
-    if [[ -d "${project_root_dir_abs}/build/private" ]]; then
-        brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
-    fi
-
-    # Use project build_venv venv
-    if [[ -d "${project_root_dir_abs}/build_venv" ]]; then
-        path_to_venv_root="${project_root_dir_abs}/build_venv"
-        venv_name="venv (build_venv)"
-    # Use DevDsk dev_tools venv if we are on a DevDsk
-    elif [[ -d "${HOME}/${devdsk}" ]]; then
-        path_to_venv_root="${HOME}/${devdsk}/venvs/dev_tools"
-        venv_name="venv DevDsk (dev_tools)"
-    # Use Dropbox dev_tools venv if we are on local macbook
-    elif [[ -d "${HOME}/Library/CloudStorage/Dropbox" ]]; then
-        path_to_venv_root="${HOME}/Library/CloudStorage/Dropbox/SDE/VirtualEnvs/dev_tools"
-        venv_name="venv Dropbox (dev_tools)"
+        # Use project build_venv venv
+        if [[ -d "${project_root_dir_abs}/build_venv" ]]; then
+            path_to_venv_root="${project_root_dir_abs}/build_venv"
+            venv_name="venv (build_venv)"
+        # Use Dropbox dev_tools venv if we are on local macbook
+        elif [[ -d "${HOME}/Library/CloudStorage/Dropbox" ]]; then
+            path_to_venv_root="${HOME}/Library/CloudStorage/Dropbox/SDE/VirtualEnvs/dev_tools"
+            venv_name="venv Dropbox (dev_tools)"
+        fi
     fi
 
     # Display Project info
@@ -600,7 +510,7 @@ function activate_venv() {
     if [[ -n "${brazil_bin_dir}" ]]; then
         OLD_PATH="${PATH}"
         PATH="${brazil_bin_dir}:${PATH}"
-        venv_name="Brazil ENV"
+        venv_name="venv (Brazil ENV)"
         echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
         echo -e "${brazil_bin_dir}"
     # Activate venv if we are not in brazil venv
@@ -613,6 +523,7 @@ function activate_venv() {
         echo -e "\n${bold_red}Cannot find any venv to activate!${end}"
         echo -e "${bold_red}Have you selected the correct DevDsk and/or build_venv in the formatter file?${end}"
         echo -e "${bold_red}Run 'make build' to build a local build_venv in ${project_root_dir_abs}/build_venv${end}\n"
+        echo
         exit 1
     fi
 
@@ -639,6 +550,8 @@ function deactivate_venv() {
 
 function preflight_tools() {
     skipped="${bold_black}${bg_white} SKIP ${end}"
+
+    echo_running_hooks
 
     echo_title "Project info"
     activate_venv
@@ -725,20 +638,144 @@ function preflight_tools() {
     echo_summary
 }
 
-function main() {
+function parse_args() {
     exit_code=0
 
     # If we are building a local venv, build it and exit
-    if [[ "${*}" =~ "--build-venv" ]]; then
+    if [[ "${1}" =~ "--build-venv" ]]; then
         build_venv ${@}
         exit "${exit_code}"
     fi
 
     # If we are not building a venv, run preflight tools
+    forge_hooks=(
+        "isort"
+        "black"
+        "flake8"
+        "mypy"
+        "shfmt"
+        "whitespaces"
+        "trailing"
+        "eofnewline"
+        "gitleaks"
+        "pytest"
+    )
+
+    running_hooks_count=0
+
+    declare -a running_hooks_name
+    running_hooks_name=()
+
+    if [[ -n "${1}" ]]; then
+        venv_name="${1}"
+    fi
+
+    if [[ "${2}" =~ "--with-isort" ]]; then
+        isort="Y"
+    else
+        isort="N"
+    fi
+
+    if [[ "${3}" =~ "--with-black" ]]; then
+        black_fmt="Y"
+    else
+        black_fmt="N"
+    fi
+
+    if [[ "${4}" =~ "--with-flake8" ]]; then
+        flake8="Y"
+    else
+        flake8="N"
+    fi
+
+    if [[ "${5}" =~ "--with-mypy" ]]; then
+        mypy="Y"
+    else
+        mypy="N"
+    fi
+
+    if [[ "${6}" =~ "--with-shfmt" ]]; then
+        shfmt="Y"
+    else
+        shfmt="N"
+    fi
+
+    if [[ "${7}" =~ "--with-whitespaces" ]]; then
+        whitespaces="Y"
+    else
+        whitespaces="N"
+    fi
+
+    if [[ "${8}" =~ "--with-eofnewline" ]]; then
+        eofnewline="Y"
+    else
+        eofnewline="N"
+    fi
+
+    if [[ "${9}" =~ "--with-trailing" ]]; then
+        trailing="Y"
+    else
+        trailing="N"
+    fi
+
+    if [[ "${10}" =~ "--with-pytest" ]]; then
+        pytest="Y"
+    else
+        pytest="N"
+    fi
+
+    if [[ "${11}" =~ "--with-gitleaks" ]]; then
+        gitleaks="Y"
+    else
+        gitleaks="N"
+    fi
+
+    if [[ "${12}" =~ "--format" ]]; then
+        isort="Y"
+        black_fmt="Y"
+        flake8="Y"
+        mypy="Y"
+        shfmt="Y"
+        whitespaces="Y"
+        eofnewline="Y"
+        trailing="Y"
+    fi
+
+    if [[ "${13}" =~ "--test" ]]; then
+        pytest="Y"
+    fi
+
+    if [[ "${14}" =~ "--all" ]]; then
+        isort="Y"
+        black_fmt="Y"
+        flake8="Y"
+        mypy="Y"
+        shfmt="Y"
+        whitespaces="Y"
+        eofnewline="Y"
+        trailing="Y"
+        pytest="Y"
+        gitleaks="Y"
+    fi
+
+    for hook in "${forge_hooks[@]}"; do
+        if [[ "${!hook}" == "Y" ]]; then
+            running_hooks_name+=("${hook}")
+            ((running_hooks_count = running_hooks_count + 1))
+        fi
+    done
+
+    declare -r -g running_hooks_name
+
+    if [[ "${running_hooks_count}" -eq 0 ]]; then
+        echo -e "${bold_black}${bg_red} ERROR! ${end}"
+        echo -e " No arguments provided!"
+        exit 1
+    fi
+
     preflight_tools ${@}
 
     return "${exit_code}"
 }
 
-echo running with args: "${*}"
-main "${@}"
+parse_args "${@}"

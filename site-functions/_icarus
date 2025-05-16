@@ -213,6 +213,7 @@ _icarus() {
                 ;;
             forge)
                 completions+=(
+                  '--venv:path to a virtual-env at ProjectRootDir/<path> to use'
                   '--with-isort:enable import-sorting with isort'
                   '--with-black:enable code formatting with black'
                   '--with-flake8:run static analysis with flake8'
