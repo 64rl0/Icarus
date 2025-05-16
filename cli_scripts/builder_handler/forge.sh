@@ -618,7 +618,7 @@ function deactivate_venv() {
 }
 
 function preflight_tools() {
-    skipped="${bold_black}${bg_yellow} SKIP ${end}"
+    skipped="${bold_black}${bg_white} SKIP ${end}"
 
     echo_title "Project info"
     activate_venv
