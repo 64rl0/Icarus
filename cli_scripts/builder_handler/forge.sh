@@ -263,13 +263,13 @@ function run_char_replacement() {
 
         if [[ $(uname -s) == "Darwin" ]]; then
             # macOS
-            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${bold_black}${bg_red} FAIL ${end}"
                 exit_code=1
             }
         else
             # Linux
-            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${bold_black}${bg_red} FAIL ${end}"
                 exit_code=1
             }
