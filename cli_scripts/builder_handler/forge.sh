@@ -497,7 +497,7 @@ function activate_venv() {
         if [[ -e "${path_to_venv_root}/bin/activate" ]]; then
             venv_name="venv (${venv_name})"
         else
-            echo -e "\n${bold_red}Cannot find the requested venv: \`${venv_name}\` to activate!${end}"
+            echo -e "${bold_red}Cannot find the requested venv: \`${venv_name}\` to activate!${end}"
             echo -e "venv: ${path_to_venv_root}"
             echo
             exit 1
