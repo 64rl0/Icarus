@@ -332,20 +332,22 @@ function run_gitleaks() {
         exit_code=1
     }
 
-    echo -e "${blue}git commits${end}"
-    gitleaks git --no-banner -v 2>&1 || {
-        gitleaks_summary_status="${failed}"
-        exit_code=1
-    }
-    echo
     echo -e "${blue}git pre-commit${end}"
     gitleaks git --pre-commit --no-banner -v 2>&1 || {
         gitleaks_summary_status="${failed}"
         exit_code=1
     }
     echo
+
     echo -e "${blue}git staged${end}"
     gitleaks git --staged --no-banner -v 2>&1 || {
+        gitleaks_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+
+    echo -e "${blue}git commits${end}"
+    gitleaks git --no-banner -v 2>&1 || {
         gitleaks_summary_status="${failed}"
         exit_code=1
     }
