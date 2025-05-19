@@ -27,19 +27,27 @@ set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
 # User defined variables
-function validate_prerequisites() {
-    if [[ -z "$(command -v bc 2>/dev/null)" ]]; then
-        echo_error "[NOT FOUND] bc not found in PATH"
-    fi
-}
-
 function echo_error() {
+    local message="${1}"
+
     echo
     echo -e "${bold_black}${bg_red} ERROR! ${end}"
     echo -e " [$(date '+%Y-%m-%d %T %Z')]"
-    echo -e " ${1}"
+    echo -e " ${message}"
     echo
-    exit 1
+
+    return 1
+}
+
+function validate_command() {
+    local command_to_validate="${1}"
+    if [[ -z "$(command -v "${command_to_validate}" 2>/dev/null)" ]]; then
+        echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH"
+    fi
+}
+
+function validate_prerequisites() {
+    validate_command "bc"
 }
 
 function echo_title() {
@@ -123,6 +131,11 @@ function run_isort() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
     isort_summary_status="${passed}"
 
+    validate_command "isort" || {
+        isort_summary_status="${failed}"
+        exit_code=1
+    }
+
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         isort "${el}" 2>&1 || {
@@ -136,6 +149,11 @@ function run_isort() {
 function run_black() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
     blackfmt_summary_status="${passed}"
+
+    validate_command "black" || {
+        blackfmt_summary_status="${failed}"
+        exit_code=1
+    }
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
@@ -151,6 +169,11 @@ function run_flake8() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
     flake8_summary_status="${passed}"
 
+    validate_command "flake8" || {
+        flake8_summary_status="${failed}"
+        exit_code=1
+    }
+
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         flake8 -v "${el}" 2>&1 || {
@@ -164,6 +187,11 @@ function run_flake8() {
 function run_mypy() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
     mypy_summary_status="${passed}"
+
+    validate_command "mypy" || {
+        mypy_summary_status="${failed}"
+        exit_code=1
+    }
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
@@ -180,6 +208,11 @@ function run_mypy() {
 function run_shfmt() {
     elements=("${active_dirs[@]}" "${active_sh_files[@]}")
     shfmt_summary_status="${passed}"
+
+    validate_command "shfmt" || {
+        shfmt_summary_status="${failed}"
+        exit_code=1
+    }
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
@@ -280,29 +313,12 @@ function run_trailingwhitespaces() {
     elements=("${active_files_all[@]}")
     trailing_summary_status="${passed}"
 
-    # TODO(carlogtt): implement this tool
-
-    echo -e "${bold_yellow}Tool not implemented yet!${end}"
-
-    echo
-}
-
-function run_documentation() {
-    elements=("${active_files_all[@]}")
-    docs_summary_status="${passed}"
-
-    # TODO(carlogtt): implement this tool
-
-    echo -e "${bold_yellow}Tool not implemented yet!${end}"
-
-    echo
-}
-
-function run_pytest() {
-    pytest_summary_status="${passed}"
-
-    pytest "${project_root_dir_abs}" 2>&1 || {
-        pytest_summary_status="${failed}"
+    {
+        # TODO(carlogtt): implement this tool
+        echo -e "${bold_yellow}Tool not implemented yet!${end}"
+        echo
+    } || {
+        trailing_summary_status="${failed}"
         exit_code=1
     }
     echo
@@ -311,27 +327,94 @@ function run_pytest() {
 function run_gitleaks() {
     gitleaks_summary_status="${passed}"
 
-    if gitleaks_path=$(command -v \gitleaks); then
-        echo -e "${blue}git commits${end}"
-        "${gitleaks_path}" git --no-banner -v 2>&1 || {
-            gitleaks_summary_status="${failed}"
-            exit_code=1
-        }
+    validate_command "gitleaks" || {
+        gitleaks_summary_status="${failed}"
+        exit_code=1
+    }
+
+    echo -e "${blue}git commits${end}"
+    gitleaks git --no-banner -v 2>&1 || {
+        gitleaks_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+    echo -e "${blue}git pre-commit${end}"
+    gitleaks git --pre-commit --no-banner -v 2>&1 || {
+        gitleaks_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+    echo -e "${blue}git staged${end}"
+    gitleaks git --staged --no-banner -v 2>&1 || {
+        gitleaks_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function run_brazil_documentation() {
+    brazil-build amazon_doc_utils_build_sphinx || {
+        docs_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function run_venv_documentation() {
+    #    validate_command "sphinx-build" || {
+    #        exit_code=1
+    #        docs_summary_status="${failed}"
+    #    }
+
+    {
+        # TODO(carlogtt): implement this tool
+        echo -e "${bold_yellow}Tool not implemented yet!${end}"
         echo
-        echo -e "${blue}git pre-commit${end}"
-        "${gitleaks_path}" git --pre-commit --no-banner -v 2>&1 || {
-            gitleaks_summary_status="${failed}"
-            exit_code=1
-        }
-        echo
-        echo -e "${blue}git staged${end}"
-        "${gitleaks_path}" git --staged --no-banner -v 2>&1 || {
-            gitleaks_summary_status="${failed}"
-            exit_code=1
-        }
-        echo
-    else
-        echo_error "[NOT FOUND] gitleaks not found in PATH"
+    } || {
+        docs_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function run_documentation() {
+    docs_summary_status="${passed}"
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        run_brazil_documentation
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        run_venv_documentation
+    fi
+}
+
+function run_brazil_pytest() {
+    brazil-build brazil_test || {
+        pytest_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function run_venv_pytest() {
+    validate_command "pytest" || {
+        exit_code=1
+        pytest_summary_status="${failed}"
+    }
+
+    pytest "${project_root_dir_abs}" 2>&1 || {
+        pytest_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function run_pytest() {
+    pytest_summary_status="${passed}"
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        run_brazil_pytest
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        run_venv_pytest
     fi
 }
 
@@ -566,46 +649,57 @@ function set_runtime_info() {
 }
 
 function build_brazil_env() {
+    # We don't want to suppress this error
     brazil ws sync --md || exit 1
 
-    # Use brazil runtime farm to activate brazil runtime env
-    local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
+    {
+        # Use brazil runtime farm to activate brazil runtime env
+        local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
 
-    # Set runtime to be used in summary
-    set_runtime_info "${brazil_bin_dir}"
+        # Set runtime to be used in summary
+        set_runtime_info "${brazil_bin_dir}"
+    } || {
+        build_summary_status="${failed}"
+        exit_code=1
+    }
 }
 
 function build_venv_env() {
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}"
+    {
+        local path_to_venv_root="${project_root_dir_abs}/${venv_name}"
 
-    echo -e "\n${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
+        echo -e "\n${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
 
-    # Create Local venv
-    echo -e "\n\n${bold_green}${sparkles} Creating '${venv_name}' venv...${end}"
-    python${python_version_for_venv} -m venv --clear --copies "${path_to_venv_root}" && echo -e "done!"
+        # Create Local venv
+        echo -e "\n\n${bold_green}${sparkles} Creating '${venv_name}' venv...${end}"
+        python${python_version_for_venv} -m venv --clear --copies "${path_to_venv_root}" && echo -e "done!"
 
-    # Activate local venv
-    . "${path_to_venv_root}/bin/activate"
-    echo -e "\n\n${bold_green}${green_check_mark} '${venv_name}' venv activated:${end}"
-    echo -e "OS Version: $(uname)"
-    echo -e "Kernel Version: $(uname -r)"
-    echo -e "venv: $VIRTUAL_ENV"
-    echo -e "running: $(python --version)"
+        # Activate local venv
+        . "${path_to_venv_root}/bin/activate"
+        echo -e "\n\n${bold_green}${green_check_mark} '${venv_name}' venv activated:${end}"
+        echo -e "OS Version: $(uname)"
+        echo -e "Kernel Version: $(uname -r)"
+        echo -e "venv: $VIRTUAL_ENV"
+        echo -e "running: $(python --version)"
 
-    # Install requirements
-    echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' venv...${end}"
-    pip install --upgrade pip
-    pip install -I -r "${project_root_dir_abs}/${requirements_path}"
+        # Install requirements
+        echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' venv...${end}"
+        pip install --upgrade pip
+        pip install -I -r "${project_root_dir_abs}/${requirements_path}"
 
-    # Build complete!
-    echo -e "\n\n${bold_green}${sparkles} '${venv_name}' venv build complete & Ready for use!${end}"
+        # Build complete!
+        echo -e "\n\n${bold_green}${sparkles} '${venv_name}' venv build complete & Ready for use!${end}"
 
-    echo -e "\n\n${bold_yellow}Virtual environment deactivated!${end}"
-    echo
-    deactivate
+        echo -e "\n\n${bold_yellow}Virtual environment deactivated!${end}"
+        echo
+        deactivate
 
-    # Set runtime to be used in summary
-    set_runtime_info "${path_to_venv_root}/bin"
+        # Set runtime to be used in summary
+        set_runtime_info "${path_to_venv_root}/bin"
+    } || {
+        build_summary_status="${failed}"
+        exit_code=1
+    }
 }
 
 function activate_brazil_env() {
@@ -684,7 +778,23 @@ function deactivate_env() {
     fi
 }
 
-function dispatch_preflight_tools() {
+function dispatch_build() {
+    build_summary_status="${passed}"
+    start_block=$(date +%s.%N)
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        echo_title "Building brazil"
+        build_brazil_env
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        echo_title "Building venv"
+        build_venv_env
+    fi
+
+    end_block=$(date +%s.%N)
+    build_execution_time=$(echo "${end_block} - ${start_block}" | bc)
+}
+
+function dispatch_tools() {
     build_active_dirs_l1
     build_active_files_l1
     build_all_active_files
@@ -782,28 +892,6 @@ function dispatch_preflight_tools() {
 
     echo_title "Deactivating virtual environment"
     deactivate_env
-}
-
-function dispatch_build() {
-    build_summary_status="${passed}"
-    start_block=$(date +%s.%N)
-
-    if [[ "${build_system_in_use}" == "brazil" ]]; then
-        echo_title "Building brazil"
-        build_brazil_env || {
-            build_summary_status="${failed}"
-            exit_code=1
-        }
-    elif [[ "${build_system_in_use}" == "venv" ]]; then
-        echo_title "Building venv"
-        build_venv_env || {
-            build_summary_status="${failed}"
-            exit_code=1
-        }
-    fi
-
-    end_block=$(date +%s.%N)
-    build_execution_time=$(echo "${end_block} - ${start_block}" | bc)
 }
 
 function parse_args() {
@@ -905,9 +993,9 @@ function dispatch_hooks() {
         dispatch_build
     elif [[ "${13}" =~ "--release" ]]; then
         dispatch_build
-        dispatch_preflight_tools
+        dispatch_tools
     else
-        dispatch_preflight_tools
+        dispatch_tools
     fi
 
     echo_summary
