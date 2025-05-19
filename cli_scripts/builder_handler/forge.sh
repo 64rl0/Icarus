@@ -529,21 +529,19 @@ function build_all_active_files() {
 function set_runtime_info() {
     # Set runtime to be used in summary
     local path_to_env_bin="${1}"
+    local venv_print_name=""
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
-        runtime="${bold_blue}Runtime:${end} \
-            \n--| project ${project_root_dir_abs} \
-            \n--| brazil env ${path_to_env_bin} \
-            \n--| venv (Brazil ENV) \
-            \n--| $(${path_to_env_bin}/python3 --version)"
-
+        venv_print_name="(Brazil ENV)"
     elif [[ "${build_system_in_use}" == "venv" ]]; then
-        runtime="${bold_blue}Runtime:${end} \
-            \n--| project ${project_root_dir_abs} \
-            \n--| venv ${path_to_env_bin} \
-            \n--| venv (${venv_name}) \
-            \n--| $(${path_to_env_bin}/python3 --version)"
+        venv_print_name="(${venv_name})"
     fi
+
+    runtime="${bold_blue}Runtime:${end} \
+        \n--| project ${project_root_dir_abs} \
+        \n--| brazil env $(realpath -- ${path_to_env_bin}/..) \
+        \n--| venv ${venv_print_name} \
+        \n--| $(${path_to_env_bin}/python3 --version)"
 }
 
 function build_brazil_env() {
@@ -581,7 +579,7 @@ function build_venv_env() {
     # Build complete!
     echo -e "\n\n${bold_green}${sparkles} '${venv_name}' venv build complete & Ready for use!${end}"
 
-    echo -e "\n\n${bold_yellow} Virtual environment deactivated!${end}"
+    echo -e "\n\n${bold_yellow}Virtual environment deactivated!${end}"
     echo
     deactivate
 
