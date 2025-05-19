@@ -601,7 +601,7 @@ function activate_brazil_env() {
     echo "${project_root_dir_abs}"
     # Display env info
     echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
-    echo -e "brazil env: ${brazil_bin_dir}"
+    echo -e "brazil env: $(realpath -- ${brazil_bin_dir}/..)"
     echo -e "OS Version: $(uname)"
     echo -e "Kernel Version: $(uname -r)"
     echo -e "running: $(python3 --version)"
