@@ -535,6 +535,15 @@ function validate_icarus_config() {
     declare -r -g icarus_ignore_array
 }
 
+function process_icarus_config() {
+    echo_title "Processing ${icarus_config_filename}"
+
+    parse_icarus_config
+    validate_icarus_config
+
+    echo
+}
+
 function build_active_dirs_l1() {
     local -a all_dirs_l1
     all_dirs_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type d))
@@ -668,7 +677,7 @@ function build_venv_env() {
     {
         local path_to_venv_root="${project_root_dir_abs}/${venv_name}"
 
-        echo -e "\n${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
+        echo -e "${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
 
         # Create Local venv
         echo -e "\n\n${bold_green}${sparkles} Creating '${venv_name}' venv...${end}"
@@ -752,13 +761,11 @@ function deactivate_brazil_env() {
     PATH="${OLD_PATH}"
     echo -e "Virtual environment deactivated!"
     echo
-    echo
 }
 
 function deactivate_venv_env() {
     deactivate
     echo -e "Virtual environment deactivated!"
-    echo
     echo
 }
 
@@ -1082,9 +1089,7 @@ function main() {
     validate_prerequisites
     set_constants
 
-    echo_title "${icarus_config_filename}"
-    parse_icarus_config
-    validate_icarus_config
+    process_icarus_config
 
     parse_args "${@}"
     dispatch_hooks "${@}"
