@@ -535,25 +535,19 @@ function set_runtime_info() {
             \n--| project ${project_root_dir_abs} \
             \n--| brazil env ${path_to_env_bin} \
             \n--| venv (Brazil ENV) \
-            \n--| $(python3 --version)"
+            \n--| $(${path_to_env_bin}/python3 --version)"
 
     elif [[ "${build_system_in_use}" == "venv" ]]; then
         runtime="${bold_blue}Runtime:${end} \
             \n--| project ${project_root_dir_abs} \
             \n--| venv ${path_to_env_bin} \
             \n--| venv (${venv_name}) \
-            \n--| $(python3 --version)"
+            \n--| $(${path_to_env_bin}/python3 --version)"
     fi
 }
 
 function build_brazil_env() {
     brazil ws sync --md || exit 1
-    echo
-    echo
-
-    brazil-build clean || exit 1
-    echo
-    echo
 
     # Use brazil runtime farm to activate brazil runtime env
     local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
@@ -592,7 +586,7 @@ function build_venv_env() {
     deactivate
 
     # Set runtime to be used in summary
-    set_runtime_info "${path_to_venv_root}"
+    set_runtime_info "${path_to_venv_root}/bin"
 }
 
 function activate_brazil_env() {
@@ -627,7 +621,7 @@ function activate_venv_env() {
     . "${path_to_venv_root}/bin/activate"
 
     # Set runtime to be used in summary
-    set_runtime_info "${path_to_venv_root}"
+    set_runtime_info "${path_to_venv_root}/bin"
 
     # Display Project info
     echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
