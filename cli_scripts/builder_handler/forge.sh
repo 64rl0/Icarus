@@ -27,6 +27,12 @@ set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
 # User defined variables
+function validate_prerequisites() {
+    if [[ -z "$(command -v bc 2>/dev/null)" ]]; then
+        echo_error "[NOT FOUND] bc not found in PATH"
+    fi
+}
+
 function echo_error() {
     echo
     echo -e "${bold_black}${bg_red} ERROR! ${end}"
@@ -75,17 +81,21 @@ function echo_summary() {
     echo -e "${runtime}"
     echo
 
-    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
-    printf "%-46s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}"
-    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
+    printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
 
     for hook in "${forge_hooks[@]}"; do
-        tool="$(printf '%s' "${hook} ..................................." | cut -c1-35)"
+        tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
-        printf "%-35s | %-7s\n" "${tool}" "${status}"
+        eval execution_time='$'"${hook}_execution_time"
+        if [[ -n "${execution_time}" ]]; then
+            execution_time="$(printf "%.3f" "${execution_time}")s"
+        fi
+        printf "%-30s | %-7s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
 
-    printf "%-35s-+-%-7s\n" "-----------------------------------" "-------"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
 
     echo
 }
@@ -269,6 +279,17 @@ function run_eofnewline() {
 function run_trailingwhitespaces() {
     elements=("${active_files_all[@]}")
     trailing_summary_status="${passed}"
+
+    # TODO(carlogtt): implement this tool
+
+    echo -e "${bold_yellow}Tool not implemented yet!${end}"
+
+    echo
+}
+
+function run_documentation() {
+    elements=("${active_files_all[@]}")
+    docs_summary_status="${passed}"
 
     # TODO(carlogtt): implement this tool
 
@@ -672,53 +693,91 @@ function dispatch_preflight_tools() {
     activate_env
 
     if [[ "${isort}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running iSort"
         run_isort
+        end_block=$(date +%s.%N)
+        isort_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${blackfmt}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running Black"
         run_black
+        end_block=$(date +%s.%N)
+        blackfmt_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running Flake8"
         run_flake8
+        end_block=$(date +%s.%N)
+        flake8_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${mypy}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running mypy"
         run_mypy
+        end_block=$(date +%s.%N)
+        mypy_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${shfmt}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running shfmt (bash formatter)"
         run_shfmt
+        end_block=$(date +%s.%N)
+        shfmt_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
-        echo_title "Running 'NNBSP' char replacement"
+        start_block=$(date +%s.%N)
+        echo_title "Replacing non-breaking-space (NBSP) characters"
         run_char_replacement
+        end_block=$(date +%s.%N)
+        whitespaces_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${trailing}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running trailing-whitespaces"
         run_trailingwhitespaces
+        end_block=$(date +%s.%N)
+        trailing_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${eofnewline}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running eof-newline"
         run_eofnewline
+        end_block=$(date +%s.%N)
+        eofnewline_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${gitleaks}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running gitleaks"
         run_gitleaks
+        end_block=$(date +%s.%N)
+        gitleaks_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${pytest}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
         echo_title "Running pytest"
         run_pytest
+        end_block=$(date +%s.%N)
+        pytest_execution_time=$(echo "${end_block} - ${start_block}" | bc)
+    fi
+
+    if [[ "${docs}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
+        echo_title "Generating documentation"
+        run_documentation
+        end_block=$(date +%s.%N)
+        docs_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     echo_title "Deactivating virtual environment"
@@ -727,6 +786,7 @@ function dispatch_preflight_tools() {
 
 function dispatch_build() {
     build_summary_status="${passed}"
+    start_block=$(date +%s.%N)
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         echo_title "Building brazil"
@@ -741,6 +801,9 @@ function dispatch_build() {
             exit_code=1
         }
     fi
+
+    end_block=$(date +%s.%N)
+    build_execution_time=$(echo "${end_block} - ${start_block}" | bc)
 }
 
 function parse_args() {
@@ -768,12 +831,12 @@ function parse_args() {
         whitespaces="Y"
     fi
 
-    if [[ "${7}" == "--eofnewline" ]]; then
-        eofnewline="Y"
+    if [[ "${7}" == "--trailing" ]]; then
+        trailing="Y"
     fi
 
-    if [[ "${8}" == "--trailing" ]]; then
-        trailing="Y"
+    if [[ "${8}" == "--eofnewline" ]]; then
+        eofnewline="Y"
     fi
 
     if [[ "${9}" == "--gitleaks" ]]; then
@@ -788,7 +851,11 @@ function parse_args() {
         build="Y"
     fi
 
-    if [[ "${12}" == "--release" ]]; then
+    if [[ "${12}" == "--docs" ]]; then
+        docs="Y"
+    fi
+
+    if [[ "${13}" == "--release" ]]; then
         build="Y"
         isort="Y"
         blackfmt="Y"
@@ -796,24 +863,25 @@ function parse_args() {
         mypy="Y"
         shfmt="Y"
         whitespaces="Y"
-        eofnewline="Y"
         trailing="Y"
+        eofnewline="Y"
         pytest="Y"
         gitleaks="Y"
+        docs="Y"
     fi
 
-    if [[ "${13}" == "--format" ]]; then
+    if [[ "${14}" == "--format" ]]; then
         isort="Y"
         blackfmt="Y"
         flake8="Y"
         mypy="Y"
         shfmt="Y"
         whitespaces="Y"
-        eofnewline="Y"
         trailing="Y"
+        eofnewline="Y"
     fi
 
-    if [[ "${13}" == "--test" ]]; then
+    if [[ "${15}" == "--test" ]]; then
         pytest="Y"
     fi
 
@@ -835,7 +903,7 @@ function dispatch_hooks() {
 
     if [[ "${11}" =~ "--build" ]]; then
         dispatch_build
-    elif [[ "${12}" =~ "--release" ]]; then
+    elif [[ "${13}" =~ "--release" ]]; then
         dispatch_build
         dispatch_preflight_tools
     else
@@ -879,6 +947,7 @@ function set_constants() {
         "eofnewline"
         "gitleaks"
         "pytest"
+        "docs"
     )
 
     build="N"
@@ -892,6 +961,7 @@ function set_constants() {
     eofnewline="N"
     gitleaks="N"
     pytest="N"
+    docs="N"
 
     build_summary_status="${skipped}"
     isort_summary_status="${skipped}"
@@ -904,9 +974,24 @@ function set_constants() {
     eofnewline_summary_status="${skipped}"
     gitleaks_summary_status="${skipped}"
     pytest_summary_status="${skipped}"
+    docs_summary_status="${skipped}"
+
+    build_execution_time=""
+    isort_execution_time=""
+    blackfmt_execution_time=""
+    flake8_execution_time=""
+    mypy_execution_time=""
+    shfmt_execution_time=""
+    whitespaces_execution_time=""
+    trailing_execution_time=""
+    eofnewline_execution_time=""
+    gitleaks_execution_time=""
+    pytest_execution_time=""
+    docs_execution_time=""
 }
 
 function main() {
+    validate_prerequisites
     set_constants
 
     echo_title "${icarus_config_filename}"

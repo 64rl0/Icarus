@@ -213,20 +213,21 @@ _icarus() {
                 ;;
             forge)
                 completions+=(
-                  '--isort:enable import-sorting with isort'
-                  '--black:enable code formatting with black'
+                  '--isort:sort python imports with isort'
+                  '--black:re-format python code with black'
                   '--flake8:run static analysis with flake8'
                   '--mypy:type-check the codebase with mypy'
                   '--shfmt:format shell scripts with shfmt'
-                  '--whitespaces:check for mixed or excessive whitespace'
+                  '--whitespaces:normalize mixed or excessive whitespace'
                   '--trailing:remove trailing whitespace'
                   '--eofnewline:ensure files end with a single newline'
                   '--gitleaks:scan for secrets with gitleaks'
                   '--pytest:execute the unit/integration-test suite via pytest'
-                  '--build:build the project runtime env'
-                  '--format:run only the formatting suite'
-                  '--test:run only the test suite'
-                  '--release:run only the release suite'
+                  '--docs:generate user documentation'
+                  '--build:create the project runtime environment'
+                  '--format:run only the formatting tools'
+                  '--test:run only the automated test suite'
+                  '--release:run the full “release” pipeline'
                 )
             esac
             ;;

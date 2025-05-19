@@ -307,7 +307,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--build',
         default='',
-        help='build the project runtime env',
+        help='create the project runtime environment',
     )
     builder_forge.add_argument(
         '--release',
@@ -315,7 +315,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--release',
         default='',
-        help='run only the release suite',
+        help='run the full “release” pipeline',
     )
     builder_forge.add_argument(
         '--format',
@@ -323,7 +323,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--format',
         default='',
-        help='run only the formatting suite',
+        help='run only the formatting tools',
     )
     builder_forge.add_argument(
         '--test',
@@ -331,7 +331,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--test',
         default='',
-        help='run only the test suite',
+        help='run only the automated test suite',
     )
     builder_forge.add_argument(
         '--isort',
@@ -339,7 +339,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--isort',
         default='',
-        help='enable import-sorting with isort',
+        help='sort python imports with isort',
     )
     builder_forge.add_argument(
         '--black',
@@ -347,7 +347,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--black',
         default='',
-        help='enable code formatting with black',
+        help='re-format python code with black',
     )
     builder_forge.add_argument(
         '--flake8',
@@ -379,7 +379,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--whitespaces',
         default='',
-        help='check for mixed or excessive whitespace',
+        help='normalize mixed or excessive whitespace',
     )
     builder_forge.add_argument(
         '--trailing',
@@ -412,6 +412,14 @@ def initialize_parser() -> argparse.ArgumentParser:
         const='--pytest',
         default='',
         help='execute the unit/integration-test suite via pytest',
+    )
+    builder_forge.add_argument(
+        '--docs',
+        required=False,
+        action='store_const',
+        const='--docs',
+        default='',
+        help='generate user documentation',
     )
 
     # =================

@@ -101,6 +101,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
             args.gitleaks,
             args.pytest,
             args.build,
+            args.docs,
             args.release,
             args.format,
             args.test,
