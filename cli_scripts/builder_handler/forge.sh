@@ -94,7 +94,7 @@ find_project_root() {
     local dir=$PWD
 
     while [[ "${dir}" != '/' ]]; do
-        if [[ -f "${dir}/icarus.cfg" ]]; then
+        if [[ -f "${dir}/${icarus_config_filename}" ]]; then
             project_root_dir_abs="$(realpath -- "${dir}")"
             break
         else
@@ -103,7 +103,7 @@ find_project_root() {
     done
 
     if [[ -z "${project_root_dir_abs}" ]]; then
-        echo_error "You are not in an icarus build enabled directory!\n No \`icarus.cfg\` file found. To enable icarus build create a \`icarus.cfg\` in the project root directory."
+        echo_error "You are not in an icarus build enabled directory!\n No \`${icarus_config_filename}\` file found. To enable icarus build create a \`${icarus_config_filename}\` in the project root directory."
     fi
 
     declare -r -g project_root_dir_abs
@@ -315,7 +315,7 @@ function run_gitleaks() {
 }
 
 function parse_icarus_config() {
-    echo -e "Parsing icarus.cfg"
+    echo -e "Parsing ${icarus_config_filename}"
 
     # BUILD-SYSTEM
     declare -a build_system_array
@@ -396,31 +396,31 @@ PY
 }
 
 function validate_icarus_config() {
-    echo -e "Validating icarus.cfg"
+    echo -e "Validating ${icarus_config_filename}"
 
     if [[ -z "${build_system_in_use}" ]]; then
-        echo_error "No build system specified in icarus.cfg"
+        echo_error "No build system specified in ${icarus_config_filename}"
     fi
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         if [[ -z "${brazil_python_runtime}" ]]; then
-            echo_error "No python version specified in brazil icarus.cfg"
+            echo_error "No python version specified in brazil ${icarus_config_filename}"
         else
             brazil_python_runtime="python${brazil_python_runtime}"
         fi
     elif [[ "${build_system_in_use}" == "venv" ]]; then
         if [[ -z "${venv_name}" ]]; then
-            echo_error "No venv name specified in venv icarus.cfg"
+            echo_error "No venv name specified in venv ${icarus_config_filename}"
         fi
         if [[ -z "${python_version_for_venv}" ]]; then
-            echo_error "No python version specified in venv icarus.cfg"
+            echo_error "No python version specified in venv ${icarus_config_filename}"
         fi
         if [[ -z "${requirements_path}" ]]; then
             requirements_path="requirements.txt"
-            echo -e "requirements key not found in icarus.cfg, setting default requirements path to: \`${requirements_path}\`"
+            echo -e "requirements key not found in ${icarus_config_filename}, setting default requirements path to: \`${requirements_path}\`"
         fi
     else
-        echo_error "Invalid build system in icarus.cfg"
+        echo_error "Invalid build system in ${icarus_config_filename}"
     fi
 
     declare -r -g build_system_in_use
@@ -859,7 +859,8 @@ function set_constants() {
     declare -a -g active_other_files=()
     declare -a -g active_files_all=()
 
-    icarus_config="$(realpath -- "${project_root_dir_abs}/icarus.cfg")"
+    icarus_config_filename="icarus.cfg"
+    icarus_config="$(realpath -- "${project_root_dir_abs}/${icarus_config_filename}")"
 
     python3_icarus_build_env="$(realpath -- "${cli_scripts_dir_abs}/../build_venv/bin/python3")"
 
@@ -909,7 +910,7 @@ function set_constants() {
 function main() {
     set_constants
 
-    echo_title "icarus.cfg"
+    echo_title "${icarus_config_filename}"
     parse_icarus_config
     validate_icarus_config
 
