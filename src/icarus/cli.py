@@ -302,93 +302,20 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_forge.add_argument(
-        '--venv',
-        required=False,
-        nargs='?',
-        const='',
-        metavar='PATH',
-        default='',
-        help='path to a virtual-env at ProjectRootDir/<path> to use',
-    )
-    builder_forge.add_argument(
-        '--with-isort',
+        '--build',
         required=False,
         action='store_const',
-        const='--with-isort',
+        const='--build',
         default='',
-        help='enable import-sorting with isort',
+        help='build the project runtime env',
     )
     builder_forge.add_argument(
-        '--with-black',
+        '--release',
         required=False,
         action='store_const',
-        const='--with-black',
+        const='--release',
         default='',
-        help='enable code formatting with black',
-    )
-    builder_forge.add_argument(
-        '--with-flake8',
-        required=False,
-        action='store_const',
-        const='--with-flake8',
-        default='',
-        help='run static analysis with flake8',
-    )
-    builder_forge.add_argument(
-        '--with-mypy',
-        required=False,
-        action='store_const',
-        const='--with-mypy',
-        default='',
-        help='type-check the codebase with mypy',
-    )
-    builder_forge.add_argument(
-        '--with-shfmt',
-        required=False,
-        action='store_const',
-        const='--with-shfmt',
-        default='',
-        help='format shell scripts with shfmt',
-    )
-    builder_forge.add_argument(
-        '--with-whitespaces',
-        required=False,
-        action='store_const',
-        const='--with-whitespaces',
-        default='',
-        help='check for mixed or excessive whitespace',
-    )
-    builder_forge.add_argument(
-        '--with-trailing',
-        required=False,
-        action='store_const',
-        const='--with-trailing',
-        default='',
-        help='remove trailing whitespace',
-    )
-    builder_forge.add_argument(
-        '--with-eofnewline',
-        required=False,
-        action='store_const',
-        const='--with-eofnewline',
-        default='',
-        help='ensure files end with a single newline',
-    )
-    builder_forge.add_argument(
-        '--with-gitleaks',
-        required=False,
-        action='store_const',
-        const='--with-gitleaks',
-        default='',
-        help='scan for secrets with gitleaks',
-    )
-    builder_forge.add_argument(
-        '--with-pytest',
-        required=False,
-        action='store_const',
-        const='--with-pytest',
-        default='',
-        help='execute the unit-/integration-test suite via pytest',
+        help='run only the release suite',
     )
     builder_forge.add_argument(
         '--format',
@@ -396,7 +323,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--format',
         default='',
-        help='run only formatting steps',
+        help='run only the formatting suite',
     )
     builder_forge.add_argument(
         '--test',
@@ -407,30 +334,84 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='run only the test suite',
     )
     builder_forge.add_argument(
-        '--all',
+        '--isort',
         required=False,
         action='store_const',
-        const='--all',
+        const='--isort',
         default='',
-        help='run every available step',
+        help='enable import-sorting with isort',
     )
     builder_forge.add_argument(
-        '--build-venv',
+        '--black',
         required=False,
-        nargs='?',
-        const='',
-        metavar='PATH',
-        default=None,
-        help='create a virtual-env at ProjectRootDir/<path>',
+        action='store_const',
+        const='--black',
+        default='',
+        help='enable code formatting with black',
     )
     builder_forge.add_argument(
-        '--py-version',
+        '--flake8',
         required=False,
-        nargs='?',
-        const='',
-        metavar='VER',
+        action='store_const',
+        const='--flake8',
         default='',
-        help='python m.m version to use for the virtual-env. i.e. 3.10',
+        help='run static analysis with flake8',
+    )
+    builder_forge.add_argument(
+        '--mypy',
+        required=False,
+        action='store_const',
+        const='--mypy',
+        default='',
+        help='type-check the codebase with mypy',
+    )
+    builder_forge.add_argument(
+        '--shfmt',
+        required=False,
+        action='store_const',
+        const='--shfmt',
+        default='',
+        help='format shell scripts with shfmt',
+    )
+    builder_forge.add_argument(
+        '--whitespaces',
+        required=False,
+        action='store_const',
+        const='--whitespaces',
+        default='',
+        help='check for mixed or excessive whitespace',
+    )
+    builder_forge.add_argument(
+        '--trailing',
+        required=False,
+        action='store_const',
+        const='--trailing',
+        default='',
+        help='remove trailing whitespace',
+    )
+    builder_forge.add_argument(
+        '--eofnewline',
+        required=False,
+        action='store_const',
+        const='--eofnewline',
+        default='',
+        help='ensure files end with a single newline',
+    )
+    builder_forge.add_argument(
+        '--gitleaks',
+        required=False,
+        action='store_const',
+        const='--gitleaks',
+        default='',
+        help='scan for secrets with gitleaks',
+    )
+    builder_forge.add_argument(
+        '--pytest',
+        required=False,
+        action='store_const',
+        const='--pytest',
+        default='',
+        help='execute the unit/integration-test suite via pytest',
     )
 
     # =================

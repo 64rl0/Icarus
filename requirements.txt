@@ -4,6 +4,7 @@ carlogtt-python-library
 # Runtime dependencies
 python-dotenv
 requests
+pyyaml
 
 # Test dependencies
 pytest

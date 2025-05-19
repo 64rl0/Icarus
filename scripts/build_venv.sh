@@ -81,7 +81,7 @@ declare -r project_root_dir_abs
 
 # Get venv name or set to default 'build_undefined'
 if [[ -z "$1" ]]; then
-    venv_name="build_undefined"
+    venv_name="build_venv"
     echo -e "\n\n${bold_red}${warning_sign} No venv name supplied! Using: ${venv_name}${end}"
 elif [[ -n "$1" ]]; then
     venv_name="$1"

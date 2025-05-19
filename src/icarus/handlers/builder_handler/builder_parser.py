@@ -89,31 +89,22 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'forge.sh'
-
-        # If --build-venv then ignore hooks
-        if args.build_venv is not None:
-            script_args = [
-                '--build-venv',
-                args.build_venv,
-                args.py_version,
-            ]
-        else:
-            script_args = [
-                args.venv,
-                args.with_isort,
-                args.with_black,
-                args.with_flake8,
-                args.with_mypy,
-                args.with_shfmt,
-                args.with_whitespaces,
-                args.with_trailing,
-                args.with_eofnewline,
-                args.with_gitleaks,
-                args.with_pytest,
-                args.format,
-                args.test,
-                args.all,
-            ]
+        script_args = [
+            args.isort,
+            args.black,
+            args.flake8,
+            args.mypy,
+            args.shfmt,
+            args.whitespaces,
+            args.trailing,
+            args.eofnewline,
+            args.gitleaks,
+            args.pytest,
+            args.build,
+            args.release,
+            args.format,
+            args.test,
+        ]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 

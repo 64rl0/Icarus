@@ -26,12 +26,15 @@ source "${cli_script_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Fail
 set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
-# Forge Script Paths
-user_current_path="$(pwd -P)"
-declare -r user_current_path
-
-project_root_dir_abs="$(realpath -- "${user_current_path}")"
-declare -r project_root_dir_abs
+# User defined variables
+function echo_error() {
+    echo
+    echo -e "${bold_black}${bg_red} ERROR! ${end}"
+    echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+    echo -e " ${1}"
+    echo
+    exit 1
+}
 
 function echo_title() {
     local title="${1}"
@@ -68,6 +71,7 @@ function echo_running_hooks() {
 }
 
 function echo_summary() {
+    echo_title "Forge Summary"
     echo -e "${runtime}"
     echo
 
@@ -86,14 +90,33 @@ function echo_summary() {
     echo
 }
 
+find_project_root() {
+    local dir=$PWD
+
+    while [[ "${dir}" != '/' ]]; do
+        if [[ -f "${dir}/icarus.cfg" ]]; then
+            project_root_dir_abs="$(realpath -- "${dir}")"
+            break
+        else
+            dir="$(realpath -- "${dir}/..")"
+        fi
+    done
+
+    if [[ -z "${project_root_dir_abs}" ]]; then
+        echo_error "You are not in an icarus build enabled directory!\n No \`icarus.cfg\` file found. To enable icarus build create a \`icarus.cfg\` in the project root directory."
+    fi
+
+    declare -r -g project_root_dir_abs
+}
+
 function run_isort() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
-    isort_summary_status="${bold_black}${bg_green} PASS ${end}"
+    isort_summary_status="${passed}"
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         isort "${el}" 2>&1 || {
-            isort_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            isort_summary_status="${failed}"
             exit_code=1
         }
         echo
@@ -102,12 +125,12 @@ function run_isort() {
 
 function run_black() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
-    blackfmt_summary_status="${bold_black}${bg_green} PASS ${end}"
+    blackfmt_summary_status="${passed}"
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         black "${el}" 2>&1 || {
-            blackfmt_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            blackfmt_summary_status="${failed}"
             exit_code=1
         }
         echo
@@ -116,12 +139,12 @@ function run_black() {
 
 function run_flake8() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
-    flake8_summary_status="${bold_black}${bg_green} PASS ${end}"
+    flake8_summary_status="${passed}"
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         flake8 -v "${el}" 2>&1 || {
-            flake8_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            flake8_summary_status="${failed}"
             exit_code=1
         }
         echo
@@ -130,13 +153,13 @@ function run_flake8() {
 
 function run_mypy() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
-    mypy_summary_status="${bold_black}${bg_green} PASS ${end}"
+    mypy_summary_status="${passed}"
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         output=$(mypy "${el}" 2>&1 | tee /dev/tty) || {
             if [[ ! "${output}" =~ ^There\ are\ no\ \.py\[i\]\ files\ in\ directory ]]; then
-                mypy_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                mypy_summary_status="${failed}"
                 exit_code=1
             fi
         }
@@ -146,12 +169,12 @@ function run_mypy() {
 
 function run_shfmt() {
     elements=("${active_dirs[@]}" "${active_sh_files[@]}")
-    shfmt_summary_status="${bold_black}${bg_green} PASS ${end}"
+    shfmt_summary_status="${passed}"
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         shfmt -l -w "${el}" 2>&1 || {
-            shfmt_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            shfmt_summary_status="${failed}"
             exit_code=1
         }
         echo
@@ -160,7 +183,7 @@ function run_shfmt() {
 
 function run_char_replacement() {
     elements=("${active_files_all[@]}")
-    whitespaces_summary_status="${bold_black}${bg_green} PASS ${end}"
+    whitespaces_summary_status="${passed}"
     local counter=0
 
     for el in "${elements[@]}"; do
@@ -189,13 +212,13 @@ function run_char_replacement() {
         if [[ $(uname -s) == "Darwin" ]]; then
             # macOS
             find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
-                whitespaces_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                whitespaces_summary_status="${failed}"
                 exit_code=1
             }
         else
             # Linux
             find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
-                whitespaces_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                whitespaces_summary_status="${failed}"
                 exit_code=1
             }
         fi
@@ -208,7 +231,7 @@ function run_char_replacement() {
 
 function run_eofnewline() {
     elements=("${active_files_all[@]}")
-    eofnewline_summary_status="${bold_black}${bg_green} PASS ${end}"
+    eofnewline_summary_status="${passed}"
     local counter=0
 
     for el in "${elements[@]}"; do
@@ -232,7 +255,7 @@ function run_eofnewline() {
             echo "EOF char is: $(tail -c1 -- "${el}")"
             echo
             printf '\n' >>"${el}" || {
-                eofnewline_summary_status="${bold_black}${bg_red} FAIL ${end}"
+                eofnewline_summary_status="${failed}"
                 exit_code=1
             }
             ((counter = counter + 1))
@@ -245,7 +268,7 @@ function run_eofnewline() {
 
 function run_trailingwhitespaces() {
     elements=("${active_files_all[@]}")
-    trailing_summary_status="${bold_black}${bg_green} PASS ${end}"
+    trailing_summary_status="${passed}"
 
     # TODO(carlogtt): implement this tool
 
@@ -255,87 +278,160 @@ function run_trailingwhitespaces() {
 }
 
 function run_pytest() {
-    pytest_summary_status="${bold_black}${bg_green} PASS ${end}"
+    pytest_summary_status="${passed}"
 
-    pytest 2>&1 || {
-        pytest_summary_status="${bold_black}${bg_red} FAIL ${end}"
+    pytest "${project_root_dir_abs}" 2>&1 || {
+        pytest_summary_status="${failed}"
         exit_code=1
     }
     echo
 }
 
 function run_gitleaks() {
-    gitleaks_summary_status="${bold_black}${bg_green} PASS ${end}"
+    gitleaks_summary_status="${passed}"
 
     if gitleaks_path=$(command -v \gitleaks); then
         echo -e "${blue}git commits${end}"
         "${gitleaks_path}" git --no-banner -v 2>&1 || {
-            gitleaks_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            gitleaks_summary_status="${failed}"
             exit_code=1
         }
         echo
         echo -e "${blue}git pre-commit${end}"
         "${gitleaks_path}" git --pre-commit --no-banner -v 2>&1 || {
-            gitleaks_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            gitleaks_summary_status="${failed}"
             exit_code=1
         }
         echo
         echo -e "${blue}git staged${end}"
         "${gitleaks_path}" git --staged --no-banner -v 2>&1 || {
-            gitleaks_summary_status="${bold_black}${bg_red} FAIL ${end}"
+            gitleaks_summary_status="${failed}"
             exit_code=1
         }
         echo
     else
-        gitleaks_summary_status="${bold_black}${bg_magenta} SKIP ${end}"
-        echo -e "${bold_red}[NOT FOUND] gitleaks not found in PATH${end}"
-        echo
+        echo_error "[NOT FOUND] gitleaks not found in PATH"
     fi
 }
 
 function parse_icarus_config() {
-    icarus_config="${project_root_dir_abs}/icarus.cfg"
-    declare -g -r icarus_config
+    echo -e "Parsing icarus.cfg"
 
-    # Initial validation
-    if [[ ! -e "${icarus_config}" ]]; then
-        echo -e "${bold_black}${bg_red} ERROR! ${end}"
-        echo -e " You are not in an icarus build enabled directory!"
-        echo -e " No \`icarus.cfg\` file found. To enable icarus build create a \`icarus.cfg\` in the project root directory."
-        exit 1
-    fi
-
-    declare -a -g icarus_ignore_array
-
-    IFS=' ' read -r -a icarus_ignore_array <<<"$(
-        python3 - <<-'PY'
-with open('icarus.cfg', 'r') as file:
-    started = False
-    for idx, line in enumerate(file):
-        line = line.strip()
-        if line == 'ignore:':
-            idx_start = idx + 1
-            started = True
-        if started and line == '':
-            idx_end = idx
-            break
-    else:
-        idx_end = idx + 1
-    file.seek(0)
-    lines = ' '.join([line.strip().split()[1] for line in file.readlines()[idx_start:idx_end]])
-    print(lines)
+    # BUILD-SYSTEM
+    declare -a build_system_array
+    IFS=' ' read -r -a build_system_array 2>/dev/null <<<"$(
+        "${python3_icarus_build_env}" - <<-PY
+import yaml
+with open("${icarus_config}") as file:
+    cfg = yaml.safe_load(file)
+    section = cfg.get('build-system', [])
+    try:
+        runtime = str([d['runtime'] for d in section if d.get('runtime')][0])
+    except IndexError:
+        runtime = ''
+    stdout = ' '.join([runtime]).strip()
+    print(stdout)
 PY
     )"
+    build_system_in_use="${build_system_array[0]}"
 
+    # BRAZIL
+    declare -a build_system_brazil_array
+    IFS=' ' read -r -a build_system_brazil_array 2>/dev/null <<<"$(
+        "${python3_icarus_build_env}" - <<-PY
+import yaml
+with open("${icarus_config}") as file:
+    cfg = yaml.safe_load(file)
+    section = cfg.get('brazil', [])
+    try:
+        version = str([d['python'] for d in section if d.get('python')][0])
+    except IndexError:
+        version = ''
+    stdout = ' '.join([version]).strip()
+    print(stdout)
+PY
+    )"
+    brazil_python_runtime="${build_system_brazil_array[0]}"
+
+    # VENV
+    declare -a build_system_venv_array
+    IFS=' ' read -r -a build_system_venv_array 2>/dev/null <<<"$(
+        "${python3_icarus_build_env}" - <<-PY
+import yaml
+with open("${icarus_config}") as file:
+    cfg = yaml.safe_load(file)
+    section = cfg.get('venv', [])
+    try:
+        name = str([d['name'] for d in section if d.get('name')][0])
+    except IndexError:
+        name = ''
+    try:
+        version = str([d['python'] for d in section if d.get('python')][0])
+    except IndexError:
+        version = ''
+    try:
+        requirements = str([d['requirements'] for d in section if d.get('requirements')][0])
+    except IndexError:
+        requirements = ''
+    stdout = ' '.join([name, version, requirements]).strip()
+    print(stdout)
+PY
+    )"
+    venv_name="${build_system_venv_array[0]}"
+    python_version_for_venv="${build_system_venv_array[1]}"
+    requirements_path="${build_system_venv_array[2]}"
+
+    # IGNORE
+    declare -a -g icarus_ignore_array
+    IFS=' ' read -r -a icarus_ignore_array 2>/dev/null <<<"$(
+        "${python3_icarus_build_env}" - <<-PY
+import yaml
+with open("${icarus_config}") as file:
+    cfg = yaml.safe_load(file)
+    section = cfg.get('ignore', [])
+    stdout = ' '.join([ignore.strip() for ignore in section]).strip()
+    print(stdout)
+PY
+    )"
+}
+
+function validate_icarus_config() {
+    echo -e "Validating icarus.cfg"
+
+    if [[ -z "${build_system_in_use}" ]]; then
+        echo_error "No build system specified in icarus.cfg"
+    fi
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        if [[ -z "${brazil_python_runtime}" ]]; then
+            echo_error "No python version specified in brazil icarus.cfg"
+        fi
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        if [[ -z "${venv_name}" ]]; then
+            echo_error "No venv name specified in venv icarus.cfg"
+        fi
+        if [[ -z "${python_version_for_venv}" ]]; then
+            echo_error "No python version specified in venv icarus.cfg"
+        fi
+        if [[ -z "${requirements_path}" ]]; then
+            requirements_path="requirements.txt"
+            echo -e "requirements key not found in icarus.cfg, setting default requirements path to: \`${requirements_path}\`"
+        fi
+    else
+        echo_error "Invalid build system in icarus.cfg"
+    fi
+
+    declare -r -g build_system_in_use
+    declare -r -g brazil_python_runtime
+    declare -r -g venv_name
+    declare -r -g python_version_for_venv
+    declare -r -g requirements_path
     declare -r -g icarus_ignore_array
 }
 
 function build_active_dirs_l1() {
-    declare -a all_dirs_l1
+    local -a all_dirs_l1
     all_dirs_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type d))
-
-    declare -a -g active_dirs
-    active_dirs=()
 
     for dir in "${all_dirs_l1[@]}"; do
         unset ignore_dir
@@ -363,15 +459,8 @@ function build_active_dirs_l1() {
 }
 
 function build_active_files_l1() {
-    declare -a all_files_l1
+    local -a all_files_l1
     all_files_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type f))
-
-    declare -a -g active_py_files
-    active_py_files=()
-    declare -a -g active_sh_files
-    active_sh_files=()
-    declare -a -g active_other_files
-    active_other_files=()
 
     for file in "${all_files_l1[@]}"; do
         unset ignore_file
@@ -407,11 +496,8 @@ function build_active_files_l1() {
 }
 
 function build_all_active_files() {
-    declare -a all_files
+    local -a all_files
     all_files=($(find "${project_root_dir_abs}" -type f))
-
-    declare -a -g active_files_all
-    active_files_all=()
 
     for file in "${all_files[@]}"; do
         unset ignore_file
@@ -438,41 +524,45 @@ function build_all_active_files() {
     declare -r -g active_files_all
 }
 
-function build_venv() {
-    venv_name="${2}"
-    python_version_for_venv="${3}"
+function set_runtime_info() {
+    # Set runtime to be used in summary
+    local path_to_env_bin="${1}"
 
-    echo_title "Building venv"
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        runtime="${bold_blue}Runtime:${end} \
+            \n--| project ${project_root_dir_abs} \
+            \n--| brazil env ${path_to_env_bin} \
+            \n--| venv (Brazil ENV) \
+            \n--| $(python3 --version)"
 
-    if [[ -z "${venv_name}" ]]; then
-        venv_name="build_undefined"
-        echo -e "\n${bold_red}${warning_sign} No venv name supplied! Using default: '${venv_name}'${end}"
-    elif [[ -n "${venv_name}" ]]; then
-        echo -e "\n${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        runtime="${bold_blue}Runtime:${end} \
+            \n--| project ${project_root_dir_abs} \
+            \n--| venv ${path_to_env_bin} \
+            \n--| venv (${venv_name}) \
+            \n--| $(python3 --version)"
     fi
+}
 
-    # Find the most recent Python version in the system if not manually passed as arg
-    if [[ -z "${python_version_for_venv}" ]]; then
-        accepted_python_versions=("3.13" "3.12" "3.11" "3.10" "3.9")
-        for version in "${accepted_python_versions[@]}"; do
-            if command -v "python${version}" >/dev/null 2>&1; then
-                python_version_for_venv="${version}"
-                break
-            fi
-        done
-    fi
+function build_brazil_env() {
+    # Use brazil runtime farm to activate brazil runtime env
+    local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
 
-    if [[ -z "${python_version_for_venv}" ]]; then
-        echo -e "\n\n${bold_red}${stop_sign} No Python version found for venv!${end}"
-        exit 1
-    fi
+    # Set runtime to be used in summary
+    set_runtime_info "${brazil_bin_dir}"
+}
+
+function build_venv_env() {
+    local path_to_venv_root="${project_root_dir_abs}/${venv_name}"
+
+    echo -e "\n${bold_green}${green_check_mark} Preparing building '${venv_name}' venv...${end}"
 
     # Create Local venv
     echo -e "\n\n${bold_green}${sparkles} Creating '${venv_name}' venv...${end}"
-    python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}" && echo -e "done!"
+    python${python_version_for_venv} -m venv --clear --copies "${path_to_venv_root}" && echo -e "done!"
 
     # Activate local venv
-    . "${project_root_dir_abs}/${venv_name}/bin/activate"
+    . "${path_to_venv_root}/bin/activate"
     echo -e "\n\n${bold_green}${green_check_mark} '${venv_name}' venv activated:${end}"
     echo -e "OS Version: $(uname)"
     echo -e "Kernel Version: $(uname -r)"
@@ -482,201 +572,301 @@ function build_venv() {
     # Install requirements
     echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' venv...${end}"
     pip install --upgrade pip
-    pip install -I -r "${project_root_dir_abs}/requirements.txt"
+    pip install -I -r "${project_root_dir_abs}/${requirements_path}"
 
     # Build complete!
     echo -e "\n\n${bold_green}${sparkles} '${venv_name}' venv build complete & Ready for use!${end}"
 
-    echo -e "\n\n${bold_yellow}${warning_sign} Virtual environment deactivated!${end}"
+    echo -e "\n\n${bold_yellow} Virtual environment deactivated!${end}"
+    echo
     deactivate
+
+    # Set runtime to be used in summary
+    set_runtime_info "${path_to_venv_root}"
 }
 
-function activate_venv() {
-    # Useer has passed in a venv to use
-    if [[ -n "${venv_name}" ]]; then
-        path_to_venv_root="${project_root_dir_abs}/${venv_name}"
-        if [[ -e "${path_to_venv_root}/bin/activate" ]]; then
-            venv_name="venv (${venv_name})"
-        else
-            echo -e "${bold_red}Cannot find the requested venv: \`${venv_name}\` to activate!${end}"
-            echo -e "venv: ${path_to_venv_root}"
-            echo
-            exit 1
-        fi
-    # We try to detect the venv to use for the user
-    else
-        devdsk="devdsk8"
-        brazil_python_runtime="python3.11"
+function activate_brazil_env() {
+    # Use brazil runtime farm to activate brazil runtime env
+    local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
+    OLD_PATH="${PATH}"
+    PATH="${brazil_bin_dir}:${PATH}"
 
-        # Use brazil runtime farm
-        if [[ -d "${project_root_dir_abs}/build/private" ]]; then
-            brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
-        fi
-
-        # Use project build_venv venv
-        if [[ -d "${project_root_dir_abs}/build_venv" ]]; then
-            path_to_venv_root="${project_root_dir_abs}/build_venv"
-            venv_name="venv (build_venv)"
-        # Use Dropbox dev_tools venv if we are on local macbook
-        elif [[ -d "${HOME}/Library/CloudStorage/Dropbox" ]]; then
-            path_to_venv_root="${HOME}/Library/CloudStorage/Dropbox/SDE/VirtualEnvs/dev_tools"
-            venv_name="venv Dropbox (dev_tools)"
-        fi
-    fi
+    # Set runtime to be used in summary
+    set_runtime_info "${brazil_bin_dir}"
 
     # Display Project info
     echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
     echo "${project_root_dir_abs}"
-
-    # Activate brazil runtime env first as it takes precedence
-    if [[ -n "${brazil_bin_dir}" ]]; then
-        OLD_PATH="${PATH}"
-        PATH="${brazil_bin_dir}:${PATH}"
-        venv_name="venv (Brazil ENV)"
-        venv_in_use_path="${brazil_bin_dir}"
-        echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
-        echo -e "${brazil_bin_dir}"
-    # Activate venv if we are not in brazil venv
-    elif [[ -n "${path_to_venv_root}" ]]; then
-        . "${path_to_venv_root}/bin/activate"
-        echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
-        echo -e "venv: ${VIRTUAL_ENV}"
-        venv_in_use_path="${path_to_venv_root}"
-    #  Cannot activate any venv
-    else
-        echo -e "\n${bold_red}Cannot find any venv to activate!${end}"
-        echo -e "${bold_red}Have you selected the correct DevDsk and/or build_venv in the formatter file?${end}"
-        echo -e "${bold_red}Run 'make build' to build a local build_venv in ${project_root_dir_abs}/build_venv${end}\n"
-        echo
-        exit 1
-    fi
-
-    # Set runtime to be used in summary
-    runtime="${bold_blue}Runtime:${end} \
-        \n--| project ${project_root_dir_abs} \
-        \n--| venv ${venv_in_use_path} \
-        \n--| ${venv_name} \
-        \n--| $(python3 --version)"
-    declare -r -g runtime
-
     # Display env info
+    echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
+    echo -e "brazil env: ${brazil_bin_dir}"
     echo -e "OS Version: $(uname)"
     echo -e "Kernel Version: $(uname -r)"
     echo -e "running: $(python3 --version)"
     echo
 }
 
-function deactivate_venv() {
-    if [[ -n "${OLD_PATH}" ]]; then
-        PATH="${OLD_PATH}"
-    else
-        deactivate
+function activate_venv_env() {
+    local path_to_venv_root="${project_root_dir_abs}/${venv_name}"
+
+    if [[ ! -e "${path_to_venv_root}/bin/activate" ]]; then
+        echo_error "Cannot find the requested venv: \`${venv_name}\` to activate!\n venv: ${path_to_venv_root}"
     fi
+
+    # Activate venv
+    . "${path_to_venv_root}/bin/activate"
+
+    # Set runtime to be used in summary
+    set_runtime_info "${path_to_venv_root}"
+
+    # Display Project info
+    echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
+    echo "${project_root_dir_abs}"
+    # Display env info
+    echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
+    echo -e "venv: ${VIRTUAL_ENV}"
+    echo -e "OS Version: $(uname)"
+    echo -e "Kernel Version: $(uname -r)"
+    echo -e "running: $(python3 --version)"
+    echo
+}
+
+function deactivate_brazil_env() {
+    PATH="${OLD_PATH}"
     echo -e "Virtual environment deactivated!"
     echo
     echo
 }
 
-function preflight_tools() {
-    skipped="${bold_black}${bg_white} SKIP ${end}"
+function deactivate_venv_env() {
+    deactivate
+    echo -e "Virtual environment deactivated!"
+    echo
+    echo
+}
 
-    echo_running_hooks
+function activate_env() {
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        activate_brazil_env
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        activate_venv_env
+    fi
+}
 
-    echo_title "Project info"
-    activate_venv
+function deactivate_env() {
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        deactivate_brazil_env
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        deactivate_venv_env
+    fi
+}
 
+function dispatch_preflight_tools() {
     build_active_dirs_l1
     build_active_files_l1
     build_all_active_files
 
+    echo_title "Project info"
+    activate_env
+
     if [[ "${isort}" == "Y" ]]; then
         echo_title "Running iSort"
         run_isort
-    else
-        isort_summary_status="${skipped}"
     fi
 
     if [[ "${blackfmt}" == "Y" ]]; then
         echo_title "Running Black"
         run_black
-    else
-        blackfmt_summary_status="${skipped}"
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
         echo_title "Running Flake8"
         run_flake8
-    else
-        flake8_summary_status="${skipped}"
     fi
 
     if [[ "${mypy}" == "Y" ]]; then
         echo_title "Running mypy"
         run_mypy
-    else
-        mypy_summary_status="${skipped}"
     fi
 
     if [[ "${shfmt}" == "Y" ]]; then
         echo_title "Running shfmt (bash formatter)"
         run_shfmt
-    else
-        shfmt_summary_status="${skipped}"
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
         echo_title "Running 'NNBSP' char replacement"
         run_char_replacement
-    else
-        whitespaces_summary_status="${skipped}"
     fi
 
     if [[ "${trailing}" == "Y" ]]; then
         echo_title "Running trailing-whitespaces"
         run_trailingwhitespaces
-    else
-        trailing_summary_status="${skipped}"
     fi
 
     if [[ "${eofnewline}" == "Y" ]]; then
         echo_title "Running eof-newline"
         run_eofnewline
-    else
-        eofnewline_summary_status="${skipped}"
     fi
 
     if [[ "${gitleaks}" == "Y" ]]; then
         echo_title "Running gitleaks"
         run_gitleaks
-    else
-        gitleaks_summary_status="${skipped}"
     fi
 
     if [[ "${pytest}" == "Y" ]]; then
         echo_title "Running pytest"
         run_pytest
-    else
-        pytest_summary_status="${skipped}"
     fi
 
     echo_title "Deactivating virtual environment"
-    deactivate_venv
+    deactivate_env
+}
 
-    echo_title "Forge Summary"
-    echo_summary
+function dispatch_build() {
+    build_summary_status="${passed}"
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        echo_title "Building brazil"
+        build_brazil_env || {
+            build_summary_status="${failed}"
+            exit_code=1
+        }
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        echo_title "Building venv"
+        build_venv_env || {
+            build_summary_status="${failed}"
+            exit_code=1
+        }
+    fi
 }
 
 function parse_args() {
-    exit_code=0
-
-    # If we are building a local venv, build it and exit
-    if [[ "${1}" =~ "--build-venv" ]]; then
-        build_venv ${@}
-        exit "${exit_code}"
+    if [[ "${1}" == "--isort" ]]; then
+        isort="Y"
     fi
 
-    # If we are not building a venv, run preflight tools
+    if [[ "${2}" == "--black" ]]; then
+        blackfmt="Y"
+    fi
+
+    if [[ "${3}" == "--flake8" ]]; then
+        flake8="Y"
+    fi
+
+    if [[ "${4}" == "--mypy" ]]; then
+        mypy="Y"
+    fi
+
+    if [[ "${5}" == "--shfmt" ]]; then
+        shfmt="Y"
+    fi
+
+    if [[ "${6}" == "--whitespaces" ]]; then
+        whitespaces="Y"
+    fi
+
+    if [[ "${7}" == "--eofnewline" ]]; then
+        eofnewline="Y"
+    fi
+
+    if [[ "${8}" == "--trailing" ]]; then
+        trailing="Y"
+    fi
+
+    if [[ "${9}" == "--gitleaks" ]]; then
+        gitleaks="Y"
+    fi
+
+    if [[ "${10}" == "--pytest" ]]; then
+        pytest="Y"
+    fi
+
+    if [[ "${11}" == "--build" ]]; then
+        build="Y"
+    fi
+
+    if [[ "${12}" == "--release" ]]; then
+        build="Y"
+        isort="Y"
+        blackfmt="Y"
+        flake8="Y"
+        mypy="Y"
+        shfmt="Y"
+        whitespaces="Y"
+        eofnewline="Y"
+        trailing="Y"
+        pytest="Y"
+        gitleaks="Y"
+    fi
+
+    if [[ "${13}" == "--format" ]]; then
+        isort="Y"
+        blackfmt="Y"
+        flake8="Y"
+        mypy="Y"
+        shfmt="Y"
+        whitespaces="Y"
+        eofnewline="Y"
+        trailing="Y"
+    fi
+
+    if [[ "${13}" == "--test" ]]; then
+        pytest="Y"
+    fi
+
+    for hook in "${forge_hooks[@]}"; do
+        if [[ "${!hook}" == "Y" ]]; then
+            running_hooks_name+=("${hook}")
+            ((running_hooks_count = running_hooks_count + 1))
+        fi
+    done
+    declare -r -g running_hooks_name
+
+    if [[ "${running_hooks_count}" -eq 0 ]]; then
+        echo_error "No arguments provided!"
+    fi
+}
+
+function dispatch_hooks() {
+    echo_running_hooks
+
+    if [[ "${11}" =~ "--build" ]]; then
+        dispatch_build
+    elif [[ "${12}" =~ "--release" ]]; then
+        dispatch_build
+        dispatch_preflight_tools
+    else
+        dispatch_preflight_tools
+    fi
+
+    echo_summary
+}
+
+function set_constants() {
+    find_project_root
+
+    exit_code=0
+
+    running_hooks_count=0
+    declare -a -g running_hooks_name=()
+
+    declare -a -g active_dirs=()
+    declare -a -g active_py_files=()
+    declare -a -g active_sh_files=()
+    declare -a -g active_other_files=()
+    declare -a -g active_files_all=()
+
+    icarus_config="$(realpath -- "${project_root_dir_abs}/icarus.cfg")"
+
+    python3_icarus_build_env="$(realpath -- "${cli_scripts_dir_abs}/../build_venv/bin/python3")"
+
+    passed="${bold_black}${bg_green} PASS ${end}"
+    skipped="${bold_black}${bg_white} SKIP ${end}"
+    failed="${bold_black}${bg_red} FAIL ${end}"
+
     forge_hooks=(
+        "build"
         "isort"
         "blackfmt"
         "flake8"
@@ -689,126 +879,42 @@ function parse_args() {
         "pytest"
     )
 
-    running_hooks_count=0
+    build="N"
+    isort="N"
+    blackfmt="N"
+    flake8="N"
+    mypy="N"
+    shfmt="N"
+    whitespaces="N"
+    trailing="N"
+    eofnewline="N"
+    gitleaks="N"
+    pytest="N"
 
-    declare -a running_hooks_name
-    running_hooks_name=()
-
-    if [[ -n "${1}" ]]; then
-        venv_name="${1}"
-    fi
-
-    if [[ "${2}" =~ "--with-isort" ]]; then
-        isort="Y"
-    else
-        isort="N"
-    fi
-
-    if [[ "${3}" =~ "--with-black" ]]; then
-        blackfmt="Y"
-    else
-        blackfmt="N"
-    fi
-
-    if [[ "${4}" =~ "--with-flake8" ]]; then
-        flake8="Y"
-    else
-        flake8="N"
-    fi
-
-    if [[ "${5}" =~ "--with-mypy" ]]; then
-        mypy="Y"
-    else
-        mypy="N"
-    fi
-
-    if [[ "${6}" =~ "--with-shfmt" ]]; then
-        shfmt="Y"
-    else
-        shfmt="N"
-    fi
-
-    if [[ "${7}" =~ "--with-whitespaces" ]]; then
-        whitespaces="Y"
-    else
-        whitespaces="N"
-    fi
-
-    if [[ "${8}" =~ "--with-eofnewline" ]]; then
-        eofnewline="Y"
-    else
-        eofnewline="N"
-    fi
-
-    if [[ "${9}" =~ "--with-trailing" ]]; then
-        trailing="Y"
-    else
-        trailing="N"
-    fi
-
-    if [[ "${10}" =~ "--with-pytest" ]]; then
-        pytest="Y"
-    else
-        pytest="N"
-    fi
-
-    if [[ "${11}" =~ "--with-gitleaks" ]]; then
-        gitleaks="Y"
-    else
-        gitleaks="N"
-    fi
-
-    if [[ "${12}" =~ "--format" ]]; then
-        isort="Y"
-        blackfmt="Y"
-        flake8="Y"
-        mypy="Y"
-        shfmt="Y"
-        whitespaces="Y"
-        eofnewline="Y"
-        trailing="Y"
-    fi
-
-    if [[ "${13}" =~ "--test" ]]; then
-        pytest="Y"
-    fi
-
-    if [[ "${14}" =~ "--all" ]]; then
-        isort="Y"
-        blackfmt="Y"
-        flake8="Y"
-        mypy="Y"
-        shfmt="Y"
-        whitespaces="Y"
-        eofnewline="Y"
-        trailing="Y"
-        pytest="Y"
-        gitleaks="Y"
-    fi
-
-    for hook in "${forge_hooks[@]}"; do
-        if [[ "${!hook}" == "Y" ]]; then
-            running_hooks_name+=("${hook}")
-            ((running_hooks_count = running_hooks_count + 1))
-        fi
-    done
-
-    declare -r -g running_hooks_name
-
-    if [[ "${running_hooks_count}" -eq 0 ]]; then
-        echo -e "${bold_black}${bg_red} ERROR! ${end}"
-        echo -e " No arguments provided!"
-        exit 1
-    fi
-
-    preflight_tools ${@}
-
-    return "${exit_code}"
+    build_summary_status="${skipped}"
+    isort_summary_status="${skipped}"
+    blackfmt_summary_status="${skipped}"
+    flake8_summary_status="${skipped}"
+    mypy_summary_status="${skipped}"
+    shfmt_summary_status="${skipped}"
+    whitespaces_summary_status="${skipped}"
+    trailing_summary_status="${skipped}"
+    eofnewline_summary_status="${skipped}"
+    gitleaks_summary_status="${skipped}"
+    pytest_summary_status="${skipped}"
 }
 
 function main() {
+    set_constants
+
+    echo_title "icarus.cfg"
     parse_icarus_config
+    validate_icarus_config
+
     parse_args "${@}"
+    dispatch_hooks "${@}"
+
+    return "${exit_code}"
 }
 
 main "${@}"
