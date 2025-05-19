@@ -846,7 +846,9 @@ function dispatch_hooks() {
 }
 
 function set_constants() {
+    icarus_config_filename="icarus.cfg"
     find_project_root
+    icarus_config="$(realpath -- "${project_root_dir_abs}/${icarus_config_filename}")"
 
     exit_code=0
 
@@ -858,9 +860,6 @@ function set_constants() {
     declare -a -g active_sh_files=()
     declare -a -g active_other_files=()
     declare -a -g active_files_all=()
-
-    icarus_config_filename="icarus.cfg"
-    icarus_config="$(realpath -- "${project_root_dir_abs}/${icarus_config_filename}")"
 
     python3_icarus_build_env="$(realpath -- "${cli_scripts_dir_abs}/../build_venv/bin/python3")"
 
