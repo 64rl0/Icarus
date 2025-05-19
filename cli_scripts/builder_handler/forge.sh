@@ -547,11 +547,11 @@ function set_runtime_info() {
 }
 
 function build_brazil_env() {
-    brazil ws sync --md
+    brazil ws sync --md || exit 1
     echo
     echo
 
-    brazil-build clean
+    brazil-build clean || exit 1
     echo
     echo
 
