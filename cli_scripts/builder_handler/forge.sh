@@ -405,6 +405,8 @@ function validate_icarus_config() {
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         if [[ -z "${brazil_python_runtime}" ]]; then
             echo_error "No python version specified in brazil icarus.cfg"
+        else
+            brazil_python_runtime="python${brazil_python_runtime}"
         fi
     elif [[ "${build_system_in_use}" == "venv" ]]; then
         if [[ -z "${venv_name}" ]]; then
@@ -587,7 +589,7 @@ function build_venv_env() {
 
 function activate_brazil_env() {
     # Use brazil runtime farm to activate brazil runtime env
-    local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
+    local brazil_bin_dir="$(brazil-path testrun.runtimefarm 2>/dev/null)/${brazil_python_runtime}/bin"
     OLD_PATH="${PATH}"
     PATH="${brazil_bin_dir}:${PATH}"
 
