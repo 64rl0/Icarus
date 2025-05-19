@@ -547,6 +547,14 @@ function set_runtime_info() {
 }
 
 function build_brazil_env() {
+    brazil ws sync --md
+    echo
+    echo
+
+    brazil-build clean
+    echo
+    echo
+
     # Use brazil runtime farm to activate brazil runtime env
     local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
 
