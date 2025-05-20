@@ -86,6 +86,8 @@ function echo_running_hooks() {
 
 function echo_summary() {
     echo_title "Forge Summary"
+    echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
+    echo
     echo -e "${runtime}"
     echo
 
@@ -1062,6 +1064,14 @@ function set_constants() {
 
     exit_code=0
 
+    initial_command_received="icarus builder forge"
+    for arg in "${@}"; do
+        if [[ "${arg}" != "" ]]; then
+            initial_command_received+=" ${arg}"
+        fi
+    done
+    declare -r -g initial_command_received
+
     running_hooks_count=0
     declare -a -g running_hooks_name=()
 
@@ -1138,7 +1148,7 @@ function set_constants() {
 
 function main() {
     validate_prerequisites
-    set_constants
+    set_constants "${@}"
 
     process_icarus_config
 

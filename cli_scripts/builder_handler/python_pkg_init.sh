@@ -51,6 +51,7 @@ python_package_init() {
     local input_str="$1"
     local project_name_pascal_case="$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
     local project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
+    local project_name_snake_case_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
     local absolute_current_path="$(realpath "$(pwd)")"
     local project_absolute_path="${absolute_current_path}/${project_name_pascal_case}"
     local project_src_folder="${project_absolute_path}/src/${project_name_snake_case}"
@@ -84,6 +85,7 @@ python_package_init() {
     # Rename project_name placeholders
     find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
     find "${project_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${project_name_snake_case}/g" {} \;
+    find "${project_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${project_name_snake_case_dashed}/g" {} \;
 
     echo -e "\nInitiating Git repository..."
     cd "${project_absolute_path}"
