@@ -3,7 +3,7 @@ name = "icarus"
 description = "Add project description"
 readme = "README.md"
 version = "1.0.0"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Carlo Gatti", email = "carlo.gatti@me.com"}
 ]

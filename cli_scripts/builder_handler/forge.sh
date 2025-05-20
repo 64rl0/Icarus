@@ -423,11 +423,10 @@ function run_venv_documentation() {
         sphinx-apidoc -d 1000 --separate --module-first -o "${project_root_dir_abs}/docs/_apidoc" "${project_root_dir_abs}/src"
 
         # Generating HTML docs
-        sphinx-build --builder html --fail-on-warning "${project_root_dir_abs}/docs" "${project_root_dir_abs}/docs/html"
+        sphinx-build -v --fail-on-warning --builder html "${project_root_dir_abs}/docs" "${project_root_dir_abs}/docs/html"
     } || {
         docs_summary_status="${failed}"
         exit_code=1
-        return
     }
 
     # Cleaning not needed build dirs
@@ -750,25 +749,43 @@ function build_venv_env() {
         echo -e "\n\n${bold_green}${sparkles} Creating '${venv_name}' venv...${end}"
         python${python_version_for_venv} -m venv --clear --copies "${path_to_venv_root}" && echo -e "done!"
 
-        # Activate local venv
+        # Activate local venv silently
         . "${path_to_venv_root}/bin/activate"
-        echo -e "\n\n${bold_green}${green_check_mark} '${venv_name}' venv activated:${end}"
-        echo -e "OS Version: $(uname)"
-        echo -e "Kernel Version: $(uname -r)"
-        echo -e "venv: $VIRTUAL_ENV"
-        echo -e "running: $(python --version)"
+
+        # Install pip and update
+        echo -e "\n\n${bold_green}${sparkles} Updating pip...${end}"
+        pip install --upgrade pip
 
         # Install requirements
         echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' venv...${end}"
-        pip install --upgrade pip
-        pip install -I "${project_root_dir_abs}"
         pip install -I -r "${project_root_dir_abs}/${requirements_path}"
+
+        # Cleanup pre
+        echo -e "\n\n${bold_green}${broom} Cleaning up...${end}"
+        rm -rf "${project_root_dir_abs}/dist/"
+        rm -rf "${project_root_dir_abs}/src/"*".egg-info"
+        echo -e "cleanup completed"
+
+        # Building local package
+        echo -e "\n\n${bold_green}${hammer_and_wrench}  Building '${project_root_dir_abs}'...${end}"
+        python3 -m build "${project_root_dir_abs}"
+        echo -e "\n\n${bold_green}${package} Checking package health${end}"
+        twine check "${project_root_dir_abs}/dist/"*.whl
+
+        # Install local package into venv (as last so it will override the same name)
+        echo -e "\n\n${bold_green}${sparkles} Installing '${project_root_dir_abs}' into '${venv_name}' venv...${end}"
+        pip install -I "${project_root_dir_abs}/dist/"*.whl
+
+        # Cleanup post
+        echo -e "\n\n${bold_green}${broom} Cleaning up...${end}"
+        rm -rf "${project_root_dir_abs}/dist/"
+        rm -rf "${project_root_dir_abs}/src/"*".egg-info"
+        echo -e "cleanup completed"
 
         # Build complete!
         echo -e "\n\n${bold_green}${sparkles} '${venv_name}' venv build complete & Ready for use!${end}"
 
-        echo -e "\n\n${bold_yellow}Virtual environment deactivated!${end}"
-        echo
+        # Deactivate virtual env silently
         deactivate
 
         # Set runtime to be used in summary
