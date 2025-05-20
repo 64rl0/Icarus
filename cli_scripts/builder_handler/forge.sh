@@ -47,7 +47,8 @@ function validate_command() {
 }
 
 function validate_prerequisites() {
-    # Validate we are not running the prod script on this dev env
+    # Validate we are not running the prod script on this dev env to prevent special formatting
+    # of this script
     if [[ "${PWD}" =~ _Projects\/Icarus && ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
         echo_error "You are not supposed to run production icarus in the icarus development environment"
     fi
@@ -431,6 +432,7 @@ function run_venv_documentation() {
 
     # Cleaning not needed build dirs
     rm -rf "${project_root_dir_abs}/docs/html/.doctrees"
+    rm -rf "${project_root_dir_abs}/docs/html/.buildinfo"
 
     echo
     echo "Open the HTML pages"
