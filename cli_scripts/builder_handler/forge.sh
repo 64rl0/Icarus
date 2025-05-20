@@ -47,7 +47,8 @@ function validate_command() {
 }
 
 function validate_prerequisites() {
-    if [[ ${PWD} =~ _Projects\/Icarus\/ && ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
+    # Validate we are not running the prod script on this dev env
+    if [[ "${PWD}" =~ _Projects\/Icarus && ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
         echo_error "You are not supposed to run production icarus in the icarus development environment"
     fi
 
