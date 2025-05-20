@@ -47,8 +47,8 @@ function validate_command() {
 }
 
 function validate_prerequisites() {
-    if [[ "${0}" =~ \.icarus ]]; then
-        echo_error "You are not supposed to run production icarus on the icarus development package"
+    if [[ ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
+        echo_error "You are not supposed to run production icarus in the icarus development environment"
     fi
 
     validate_command "bc"
@@ -304,7 +304,7 @@ function run_eofnewline() {
         fi
 
         # Read the last byte; add '\n' only if it isn't one already.
-        if [[ $(tail -c1 -- "${el}" | od -An -tu1) -ne 10 ]]; then
+        if [[ $(tail -c 1 -- "${el}" | od -An -tu1) -ne 10 ]]; then
             echo "Fixing: ${el}"
             echo "EOF char is: $(tail -c1 -- "${el}")"
             echo
@@ -313,6 +313,24 @@ function run_eofnewline() {
                 exit_code=1
             }
             ((counter = counter + 1))
+        else
+            while true; do
+                if [[ $(tail -c 2 -- "${el}" | head -c 1 | od -An -tu1) -eq 10 ]]; then
+                    if [[ "${entered}" != true ]]; then
+                        local entered=true
+                        echo "Fixing: ${el}"
+                        echo "Removing extra EOF new-lines"
+                        echo
+                        ((counter = counter + 1))
+                    fi
+                    truncate -s -1 -- "${el}" || {
+                        eofnewline_summary_status="failed"
+                        exit_code=1
+                    }
+                else
+                    break
+                fi
+            done
         fi
     done
 

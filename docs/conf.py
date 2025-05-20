@@ -71,3 +71,19 @@ source_suffix = {
 # Options for HTML output
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+
+def _keep_trailing_newline(app):
+    """
+    Flip the Jinja setting before the first template is rendered
+    """
+
+    app.builder.templates.environment.keep_trailing_newline = True
+
+
+def setup(app):
+    """
+    Run as soon as the builder is initialised
+    """
+
+    app.connect("builder-inited", _keep_trailing_newline)
