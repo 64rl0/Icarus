@@ -9,13 +9,17 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# src/icarus/config/constants.py
-# Created 1/18/25 - 5:52 PM UK Time (London) by carlogtt
+# docs/conf.py
+# Created 5/20/25 - 11:12 AM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
 """
-This module ...
+Configuration file for the Sphinx documentation builder.
+
+For the full list of built-in configuration values, see the
+documentation:
+https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
 # ======================================================================
@@ -32,31 +36,38 @@ This module ...
 # ======================================================================
 
 # Standard Library Imports
-import os
-import pathlib
+import datetime
 
 # END IMPORTS
 # ======================================================================
 
 
-# List of public names in the module
-# __all__ = []
+# Project information
+project = 'Icarus'
+version = 'v.'
+release = 'r.'
+copyright = f"{datetime.datetime.now().year}, Carlo Gatti"
+author = "Carlo Gatti"
 
-# Setting up logger for current module
-# module_logger =
+# General configuration
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+]
 
-# Type aliases
-#
+# Options for templating
+templates_path = ['_templates']
 
-CLI_NAME = 'icarus'
-CLI_DESCRIPTION = (
-    ' _)                                   \n'
-    '  |   __|   _` |   __|  |   |   __|   \n'
-    '  |  (     (   |  |     |   | \\__ \\ \n'
-    ' _| \\___| \\__,_| _|    \\__,_| ____/  '
-)
-CLI_EPILOG = ''
-CLI_VERSION = 'build 2.1.30 built on 05/20/2025'
+# Options for source files
+exclude_patterns = ['Thumbs.db', '.DS_Store']
+master_doc = "index"
+source_suffix = {
+    '.rst': 'restructuredtext',
+}
 
-ROOT_DIR = pathlib.Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
-CLI_SCRIPTS_DIR = pathlib.Path(os.path.join(ROOT_DIR, 'cli_scripts'))
+# Options for HTML output
+html_theme = 'alabaster'
+html_static_path = ['_static']

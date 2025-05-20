@@ -1,3 +1,24 @@
+[project]
+name = "icarus"
+description = "Add project description"
+readme = "README.md"
+version = "1.0.0"
+license = {text = "MIT"}
+authors = [
+    {name = "Carlo Gatti", email = "carlo.gatti@me.com"}
+]
+requires-python = ">= 3.9"
+dependencies = []
+
+
+[project.urls]
+Homepage = "https://github.com/64rl0/Icarus"
+
+
+[project.optional-dependencies]
+dev = []
+
+
 [tool.black]
 # black docs
 # https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>icarus.cli &#8212; Icarus r. documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=bbc20cc3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for icarus.cli</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ======================================================================</span>
+<span class="c1"># MODULE DETAILS</span>
+<span class="c1"># This section provides metadata about the module, including its</span>
+<span class="c1"># creation date, author, copyright information, and a brief description</span>
+<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># ======================================================================</span>
+
+<span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
+<span class="c1">#  (      _ \     /  |     (   | (_ |    |      |</span>
+<span class="c1"># \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|</span>
+
+<span class="c1"># src/icarus/cli.py</span>
+<span class="c1"># Created 1/20/25 - 6:52 PM UK Time (London) by carlogtt</span>
+<span class="c1"># Copyright (c) Amazon.com Inc. All Rights Reserved.</span>
+<span class="c1"># AMAZON.COM CONFIDENTIAL</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module ...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ======================================================================</span>
+<span class="c1"># EXCEPTIONS</span>
+<span class="c1"># This section documents any exceptions made code or quality rules.</span>
+<span class="c1"># These exceptions may be necessary due to specific coding requirements</span>
+<span class="c1"># or to bypass false positives.</span>
+<span class="c1"># ======================================================================</span>
+<span class="c1">#</span>
+
+<span class="c1"># ======================================================================</span>
+<span class="c1"># IMPORTS</span>
+<span class="c1"># Importing required libraries and modules for the application.</span>
+<span class="c1"># ======================================================================</span>
+
+<span class="c1"># Standard Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+<span class="c1"># Local Folder (Relative) Imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">handlers</span><span class="p">,</span> <span class="n">utils</span>
+
+<span class="c1"># END IMPORTS</span>
+<span class="c1"># ======================================================================</span>
+
+
+<span class="c1"># List of public names in the module</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;initialize_parser&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;parse_args&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;execute&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Setting up logger for current module</span>
+<span class="n">module_logger</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">get_child_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Type aliases</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="initialize_parser">
+<a class="viewcode-back" href="../../_apidoc/icarus.cli.html#icarus.cli.initialize_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializes and configures the argument parser for the CLI</span>
+<span class="sd">    application.</span>
+
+<span class="sd">    :return: The configured argument parser object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tl_par</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusArgumentParser</span><span class="p">(</span>
+        <span class="n">prog</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_NAME</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_DESCRIPTION</span><span class="p">,</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_EPILOG</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tl_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--version&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--update&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--version&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;display version information and exit&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tl_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;-v&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;count&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;increase output verbosity&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">sl_par</span> <span class="o">=</span> <span class="n">tl_par</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;commands&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tl_command&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&lt;command&gt;&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># =============</span>
+    <span class="c1"># Main Commands</span>
+    <span class="c1"># =============</span>
+    <span class="c1"># Amazon</span>
+    <span class="n">amazon_par</span> <span class="o">=</span> <span class="n">sl_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;amazon&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;utilities for Amazon environment&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;description:</span><span class="se">\n</span><span class="s1">  The </span><span class="se">\&#39;</span><span class="s1">icarus amazon</span><span class="se">\&#39;</span><span class="s1"> command provides various utilities for&#39;</span>
+            <span class="s1">&#39; interacting with and managing the Amazon environment.</span><span class="se">\n</span><span class="s1">  These tools are designed&#39;</span>
+            <span class="s1">&#39; to streamline workflows, simplify setup, and ensure proper configuration for&#39;</span>
+            <span class="s1">&#39; development</span><span class="se">\n</span><span class="s1">  and operational tasks within Amazon</span><span class="se">\&#39;</span><span class="s1">s infrastructure.&#39;</span>
+        <span class="p">),</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">amazon_sub</span> <span class="o">=</span> <span class="n">amazon_par</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;subcommands&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;amazon_command&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&lt;subcommand&gt;&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Builder</span>
+    <span class="n">builder_par</span> <span class="o">=</span> <span class="n">sl_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;builder&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;utilities for software development&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;description:</span><span class="se">\n</span><span class="s1">  The </span><span class="se">\&#39;</span><span class="s1">icarus builder</span><span class="se">\&#39;</span><span class="s1"> command provides utilities for software&#39;</span>
+            <span class="s1">&#39; development. These tools are designed to</span><span class="se">\n</span><span class="s1">  automate tasks, manage development&#39;</span>
+            <span class="s1">&#39; environments, and simplify workflows for creating, maintaining, and</span><span class="se">\n</span><span class="s1">  deploying&#39;</span>
+            <span class="s1">&#39; software projects.&#39;</span>
+        <span class="p">),</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_sub</span> <span class="o">=</span> <span class="n">builder_par</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;subcommands&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;builder_command&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&lt;subcommand&gt;&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># MacOS</span>
+    <span class="n">macos_par</span> <span class="o">=</span> <span class="n">sl_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;macos&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;utilities for macOS&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;description:</span><span class="se">\n</span><span class="s1">  The </span><span class="se">\&#39;</span><span class="s1">icarus macos</span><span class="se">\&#39;</span><span class="s1"> command provides utilities for managing&#39;</span>
+            <span class="s1">&#39; macOS-specific tasks. These include tools</span><span class="se">\n</span><span class="s1">  for handling encrypted volumes,&#39;</span>
+            <span class="s1">&#39; managing mount points, and automating startup configurations to enhance</span><span class="se">\n</span><span class="s1">  macOS&#39;</span>
+            <span class="s1">&#39; system workflows.&#39;</span>
+        <span class="p">),</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">macos_sub</span> <span class="o">=</span> <span class="n">macos_par</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;subcommands&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;macos_command&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&lt;subcommand&gt;&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Unison</span>
+    <span class="n">unison_par</span> <span class="o">=</span> <span class="n">sl_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;unison&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;utilities to manage Unison demon&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;description:</span><span class="se">\n</span><span class="s1">  The </span><span class="se">\&#39;</span><span class="s1">icarus unison</span><span class="se">\&#39;</span><span class="s1"> command provides tools for managing Unison&#39;</span>
+            <span class="s1">&#39; profiles. Unison is used to synchronize</span><span class="se">\n</span><span class="s1">  files across devices, and this command&#39;</span>
+            <span class="s1">&#39; simplifies tasks such as starting and stopping syncs, checking</span><span class="se">\n</span><span class="s1">  profile status,&#39;</span>
+            <span class="s1">&#39; clearing locks, and automating startup configuration for Unison operations.&#39;</span>
+        <span class="p">),</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">unison_sub</span> <span class="o">=</span> <span class="n">unison_par</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;subcommands&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;unison_command&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&lt;subcommand&gt;&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ==================</span>
+    <span class="c1"># Amazon subcommands</span>
+    <span class="c1"># ==================</span>
+    <span class="n">amazon_auth_init_parent_parser</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusArgumentParser</span><span class="p">(</span><span class="n">add_help</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">amazon_auth_init_parent_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;extend&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;IDs&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;takes multiple DevDsk IDs i.e. -i 1 2 3&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">amazon_auth_init_parent_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--mw-args&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;append&#39;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;ARG&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;specify one arg to pass to mwinit i.e. --mw-arg=--ncl&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;auth-init&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">amazon_auth_init_parent_parser</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run midway authentication on localhost and optional remote DevDsk(s)&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;auth-init-exp&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">amazon_auth_init_parent_parser</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run midway authentication express on localhost and optional remote DevDsk(s)&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_midway_cookie</span> <span class="o">=</span> <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;midway-cookie&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;check the cookies validity&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">amazon_midway_cookie</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--filepath&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PATH&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the filepath of the cookie file, if none then ~/.midway/cookie&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_devdsk_formation</span> <span class="o">=</span> <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devdsk-formation&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run DevDsk Formation on a remote DevDsk&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">amazon_devdsk_formation</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the DevDsk ID&#39;</span><span class="p">)</span>
+
+    <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;update-hosts&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;update /etc/hosts file&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;update-hosts-d&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;install a LaunchDaemon to update the hosts file every hour&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;brazil-setup&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creating case-sensitive volumes (</span><span class="se">\&#39;</span><span class="s1">workplace</span><span class="se">\&#39;</span><span class="s1"> and </span><span class="se">\&#39;</span><span class="s1">brazil-pkg-cache</span><span class="se">\&#39;</span><span class="s1">)&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amazon_spurdog_ro</span> <span class="o">=</span> <span class="n">amazon_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;spurdog-ro&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;check membership for Spurdog Program&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">amazon_spurdog_ro</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;ALIAS&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;username to check Spurdog Program membership&#39;</span>
+    <span class="p">)</span>
+    <span class="n">amazon_spurdog_ro</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--auth&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--auth&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run mwinit before querying&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ===================</span>
+    <span class="c1"># Builder subcommands</span>
+    <span class="c1"># ===================</span>
+    <span class="n">builder_python_pkg_init</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;python-pkg-init&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;initiate a new Python package in the current folder&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_python_pkg_init</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PACKAGE_NAME&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the package name in PascalCase&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dotfiles-update&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;update dotfiles from their specified repository&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">builder_forge</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;forge&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;invoke the Forge build system&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--build&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--build&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;create/re-create the project runtime environment&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--clean&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--clean&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clean the project runtime environment&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--release&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--release&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the full “release” pipeline&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--format&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--format&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run only the formatting tools&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--test&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--test&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run only the automated test suite&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--isort&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--isort&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;sort python imports with isort&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--black&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--black&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;re-format python code with black&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--flake8&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--flake8&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run static analysis with flake8&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--mypy&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--mypy&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;type-check the codebase with mypy&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--shfmt&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--shfmt&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;format shell scripts with shfmt&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--whitespaces&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--whitespaces&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;normalize mixed or excessive whitespace&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--trailing&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--trailing&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;remove trailing whitespace&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--eofnewline&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--eofnewline&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;ensure files end with a single newline&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--gitleaks&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--gitleaks&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;scan for secrets with gitleaks&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--pytest&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--pytest&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;execute the unit/integration-test suite via pytest&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_forge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--docs&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--docs&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate user documentation&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># =================</span>
+    <span class="c1"># MacOS subcommands</span>
+    <span class="c1"># =================</span>
+    <span class="n">macos_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;find-unencrypted-volumes&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;find all unencrypted volumes&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">macos_make_encrypted_volume</span> <span class="o">=</span> <span class="n">macos_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;make-encrypted-volume&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;make an encrypted APFS volume&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">macos_make_encrypted_volume</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of the encrypted volume&#39;</span>
+    <span class="p">)</span>
+    <span class="n">macos_make_encrypted_volume</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-q&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;QUOTA&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;size of the encrypted volume in Gb i.e. -q 50g&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">macos_encrypt_volume</span> <span class="o">=</span> <span class="n">macos_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;encrypt-volume&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;encrypt an APFS volume&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">macos_encrypt_volume</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of the volume to encrypt&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">macos_mount_volume</span> <span class="o">=</span> <span class="n">macos_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mount-volume&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;mount the specified volume at the specified mount point&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">macos_mount_volume</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of the volume to mount&#39;</span>
+    <span class="p">)</span>
+    <span class="n">macos_mount_volume</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;MOUNT&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;mount point for the volume&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">macos_mount_at_startup</span> <span class="o">=</span> <span class="n">macos_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mount-at-startup&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;install a LaunchDaemon to mount the volume at System Startup&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">macos_mount_at_startup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of the volume to mount&#39;</span>
+    <span class="p">)</span>
+    <span class="n">macos_mount_at_startup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;MOUNT&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;mount point for the volume&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ==================</span>
+    <span class="c1"># Unison subcommands</span>
+    <span class="c1"># ==================</span>
+    <span class="n">unison_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;check the running status of each Unison profile&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">unison_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;restart&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;restart Unison profile(s) sync&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">unison_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;stop Unison profile(s) sync&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">unison_clear_locks</span> <span class="o">=</span> <span class="n">unison_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;clear-locks&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clear Unison locks on localhost and an optional remote DevDsk&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">unison_clear_locks</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the DevDsk ID&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">unison_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;start-at-startup&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;install a LaunchDaemon to start Unison at System Startup&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">unison_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run-profiles&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;[DO NOT USE] internally used only to run Unison profiles&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tl_par</span></div>
+
+
+
+<div class="viewcode-block" id="parse_args">
+<a class="viewcode-back" href="../../_apidoc/icarus.cli.html#icarus.cli.parse_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse the command-line arguments using the provided parser.</span>
+
+<span class="sd">    :param parser: The argument parser configured with the required</span>
+<span class="sd">        commands, subcommands, and arguments.</span>
+<span class="sd">    :return: A namespace object containing the parsed arguments and</span>
+<span class="sd">        their values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="execute">
+<a class="viewcode-back" href="../../_apidoc/icarus.cli.html#icarus.cli.execute">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute the logic based on the parsed arguments.</span>
+
+<span class="sd">    This function acts as a dispatcher, routing the parsed command-line</span>
+<span class="sd">    arguments to the appropriate handler function based on the</span>
+<span class="sd">    `tl_command` value. Each top-level command corresponds to a specific</span>
+<span class="sd">    handler function that implements the logic for that command.</span>
+
+<span class="sd">    :param args: The parsed arguments from the command-line.</span>
+<span class="sd">    :return: Exit code of the script.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check for global commands first</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="si">=}</span><span class="s2"> handler=</span><span class="si">{</span><span class="n">handlers</span><span class="o">.</span><span class="n">handle_global_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">handlers</span><span class="o">.</span><span class="n">handle_global_command</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="c1"># Dispatch tl_command</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tl_command</span> <span class="o">==</span> <span class="s1">&#39;amazon&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">tl_command</span><span class="si">=}</span><span class="s2"> handler=</span><span class="si">{</span><span class="n">handlers</span><span class="o">.</span><span class="n">handle_amazon_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">handlers</span><span class="o">.</span><span class="n">handle_amazon_command</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">tl_command</span> <span class="o">==</span> <span class="s1">&#39;builder&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">tl_command</span><span class="si">=}</span><span class="s2"> handler=</span><span class="si">{</span><span class="n">handlers</span><span class="o">.</span><span class="n">handle_builder_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">handlers</span><span class="o">.</span><span class="n">handle_builder_command</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">tl_command</span> <span class="o">==</span> <span class="s1">&#39;macos&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">tl_command</span><span class="si">=}</span><span class="s2"> handler=</span><span class="si">{</span><span class="n">handlers</span><span class="o">.</span><span class="n">handle_macos_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">handlers</span><span class="o">.</span><span class="n">handle_macos_command</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">tl_command</span> <span class="o">==</span> <span class="s1">&#39;unison&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">tl_command</span><span class="si">=}</span><span class="s2"> handler=</span><span class="si">{</span><span class="n">handlers</span><span class="o">.</span><span class="n">handle_unison_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">handlers</span><span class="o">.</span><span class="n">handle_unison_command</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">tl_command</span><span class="si">=}</span><span class="s2"> -&gt; this argument is required&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;the following arguments are required: &lt;command&gt;&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Icarus</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_apidoc/modules.html">src</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Carlo Gatti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

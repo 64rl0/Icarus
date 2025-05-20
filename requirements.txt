@@ -9,6 +9,9 @@ pyyaml
 # Test dependencies
 pytest
 
+# Documentation dependencies
+sphinx
+
 # Development dependencies
 black
 isort

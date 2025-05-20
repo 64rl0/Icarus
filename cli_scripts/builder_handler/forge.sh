@@ -47,6 +47,10 @@ function validate_command() {
 }
 
 function validate_prerequisites() {
+    if [[ "${0}" =~ \.icarus ]]; then
+        echo_error "You are not supposed to run production icarus on the icarus development package"
+    fi
+
     validate_command "bc"
 }
 
@@ -136,6 +140,7 @@ function run_isort() {
     validate_command "isort" || {
         isort_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     for el in "${elements[@]}"; do
@@ -155,6 +160,7 @@ function run_black() {
     validate_command "black" || {
         black_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     for el in "${elements[@]}"; do
@@ -174,6 +180,7 @@ function run_flake8() {
     validate_command "flake8" || {
         flake8_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     for el in "${elements[@]}"; do
@@ -193,6 +200,7 @@ function run_mypy() {
     validate_command "mypy" || {
         mypy_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     for el in "${elements[@]}"; do
@@ -214,6 +222,7 @@ function run_shfmt() {
     validate_command "shfmt" || {
         shfmt_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     for el in "${elements[@]}"; do
@@ -256,13 +265,13 @@ function run_char_replacement() {
 
         if [[ $(uname -s) == "Darwin" ]]; then
             # macOS
-            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${failed}"
                 exit_code=1
             }
         else
             # Linux
-            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${failed}"
                 exit_code=1
             }
@@ -332,6 +341,7 @@ function run_gitleaks() {
     validate_command "gitleaks" || {
         gitleaks_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     echo -e "${blue}git pre-commit${end}"
@@ -365,19 +375,44 @@ function run_brazil_documentation() {
 }
 
 function run_venv_documentation() {
-    #    validate_command "sphinx-build" || {
-    #        exit_code=1
-    #        docs_summary_status="${failed}"
-    #    }
+    validate_command "sphinx-apidoc" || {
+        docs_summary_status="${failed}"
+        exit_code=1
+        return
+    }
+
+    validate_command "sphinx-build" || {
+        docs_summary_status="${failed}"
+        exit_code=1
+        return
+    }
+
+    if [[ ! -d "${project_root_dir_abs}/docs" ]]; then
+        docs_summary_status="${failed}"
+        exit_code=1
+        echo_error "No \`${project_root_dir_abs}/docs\` directory found.\n To enable documentation create a \`docs\` directory in the project root directory." || :
+        return
+    fi
 
     {
-        # TODO(carlogtt): implement this tool
-        echo -e "${bold_yellow}Tool not implemented yet!${end}"
-        echo
+        # Cleaning docs env
+        rm -rf "${project_root_dir_abs}/docs/_apidoc"
+        rm -rf "${project_root_dir_abs}/docs/html"
+
+        # Generating Sphinx sources
+        sphinx-apidoc -d 1000 --separate --module-first -o "${project_root_dir_abs}/docs/_apidoc" "${project_root_dir_abs}/src"
+
+        # Generating HTML docs
+        sphinx-build --builder html --fail-on-warning "${project_root_dir_abs}/docs" "${project_root_dir_abs}/docs/html"
     } || {
         docs_summary_status="${failed}"
         exit_code=1
+        return
     }
+
+    echo
+    echo "Open the HTML pages"
+    echo "${yellow}file://${project_root_dir_abs}/docs/html/index.html${end}"
     echo
 }
 
@@ -404,8 +439,9 @@ function run_venv_pytest() {
     echo
 
     validate_command "pytest" || {
-        exit_code=1
         pytest_summary_status="${failed}"
+        exit_code=1
+        return
     }
 
     pytest "${project_root_dir_abs}" 2>&1 || {
@@ -701,6 +737,7 @@ function build_venv_env() {
         # Install requirements
         echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' venv...${end}"
         pip install --upgrade pip
+        pip install -I "${project_root_dir_abs}"
         pip install -I -r "${project_root_dir_abs}/${requirements_path}"
 
         # Build complete!
@@ -730,6 +767,7 @@ function clean_venv_env() {
     rm -rf "${project_root_dir_abs}/${venv_name}" || {
         clean_summary_status="${failed}"
         exit_code=1
+        return
     }
 
     echo -e "Virtual environment '${venv_name}' cleaned!"
