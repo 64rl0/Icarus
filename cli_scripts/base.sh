@@ -10,7 +10,7 @@
 # AMAZON.COM CONFIDENTIAL
 
 # Basic Foreground Colors
-declare -r black=$'\033[30m'
+declare -r black_=$'\033[30m'
 declare -r red=$'\033[31m'
 declare -r green=$'\033[32m'
 declare -r yellow=$'\033[33m'

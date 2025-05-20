@@ -102,6 +102,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
             args.pytest,
             args.build,
             args.docs,
+            args.clean,
             args.release,
             args.format,
             args.test,

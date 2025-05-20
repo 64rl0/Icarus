@@ -307,7 +307,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--build',
         default='',
-        help='create the project runtime environment',
+        help='create/re-create the project runtime environment',
+    )
+    builder_forge.add_argument(
+        '--clean',
+        required=False,
+        action='store_const',
+        const='--clean',
+        default='',
+        help='clean the project runtime environment',
     )
     builder_forge.add_argument(
         '--release',

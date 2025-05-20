@@ -81,14 +81,9 @@ python_package_init() {
     # Create .env file
     touch "${project_absolute_path}/.env"
 
-    # Rename project_name
-    sed -i '' "12s|.*|# src/${project_name_snake_case}/__init__.py|" "${project_src_folder}/__init__.py"
-    sed -i '' "12s|.*|# src/${project_name_snake_case}/main.py|" "${project_src_folder}/main.py"
-    sed -i '' "12s|.*|# src/${project_name_snake_case}/config/__init__.py|" "${project_src_folder}/config/__init__.py"
-    sed -i '' "12s|.*|# src/${project_name_snake_case}/config/aaa_env_vars.py|" "${project_src_folder}/config/aaa_env_vars.py"
-    sed -i '' "12s|.*|# src/${project_name_snake_case}/config/constants.py|" "${project_src_folder}/config/constants.py"
-    sed -i '' "67s|.*|    APP_NAME = '${project_name_pascal_case}'|" "${project_src_folder}/config/constants.py"
-    sed -i '' "12s|.*|# src/${project_name_snake_case}/config/tools.py|" "${project_src_folder}/config/tools.py"
+    # Rename project_name placeholders
+    find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
+    find "${project_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${project_name_snake_case}/g" {} \;
 
     echo -e "\nInitiating Git repository..."
     cd "${project_absolute_path}"

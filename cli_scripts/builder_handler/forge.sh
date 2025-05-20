@@ -148,17 +148,17 @@ function run_isort() {
 
 function run_black() {
     elements=("${active_dirs[@]}" "${active_py_files[@]}")
-    blackfmt_summary_status="${passed}"
+    black_summary_status="${passed}"
 
     validate_command "black" || {
-        blackfmt_summary_status="${failed}"
+        black_summary_status="${failed}"
         exit_code=1
     }
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
         black "${el}" 2>&1 || {
-            blackfmt_summary_status="${failed}"
+            black_summary_status="${failed}"
             exit_code=1
         }
         echo
@@ -713,6 +713,24 @@ function build_venv_env() {
     }
 }
 
+function clean_brazil_env() {
+    brazil-build clean || {
+        clean_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function clean_venv_env() {
+    rm -rf "${project_root_dir_abs}/${venv_name}" || {
+        clean_summary_status="${failed}"
+        exit_code=1
+    }
+
+    echo -e "Virtual environment '${venv_name}' cleaned!"
+    echo
+}
+
 function activate_brazil_env() {
     # Use brazil runtime farm to activate brazil runtime env
     local brazil_bin_dir="$(brazil-path testrun.runtimefarm 2>/dev/null)/${brazil_python_runtime}/bin"
@@ -789,7 +807,6 @@ function deactivate_env() {
 
 function dispatch_build() {
     build_summary_status="${passed}"
-    start_block=$(date +%s.%N)
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         echo_title "Building brazil"
@@ -798,12 +815,33 @@ function dispatch_build() {
         echo_title "Building venv"
         build_venv_env
     fi
+}
+
+function dispatch_clean() {
+    clean_summary_status="${passed}"
+    start_block=$(date +%s.%N)
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        echo_title "Cleaning brazil"
+        clean_brazil_env
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        echo_title "Cleaning venv"
+        clean_venv_env
+    fi
 
     end_block=$(date +%s.%N)
-    build_execution_time=$(echo "${end_block} - ${start_block}" | bc)
+    clean_execution_time=$(echo "${end_block} - ${start_block}" | bc)
 }
 
 function dispatch_tools() {
+    # Build must stay at the top to be run as first if enabled
+    if [[ "${build}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
+        dispatch_build
+        end_block=$(date +%s.%N)
+        build_execution_time=$(echo "${end_block} - ${start_block}" | bc)
+    fi
+
     build_active_dirs_l1
     build_active_files_l1
     build_all_active_files
@@ -819,12 +857,12 @@ function dispatch_tools() {
         isort_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
-    if [[ "${blackfmt}" == "Y" ]]; then
+    if [[ "${black}" == "Y" ]]; then
         start_block=$(date +%s.%N)
         echo_title "Running Black"
         run_black
         end_block=$(date +%s.%N)
-        blackfmt_execution_time=$(echo "${end_block} - ${start_block}" | bc)
+        black_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
@@ -909,7 +947,7 @@ function parse_args() {
     fi
 
     if [[ "${2}" == "--black" ]]; then
-        blackfmt="Y"
+        black="Y"
     fi
 
     if [[ "${3}" == "--flake8" ]]; then
@@ -952,10 +990,14 @@ function parse_args() {
         docs="Y"
     fi
 
-    if [[ "${13}" == "--release" ]]; then
+    if [[ "${13}" == "--clean" ]]; then
+        clean="Y"
+    fi
+
+    if [[ "${14}" == "--release" ]]; then
         build="Y"
         isort="Y"
-        blackfmt="Y"
+        black="Y"
         flake8="Y"
         mypy="Y"
         shfmt="Y"
@@ -967,9 +1009,9 @@ function parse_args() {
         docs="Y"
     fi
 
-    if [[ "${14}" == "--format" ]]; then
+    if [[ "${15}" == "--format" ]]; then
         isort="Y"
-        blackfmt="Y"
+        black="Y"
         flake8="Y"
         mypy="Y"
         shfmt="Y"
@@ -978,7 +1020,7 @@ function parse_args() {
         eofnewline="Y"
     fi
 
-    if [[ "${15}" == "--test" ]]; then
+    if [[ "${16}" == "--test" ]]; then
         pytest="Y"
     fi
 
@@ -998,11 +1040,14 @@ function parse_args() {
 function dispatch_hooks() {
     echo_running_hooks
 
-    if [[ "${11}" =~ "--build" ]]; then
-        dispatch_build
-    elif [[ "${13}" =~ "--release" ]]; then
-        dispatch_build
-        dispatch_tools
+    if [[ "${13}" == "--clean" ]]; then
+        # Clean must be run alone
+        for arg in "${@}"; do
+            if [[ "${arg}" != "--clean" && "${arg}" != "" ]]; then
+                echo_error "Cannot run \`clean\` with other arguments!"
+            fi
+        done
+        dispatch_clean
     else
         dispatch_tools
     fi
@@ -1034,8 +1079,9 @@ function set_constants() {
 
     forge_hooks=(
         "build"
+        "clean"
         "isort"
-        "blackfmt"
+        "black"
         "flake8"
         "mypy"
         "shfmt"
@@ -1048,8 +1094,9 @@ function set_constants() {
     )
 
     build="N"
+    clean="N"
     isort="N"
-    blackfmt="N"
+    black="N"
     flake8="N"
     mypy="N"
     shfmt="N"
@@ -1061,8 +1108,9 @@ function set_constants() {
     docs="N"
 
     build_summary_status="${skipped}"
+    clean_summary_status="${skipped}"
     isort_summary_status="${skipped}"
-    blackfmt_summary_status="${skipped}"
+    black_summary_status="${skipped}"
     flake8_summary_status="${skipped}"
     mypy_summary_status="${skipped}"
     shfmt_summary_status="${skipped}"
@@ -1074,8 +1122,9 @@ function set_constants() {
     docs_summary_status="${skipped}"
 
     build_execution_time=""
+    clean_excecution_time=""
     isort_execution_time=""
-    blackfmt_execution_time=""
+    black_execution_time=""
     flake8_execution_time=""
     mypy_execution_time=""
     shfmt_execution_time=""
