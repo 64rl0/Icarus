@@ -91,6 +91,12 @@ function echo_running_hooks() {
 }
 
 function echo_summary() {
+    local execution_time=""
+    local execution_time_total=0
+    local execution_time_partial=""
+    local tool=""
+    local tet=""
+
     echo_title "Forge Summary"
     echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
     echo
@@ -100,7 +106,6 @@ function echo_summary() {
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-
     for hook in "${forge_hooks[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
@@ -110,7 +115,20 @@ function echo_summary() {
         fi
         printf "%-30s | %-7s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
-
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
+    for hook in "${forge_hooks[@]}"; do
+        eval execution_time_partial='$'"${hook}_execution_time"
+        execution_time_partial="$(printf "%.3f" "${execution_time_partial}")"
+        execution_time_total="$(echo "${execution_time_total} + ${execution_time_partial}" | bc)"
+    done
+    if (($(echo "${execution_time_total} > 60" | bc))); then
+        execution_time_total="$(echo "${execution_time_total} / 60" | bc -l)"
+        execution_time_total="$(printf "%.3f" "${execution_time_total}")m"
+    else
+        execution_time_total="$(printf "%.3f" "${execution_time_total}")s"
+    fi
+    tet="$(printf '%s' "total-execution-time ..................................." | cut -c1-39)"
+    printf "%-30s | %-7s\n" "${tet}" "${execution_time_total}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
 
     echo
