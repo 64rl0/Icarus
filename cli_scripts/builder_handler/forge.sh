@@ -823,6 +823,18 @@ function clean_brazil_env() {
 }
 
 function clean_venv_env() {
+    rm -rf "${project_root_dir_abs}/dist/" || {
+        clean_summary_status="${failed}"
+        exit_code=1
+        return
+    }
+
+    rm -rf "${project_root_dir_abs}/src/"*".egg-info" || {
+        clean_summary_status="${failed}"
+        exit_code=1
+        return
+    }
+
     rm -rf "${project_root_dir_abs}/${venv_name}" || {
         clean_summary_status="${failed}"
         exit_code=1
