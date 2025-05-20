@@ -47,9 +47,7 @@ function validate_command() {
 }
 
 function validate_prerequisites() {
-    echo "${BASH_SOURCE[*]}"
-    echo "${BASH_SOURCE[0]}"
-    if [[ ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
+    if [[ ${PWD} =~ _Projects\/Icarus\/ && ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
         echo_error "You are not supposed to run production icarus in the icarus development environment"
     fi
 
@@ -429,6 +427,9 @@ function run_venv_documentation() {
         exit_code=1
         return
     }
+
+    # Cleaning not needed build dirs
+    rm -rf "${project_root_dir_abs}/docs/html/.doctrees"
 
     echo
     echo "Open the HTML pages"
