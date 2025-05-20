@@ -400,6 +400,9 @@ function run_brazil_pytest() {
 }
 
 function run_venv_pytest() {
+    echo -e "Preparing tests"
+    echo
+
     validate_command "pytest" || {
         exit_code=1
         pytest_summary_status="${failed}"
