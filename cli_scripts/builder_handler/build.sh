@@ -785,7 +785,7 @@ function set_runtime_info() {
     fi
 
     runtime="${bold_blue}Runtime:${end} \
-        \n--| project ${project_name_pascal_case} \
+        \n--| project ${bold_green}${project_name_pascal_case}${end} \
         \n--| ${project_root_dir_abs} \
         \n--| brazil env $(realpath -- ${path_to_env_bin}/..) \
         \n--| venv ${venv_print_name} \
