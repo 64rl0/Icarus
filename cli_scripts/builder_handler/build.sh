@@ -109,6 +109,9 @@ function echo_summary() {
     for hook in "${build_hooks[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
+        if [[ "${status}" == "${skipped}" ]]; then
+            continue
+        fi
         eval execution_time='$'"${hook}_execution_time"
         if [[ -n "${execution_time}" ]]; then
             execution_time="$(printf "%.3f" "${execution_time}")s"
