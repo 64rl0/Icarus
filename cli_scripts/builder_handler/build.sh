@@ -797,8 +797,9 @@ function build_brazil_env() {
     brazil ws sync --md || exit 1
 
     {
-        # Use brazil runtime farm to activate brazil runtime env
+        # Use brazil runtime farm to build brazil runtime env
         local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/${brazil_python_runtime}/bin"
+        brazil-build
 
         # Set runtime to be used in summary
         set_runtime_info "${brazil_bin_dir}"
@@ -899,6 +900,9 @@ function clean_venv_env() {
 function activate_brazil_env() {
     # Use brazil runtime farm to activate brazil runtime env
     local brazil_bin_dir="$(brazil-path testrun.runtimefarm 2>/dev/null)/${brazil_python_runtime}/bin"
+    brazil-build
+
+    # Adding brazil python runtime to path
     OLD_PATH="${PATH}"
     PATH="${brazil_bin_dir}:${PATH}"
 
