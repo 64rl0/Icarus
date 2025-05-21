@@ -14,8 +14,8 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 cli_scripts_dir_abs="$(realpath -- "${script_dir_abs}/../")"
 declare -r cli_scripts_dir_abs
-project_root_dir_abs="$(realpath -- "${cli_scripts_dir_abs}/..")"
-declare -r project_root_dir_abs
+package_root_dir_abs="$(realpath -- "${cli_scripts_dir_abs}/..")"
+declare -r package_root_dir_abs
 cli_script_base="${cli_scripts_dir_abs}/base.sh"
 declare -r cli_script_base
 
@@ -48,66 +48,66 @@ convert_to_snake_case() {
 
 python_package_init() {
     local input_str="${1}"
-    local project_language="${2}"
+    local package_language="${2}"
 
     # Remove leading and trailing whitespace
-    local project_name_pascal_case="$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-    local project_language_cleaned="$(echo "${project_language}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    local package_name_pascal_case="$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    local package_language_cleaned="$(echo "${package_language}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 
-    local project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
-    local project_name_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
+    local package_name_snake_case=$(convert_to_snake_case "${package_name_pascal_case}")
+    local package_name_dashed="$(echo "${package_name_snake_case}" | sed 's/_/-/g')"
     local absolute_current_path="$(realpath "$(pwd)")"
-    local project_absolute_path="${absolute_current_path}/${project_name_pascal_case}"
-    local project_src_folder="${project_absolute_path}/src/${project_name_snake_case}"
+    local package_absolute_path="${absolute_current_path}/${package_name_pascal_case}"
+    local package_src_folder="${package_absolute_path}/src/${package_name_snake_case}"
 
-    if [[ -z "${project_name_snake_case}" ]]; then
+    if [[ -z "${package_name_snake_case}" ]]; then
         echo -e "Invalid input: only alphanumeric characters are allowed in the package name."
         exit 1
     else
-        echo -e "Package name: ${project_name_pascal_case} => (${project_name_snake_case})"
+        echo -e "Package name: ${package_name_pascal_case} => (${package_name_snake_case})"
     fi
 
-    echo -e "\nMaking package directory: ${absolute_current_path}/${project_name_pascal_case}..."
-    if [[ -d "${project_absolute_path}" ]]; then
-        echo "Package \`${project_name_pascal_case}\` already exists."
+    echo -e "\nMaking package directory: ${absolute_current_path}/${package_name_pascal_case}..."
+    if [[ -d "${package_absolute_path}" ]]; then
+        echo "Package \`${package_name_pascal_case}\` already exists."
         exit 1
     fi
 
-    mkdir -p -- "${project_absolute_path}"
-    chmod 755 "${project_absolute_path}"
-    git clone "git@github.com:64rl0/PythonTemplatePackage.git" "${project_absolute_path}"
+    mkdir -p -- "${package_absolute_path}"
+    chmod 755 "${package_absolute_path}"
+    git clone "git@github.com:64rl0/PythonTemplatePackage.git" "${package_absolute_path}"
 
     # Remove git folder from cloned template
-    rm -rf "${project_absolute_path}/.git"
+    rm -rf "${package_absolute_path}/.git"
 
-    # Rename main project folder
-    mv "${project_absolute_path}/src/project_name_here" "${project_absolute_path}/src/${project_name_snake_case}"
+    # Rename main package folder
+    mv "${package_absolute_path}/src/project_name_here" "${package_absolute_path}/src/${package_name_snake_case}"
 
     # Create .env file
-    touch "${project_absolute_path}/.env"
+    touch "${package_absolute_path}/.env"
 
-    # Rename project_name placeholders
+    # Rename package placeholders
     if [[ $(uname -s) == "Darwin" ]]; then
         # macOS
-        find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${project_name_snake_case}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${project_name_dashed}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectLanguageHere/${project_language_cleaned}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${package_name_pascal_case}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${package_name_snake_case}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${package_name_dashed}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i '' "s/ProjectLanguageHere/${package_language_cleaned}/g" {} \;
     else
         # Linux
-        find "${project_absolute_path}" -type f -exec sed -i "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i "s/project_name_here/${project_name_snake_case}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i "s/project-name-here/${project_name_dashed}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i "s/ProjectLanguageHere/${project_language_cleaned}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i "s/ProjectNameHere/${package_name_pascal_case}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i "s/project_name_here/${package_name_snake_case}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i "s/project-name-here/${package_name_dashed}/g" {} \;
+        find "${package_absolute_path}" -type f -exec sed -i "s/ProjectLanguageHere/${package_language_cleaned}/g" {} \;
     fi
 
     echo -e "\nInitiating Git repository..."
-    cd "${project_absolute_path}"
+    cd "${package_absolute_path}"
     git init
     git add .
-    git commit -q -m "FEAT: Initial commit for ${project_name_pascal_case} automatically created by ${cli_name} create"
+    git commit -q -m "FEAT: Initial commit for ${package_name_pascal_case} automatically created by ${cli_name} create"
 
-    echo -e "\n${bold_green}${green_check_mark} Package ${project_name_pascal_case} successfully created!${end}"
+    echo -e "\n${bold_green}${green_check_mark} Package ${package_name_pascal_case} successfully created!${end}"
 }
 
 function main() {
