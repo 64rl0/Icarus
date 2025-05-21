@@ -100,17 +100,7 @@
 <span class="sd">    :raise ValueError: If an unknown `builder_command` is provided.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">builder_command</span> <span class="o">==</span> <span class="s1">&#39;python-pkg-init&#39;</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;python_pkg_init.sh&#39;</span>
-        <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">n</span><span class="p">]</span>
-
-        <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">return_code</span>
-
-    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">builder_command</span> <span class="o">==</span> <span class="s1">&#39;dotfiles-update&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">builder_command</span> <span class="o">==</span> <span class="s1">&#39;dotfiles-update&#39;</span><span class="p">:</span>
         <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;dotfiles_update.sh&#39;</span>
@@ -120,10 +110,20 @@
 
         <span class="k">return</span> <span class="n">return_code</span>
 
-    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">builder_command</span> <span class="o">==</span> <span class="s1">&#39;forge&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">builder_command</span> <span class="o">==</span> <span class="s1">&#39;create&#39;</span><span class="p">:</span>
         <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;forge.sh&#39;</span>
+        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;create.sh&#39;</span>
+        <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">l</span><span class="p">]</span>
+
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">builder_command</span> <span class="o">==</span> <span class="s1">&#39;build&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;build.sh&#39;</span>
         <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">args</span><span class="o">.</span><span class="n">isort</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>

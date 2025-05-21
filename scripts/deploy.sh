@@ -83,7 +83,7 @@ declare -r update_version
 
 pushd "${project_root_dir_abs}" >/dev/null 2>&1
 
-"${project_root_dir_abs}"/bin/icarus builder forge --release
+"${project_root_dir_abs}"/bin/icarus builder build --release
 
 echo -e "\n\n"
 

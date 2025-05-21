@@ -110,9 +110,9 @@ _icarus() {
             ;;
         builder)
             completions+=(
-                'python-pkg-init:initiate a new Python package in the current folder'
                 'dotfiles-update:update dotfiles from their specified repository'
-                'forge:invoke the Forge build system'
+                'create:initiate a new package in the current folder'
+                'build:invoke the builder build system'
                 '--help:show help message'
                 '-h:show help message'
             )
@@ -200,18 +200,19 @@ _icarus() {
             ;;
         builder)
             case "${action}" in
-            python-pkg-init)
-                completions+=(
-                    '-n:REQUIRED the package name in PascalCase'
-                    '-h:show help message'
-                )
-                ;;
             dotfiles-update)
                 completions+=(
                     '-h:show help message'
                 )
                 ;;
-            forge)
+            create)
+                completions+=(
+                    '-n:REQUIRED the package name in PascalCase'
+                    '-l:REQUIRED the package name language'
+                    '-h:show help message'
+                )
+                ;;
+            build)
                 completions+=(
                   '--isort:sort python imports with isort'
                   '--black:re-format python code with black'

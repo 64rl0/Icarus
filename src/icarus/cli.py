@@ -275,17 +275,6 @@ def initialize_parser() -> argparse.ArgumentParser:
     # ===================
     # Builder subcommands
     # ===================
-    builder_python_pkg_init = builder_sub.add_parser(
-        name='python-pkg-init',
-        help='initiate a new Python package in the current folder',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_python_pkg_init.add_argument(
-        '-n', required=True, metavar='PACKAGE_NAME', help='the package name in PascalCase'
-    )
-
     builder_sub.add_parser(
         name='dotfiles-update',
         help='update dotfiles from their specified repository',
@@ -294,14 +283,32 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
 
-    builder_forge = builder_sub.add_parser(
-        name='forge',
-        help='invoke the Forge build system',
+    builder_create = builder_sub.add_parser(
+        name='create',
+        help='initiate a new package in the current folder',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
-    builder_forge.add_argument(
+    builder_create.add_argument(
+        '-n', required=True, metavar='PACKAGE_NAME', help='the package name in PascalCase'
+    )
+    builder_create.add_argument(
+        '-l',
+        required=True,
+        choices=['Python3'],
+        metavar='PACKAGE_LANGUAGE',
+        help='the package name language',
+    )
+
+    builder_build = builder_sub.add_parser(
+        name='build',
+        help='invoke the builder build system',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_build.add_argument(
         '--build',
         required=False,
         action='store_const',
@@ -309,7 +316,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='create/re-create the project runtime environment',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--clean',
         required=False,
         action='store_const',
@@ -317,7 +324,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='clean the project runtime environment',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--release',
         required=False,
         action='store_const',
@@ -325,7 +332,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the full “release” pipeline',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--format',
         required=False,
         action='store_const',
@@ -333,7 +340,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run only the formatting tools',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--test',
         required=False,
         action='store_const',
@@ -341,7 +348,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run only the automated test suite',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--isort',
         required=False,
         action='store_const',
@@ -349,7 +356,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='sort python imports with isort',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--black',
         required=False,
         action='store_const',
@@ -357,7 +364,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='re-format python code with black',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--flake8',
         required=False,
         action='store_const',
@@ -365,7 +372,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run static analysis with flake8',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--mypy',
         required=False,
         action='store_const',
@@ -373,7 +380,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='type-check the codebase with mypy',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--shfmt',
         required=False,
         action='store_const',
@@ -381,7 +388,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='format shell scripts with shfmt',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--whitespaces',
         required=False,
         action='store_const',
@@ -389,7 +396,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='normalize mixed or excessive whitespace',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--trailing',
         required=False,
         action='store_const',
@@ -397,7 +404,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='remove trailing whitespace',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--eofnewline',
         required=False,
         action='store_const',
@@ -405,7 +412,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='ensure files end with a single newline',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--gitleaks',
         required=False,
         action='store_const',
@@ -413,7 +420,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='scan for secrets with gitleaks',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--pytest',
         required=False,
         action='store_const',
@@ -421,7 +428,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='execute the unit/integration-test suite via pytest',
     )
-    builder_forge.add_argument(
+    builder_build.add_argument(
         '--docs',
         required=False,
         action='store_const',

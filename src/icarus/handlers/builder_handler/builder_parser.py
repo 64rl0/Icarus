@@ -65,17 +65,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
     :raise ValueError: If an unknown `builder_command` is provided.
     """
 
-    if args.builder_command == 'python-pkg-init':
-        module_logger.debug(f"Running {args.builder_command=}")
-
-        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'python_pkg_init.sh'
-        script_args = [args.n]
-
-        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
-
-        return return_code
-
-    elif args.builder_command == 'dotfiles-update':
+    if args.builder_command == 'dotfiles-update':
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'dotfiles_update.sh'
@@ -85,10 +75,20 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command == 'forge':
+    elif args.builder_command == 'create':
         module_logger.debug(f"Running {args.builder_command=}")
 
-        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'forge.sh'
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'create.sh'
+        script_args = [args.n, args.l]
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
+    elif args.builder_command == 'build':
+        module_logger.debug(f"Running {args.builder_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'build.sh'
         script_args = [
             args.isort,
             args.black,

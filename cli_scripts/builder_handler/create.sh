@@ -4,7 +4,7 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# cli_scripts/builder_handler/python_pkg_init.sh
+# cli_scripts/builder_handler/create.sh
 # Created 1/20/25 - 10:44 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
@@ -47,9 +47,13 @@ convert_to_snake_case() {
 }
 
 python_package_init() {
+    local input_str="${1}"
+    local project_language="${2}"
+
     # Remove leading and trailing whitespace
-    local input_str="$1"
     local project_name_pascal_case="$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    local project_language_cleaned="$(echo "${project_language}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
     local project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
     local project_name_snake_case_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
     local absolute_current_path="$(realpath "$(pwd)")"
@@ -83,17 +87,35 @@ python_package_init() {
     touch "${project_absolute_path}/.env"
 
     # Rename project_name placeholders
-    find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
-    find "${project_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${project_name_snake_case}/g" {} \;
-    find "${project_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${project_name_snake_case_dashed}/g" {} \;
+    if [[ $(uname -s) == "Darwin" ]]; then
+        # macOS
+        find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${project_name_snake_case}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${project_name_snake_case_dashed}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectLanguageHere/${project_language_cleaned}/g" {} \;
+    else
+        # Linux
+        find "${project_absolute_path}" -type f -exec sed -i "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i "s/project_name_here/${project_name_snake_case}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i "s/project-name-here/${project_name_snake_case_dashed}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i "s/ProjectLanguageHere/${project_language_cleaned}/g" {} \;
+    fi
 
     echo -e "\nInitiating Git repository..."
     cd "${project_absolute_path}"
     git init
     git add .
-    git commit -q -m "FEAT: Initial commit for ${project_name_pascal_case} automatically created by ${cli_name}"
+    git commit -q -m "FEAT: Initial commit for ${project_name_pascal_case} automatically created by ${cli_name} create"
 
     echo -e "\n${bold_green}${green_check_mark} Project ${project_name_pascal_case} successfully created!${end}"
 }
 
-python_package_init "$@"
+function main() {
+    if [[ "${2}" == 'Python3' ]]; then
+        python_package_init "$@"
+    else
+        echo -e "Invalid package language: ${2}"
+    fi
+}
+
+main "$@"

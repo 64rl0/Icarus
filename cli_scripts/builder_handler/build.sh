@@ -4,7 +4,7 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# cli_scripts/builder_handler/forge.sh
+# cli_scripts/builder_handler/build.sh
 # Created 5/15/25 - 11:55 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
@@ -97,7 +97,7 @@ function echo_summary() {
     local tool=""
     local tet=""
 
-    echo_title "Forge Summary"
+    echo_title "Icarus Builder Build Summary"
     echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
     echo
     echo -e "${runtime}"
@@ -106,7 +106,7 @@ function echo_summary() {
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${forge_hooks[@]}"; do
+    for hook in "${build_hooks[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
         eval execution_time='$'"${hook}_execution_time"
@@ -116,7 +116,7 @@ function echo_summary() {
         printf "%-30s | %-7s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${forge_hooks[@]}"; do
+    for hook in "${build_hooks[@]}"; do
         eval execution_time_partial='$'"${hook}_execution_time"
         execution_time_partial="$(printf "%.3f" "${execution_time_partial}")"
         execution_time_total="$(echo "${execution_time_total} + ${execution_time_partial}" | bc)"
@@ -502,8 +502,45 @@ function run_pytest() {
     fi
 }
 
+convert_to_snake_case() {
+    local input_str="$1"
+
+    # Remove leading and trailing whitespace
+    local sanitized_input_str=$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+    # Validate input: only alphanumeric characters are allowed
+    if ! [[ "${sanitized_input_str}" =~ ^[a-zA-Z0-9]+$ ]]; then
+        echo ""
+        return
+    fi
+
+    # Convert camelCase to snake_case
+    local snake_case_str=$(echo "${sanitized_input_str}" | sed -r 's/([0-9]+)/_\1_/g; s/([a-z])([A-Z])/\1_\2/g' | tr '[:upper:]' '[:lower:]' | sed -r 's/__/_/g; s/^_+|_+$//g')
+
+    # Output the snake_case string
+    echo "${snake_case_str}"
+}
+
 function parse_icarus_config() {
     echo -e "Parsing ${icarus_config_filename}"
+
+    # PROJECT
+    declare -a project_array
+    IFS=' ' read -r -a project_array 2>/dev/null <<<"$(
+        "${python3_icarus_build_env}" - <<-PY
+import yaml
+with open("${icarus_config}") as file:
+    cfg = yaml.safe_load(file)
+    section = cfg.get('project', [])
+    try:
+        proj_name = str([d['name'] for d in section if d.get('name')][0])
+    except IndexError:
+        proj_name = ''
+    stdout = ' '.join([proj_name]).strip()
+    print(stdout)
+PY
+    )"
+    project_name_pascal_case="${project_array[0]}"
 
     # BUILD-SYSTEM
     declare -a build_system_array
@@ -586,6 +623,13 @@ PY
 function validate_icarus_config() {
     echo -e "Validating ${icarus_config_filename}"
 
+    if [[ -z "${project_name_pascal_case}" ]]; then
+        echo_error "No project name specified in ${icarus_config_filename}"
+    else
+        project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
+        project_name_snake_case_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
+    fi
+
     if [[ -z "${build_system_in_use}" ]]; then
         echo_error "No build system specified in ${icarus_config_filename}"
     fi
@@ -611,6 +655,9 @@ function validate_icarus_config() {
         echo_error "Invalid build system in ${icarus_config_filename}"
     fi
 
+    declare -r -g project_name_pascal_case
+    declare -r -g project_name_snake_case
+    declare -r -g project_name_snake_case_dashed
     declare -r -g build_system_in_use
     declare -r -g brazil_python_runtime
     declare -r -g venv_name
@@ -735,7 +782,8 @@ function set_runtime_info() {
     fi
 
     runtime="${bold_blue}Runtime:${end} \
-        \n--| project ${project_root_dir_abs} \
+        \n--| project ${project_name_pascal_case} \
+        \n--| ${project_root_dir_abs} \
         \n--| brazil env $(realpath -- ${path_to_env_bin}/..) \
         \n--| venv ${venv_print_name} \
         \n--| $(${path_to_env_bin}/python3 --version)"
@@ -1138,7 +1186,7 @@ function parse_args() {
         pytest="Y"
     fi
 
-    for hook in "${forge_hooks[@]}"; do
+    for hook in "${build_hooks[@]}"; do
         if [[ "${!hook}" == "Y" ]]; then
             running_hooks_name+=("${hook}")
             ((running_hooks_count = running_hooks_count + 1))
@@ -1176,7 +1224,7 @@ function set_constants() {
 
     exit_code=0
 
-    initial_command_received="icarus builder forge"
+    initial_command_received="icarus builder build"
     for arg in "${@}"; do
         if [[ "${arg}" != "" ]]; then
             initial_command_received+=" ${arg}"
@@ -1199,7 +1247,7 @@ function set_constants() {
     skipped="${bold_black}${bg_white} SKIP ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
 
-    forge_hooks=(
+    build_hooks=(
         "build"
         "clean"
         "isort"
