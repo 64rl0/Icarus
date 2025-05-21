@@ -84,7 +84,7 @@ declare -r log_filepath
 
 # Check if the --update option is called
 if [[ "$1" == '--update' ]]; then
-	if [[ -f "${project_root_dir_abs}/.icarus_dev_env" ]]; then
+	if [[ "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
 		echo -e "${bg_red}${bold_black}[WARNING]${end}"
 		echo -e " You are about to run ${red}git reset --hard${end} on the dev env!"
 		echo -e " Operation Interrupted! Only available in PROD!"
