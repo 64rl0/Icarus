@@ -55,21 +55,21 @@ python_package_init() {
     local project_language_cleaned="$(echo "${project_language}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 
     local project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
-    local project_name_snake_case_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
+    local project_name_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
     local absolute_current_path="$(realpath "$(pwd)")"
     local project_absolute_path="${absolute_current_path}/${project_name_pascal_case}"
     local project_src_folder="${project_absolute_path}/src/${project_name_snake_case}"
 
     if [[ -z "${project_name_snake_case}" ]]; then
-        echo -e "Invalid input: only alphanumeric characters are allowed in the project name."
+        echo -e "Invalid input: only alphanumeric characters are allowed in the package name."
         exit 1
     else
-        echo -e "Project name: ${project_name_pascal_case} => (${project_name_snake_case})"
+        echo -e "Package name: ${project_name_pascal_case} => (${project_name_snake_case})"
     fi
 
-    echo -e "\nMaking project directory: ${absolute_current_path}/${project_name_pascal_case}..."
+    echo -e "\nMaking package directory: ${absolute_current_path}/${project_name_pascal_case}..."
     if [[ -d "${project_absolute_path}" ]]; then
-        echo "Project already exists."
+        echo "Package \`${project_name_pascal_case}\` already exists."
         exit 1
     fi
 
@@ -91,13 +91,13 @@ python_package_init() {
         # macOS
         find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
         find "${project_absolute_path}" -type f -exec sed -i '' "s/project_name_here/${project_name_snake_case}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${project_name_snake_case_dashed}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i '' "s/project-name-here/${project_name_dashed}/g" {} \;
         find "${project_absolute_path}" -type f -exec sed -i '' "s/ProjectLanguageHere/${project_language_cleaned}/g" {} \;
     else
         # Linux
         find "${project_absolute_path}" -type f -exec sed -i "s/ProjectNameHere/${project_name_pascal_case}/g" {} \;
         find "${project_absolute_path}" -type f -exec sed -i "s/project_name_here/${project_name_snake_case}/g" {} \;
-        find "${project_absolute_path}" -type f -exec sed -i "s/project-name-here/${project_name_snake_case_dashed}/g" {} \;
+        find "${project_absolute_path}" -type f -exec sed -i "s/project-name-here/${project_name_dashed}/g" {} \;
         find "${project_absolute_path}" -type f -exec sed -i "s/ProjectLanguageHere/${project_language_cleaned}/g" {} \;
     fi
 
@@ -107,7 +107,7 @@ python_package_init() {
     git add .
     git commit -q -m "FEAT: Initial commit for ${project_name_pascal_case} automatically created by ${cli_name} create"
 
-    echo -e "\n${bold_green}${green_check_mark} Project ${project_name_pascal_case} successfully created!${end}"
+    echo -e "\n${bold_green}${green_check_mark} Package ${project_name_pascal_case} successfully created!${end}"
 }
 
 function main() {

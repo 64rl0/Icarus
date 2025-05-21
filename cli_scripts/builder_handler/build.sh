@@ -527,23 +527,28 @@ convert_to_snake_case() {
 function parse_icarus_config() {
     echo -e "Parsing ${icarus_config_filename}"
 
-    # PROJECT
-    declare -a project_array
-    IFS=' ' read -r -a project_array 2>/dev/null <<<"$(
+    # PACKAGE
+    declare -a package_array
+    IFS=' ' read -r -a package_array 2>/dev/null <<<"$(
         "${python3_icarus_build_env}" - <<-PY
 import yaml
 with open("${icarus_config}") as file:
     cfg = yaml.safe_load(file)
-    section = cfg.get('project', [])
+    section = cfg.get('package', [])
     try:
-        proj_name = str([d['name'] for d in section if d.get('name')][0])
+        package_name = str([d['name'] for d in section if d.get('name')][0])
     except IndexError:
-        proj_name = ''
-    stdout = ' '.join([proj_name]).strip()
+        package_name = ''
+    try:
+        package_lang = str([d['language'] for d in section if d.get('language')][0])
+    except IndexError:
+        package_lang = ''
+    stdout = ' '.join([package_name, package_lang]).strip()
     print(stdout)
 PY
     )"
-    project_name_pascal_case="${project_array[0]}"
+    package_name_pascal_case="${package_array[0]}"
+    package_language="${package_array[1]}"
 
     # BUILD-SYSTEM
     declare -a build_system_array
@@ -626,11 +631,15 @@ PY
 function validate_icarus_config() {
     echo -e "Validating ${icarus_config_filename}"
 
-    if [[ -z "${project_name_pascal_case}" ]]; then
+    if [[ -z "${package_name_pascal_case}" ]]; then
         echo_error "No project name specified in ${icarus_config_filename}"
     else
-        project_name_snake_case=$(convert_to_snake_case "${project_name_pascal_case}")
-        project_name_snake_case_dashed="$(echo "${project_name_snake_case}" | sed 's/_/-/g')"
+        package_name_snake_case=$(convert_to_snake_case "${package_name_pascal_case}")
+        package_name_dashed="$(echo "${package_name_snake_case}" | sed 's/_/-/g')"
+    fi
+
+    if [[ -z "${package_language}" ]]; then
+        echo_error "No project language specified in ${icarus_config_filename}"
     fi
 
     if [[ -z "${build_system_in_use}" ]]; then
@@ -658,9 +667,10 @@ function validate_icarus_config() {
         echo_error "Invalid build system in ${icarus_config_filename}"
     fi
 
-    declare -r -g project_name_pascal_case
-    declare -r -g project_name_snake_case
-    declare -r -g project_name_snake_case_dashed
+    declare -r -g package_name_pascal_case
+    declare -r -g package_name_snake_case
+    declare -r -g package_name_dashed
+    declare -r -g package_language
     declare -r -g build_system_in_use
     declare -r -g brazil_python_runtime
     declare -r -g venv_name
@@ -785,7 +795,7 @@ function set_runtime_info() {
     fi
 
     runtime="${bold_blue}Runtime:${end} \
-        \n--| project ${bold_green}${project_name_pascal_case}${end} \
+        \n--| project ${bold_green}${package_name_pascal_case}${end} \
         \n--| ${project_root_dir_abs} \
         \n--| brazil env $(realpath -- ${path_to_env_bin}/..) \
         \n--| venv ${venv_print_name} \
