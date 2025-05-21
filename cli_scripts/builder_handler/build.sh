@@ -969,6 +969,8 @@ function deactivate_venv_env() {
 }
 
 function activate_env() {
+    echo_title "Project info"
+
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         activate_brazil_env
     elif [[ "${build_system_in_use}" == "venv" ]]; then
@@ -977,6 +979,8 @@ function activate_env() {
 }
 
 function deactivate_env() {
+    echo_title "Deactivating virtual environment"
+
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         deactivate_brazil_env
     elif [[ "${build_system_in_use}" == "venv" ]]; then
@@ -997,7 +1001,6 @@ function exec_brazil() {
 }
 
 function exec_venv() {
-    echo_title "Project info"
     activate_env
 
     echo_title "Running exec"
@@ -1010,7 +1013,6 @@ function exec_venv() {
     }
     echo
 
-    echo_title "Deactivating virtual environment"
     deactivate_env
 }
 
@@ -1069,7 +1071,6 @@ function dispatch_tools() {
     build_active_files_l1
     build_all_active_files
 
-    echo_title "Project info"
     activate_env
 
     if [[ "${isort}" == "Y" ]]; then
@@ -1160,7 +1161,6 @@ function dispatch_tools() {
         docs_execution_time=$(echo "${end_block} - ${start_block}" | bc)
     fi
 
-    echo_title "Deactivating virtual environment"
     deactivate_env
 }
 
