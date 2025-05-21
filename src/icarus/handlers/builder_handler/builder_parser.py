@@ -106,6 +106,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
             args.release,
             args.format,
             args.test,
+            f"--exec {' '.join([arg.strip() for arg in args.exec])}" if args.exec else '',
         ]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)

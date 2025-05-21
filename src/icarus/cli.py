@@ -291,7 +291,10 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_create.add_argument(
-        '-n', required=True, metavar='PACKAGE_NAME', help='the package name in PascalCase'
+        '-n',
+        required=True,
+        metavar='PACKAGE_NAME',
+        help='the package name in PascalCase',
     )
     builder_create.add_argument(
         '-l',
@@ -347,6 +350,13 @@ def initialize_parser() -> argparse.ArgumentParser:
         const='--test',
         default='',
         help='run only the automated test suite',
+    )
+    builder_build.add_argument(
+        '--exec',
+        required=False,
+        nargs='*',
+        default=[],
+        help='command to run inside the runtime environment',
     )
     builder_build.add_argument(
         '--isort',

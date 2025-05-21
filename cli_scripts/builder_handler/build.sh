@@ -967,6 +967,36 @@ function deactivate_env() {
     fi
 }
 
+function exec_brazil() {
+    echo_title "Running exec"
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_receive[*]}"
+    echo
+
+    brazil-test-exec "${initial_exec_command_receive[@]}" || {
+        exec_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function exec_venv() {
+    echo_title "Project info"
+    activate_env
+
+    echo_title "Running exec"
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_receive[*]}"
+    echo
+
+    "${initial_exec_command_receive[@]}" || {
+        exec_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+
+    echo_title "Deactivating virtual environment"
+    deactivate_env
+}
+
 function dispatch_build() {
     build_summary_status="${passed}"
 
@@ -993,6 +1023,20 @@ function dispatch_clean() {
 
     end_block=$(date +%s.%N)
     clean_execution_time=$(echo "${end_block} - ${start_block}" | bc)
+}
+
+function dispatch_exec() {
+    exec_summary_status="${passed}"
+    start_block=$(date +%s.%N)
+
+    if [[ "${build_system_in_use}" == "brazil" ]]; then
+        exec_brazil
+    elif [[ "${build_system_in_use}" == "venv" ]]; then
+        exec_venv
+    fi
+
+    end_block=$(date +%s.%N)
+    exec_execution_time=$(echo "${end_block} - ${start_block}" | bc)
 }
 
 function dispatch_tools() {
@@ -1186,6 +1230,13 @@ function parse_args() {
         pytest="Y"
     fi
 
+    if [[ "${17}" =~ ^--exec ]]; then
+        exec="Y"
+        read -r -a initial_exec_command_receive <<<"$(echo "${17}")"
+        initial_exec_command_receive=("${initial_exec_command_receive[@]:1}")
+        declare -r -g initial_exec_command_receive
+    fi
+
     for hook in "${build_hooks[@]}"; do
         if [[ "${!hook}" == "Y" ]]; then
             running_hooks_name+=("${hook}")
@@ -1210,6 +1261,14 @@ function dispatch_hooks() {
             fi
         done
         dispatch_clean
+    elif [[ "${17}" =~ ^--exec ]]; then
+        # Exec must be run alone
+        for arg in "${@}"; do
+            if [[ ! "${arg}" =~ --exec && "${arg}" != "" ]]; then
+                echo_error "Cannot run \`exec\` with other arguments!"
+            fi
+        done
+        dispatch_exec
     else
         dispatch_tools
     fi
@@ -1231,6 +1290,8 @@ function set_constants() {
         fi
     done
     declare -r -g initial_command_received
+
+    declare -a -g initial_exec_command_receive=()
 
     running_hooks_count=0
     declare -a -g running_hooks_name=()
@@ -1261,6 +1322,7 @@ function set_constants() {
         "gitleaks"
         "pytest"
         "docs"
+        "exec"
     )
 
     build="N"
@@ -1276,6 +1338,7 @@ function set_constants() {
     gitleaks="N"
     pytest="N"
     docs="N"
+    exec="N"
 
     build_summary_status="${skipped}"
     clean_summary_status="${skipped}"
@@ -1290,6 +1353,7 @@ function set_constants() {
     gitleaks_summary_status="${skipped}"
     pytest_summary_status="${skipped}"
     docs_summary_status="${skipped}"
+    exec_summary_status="${skipped}"
 
     build_execution_time=""
     clean_excecution_time=""
@@ -1304,6 +1368,7 @@ function set_constants() {
     gitleaks_execution_time=""
     pytest_execution_time=""
     docs_execution_time=""
+    exec_execution_time=""
 }
 
 function main() {

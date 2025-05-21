@@ -230,6 +230,7 @@ _icarus() {
                   '--format:run only the formatting tools'
                   '--test:run only the automated test suite'
                   '--release:run the full “release” pipeline'
+                  '--exec:command to run inside the runtime environment'
                 )
             esac
             ;;
