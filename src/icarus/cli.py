@@ -354,7 +354,8 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_build.add_argument(
         '--exec',
         required=False,
-        nargs='*',
+        nargs='?',
+        const='--exec',
         default=[],
         help='command to run inside the runtime environment',
     )

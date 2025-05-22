@@ -104,10 +104,10 @@ fi
 
 # Create Local venv
 echo -e "\n\n${bold_green}${sparkles} Creating ${venv_name} venv...${end}"
-python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}"
+python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}/icarus_runtime"
 
 # Activate local venv
-source "${project_root_dir_abs}/${venv_name}/bin/activate"
+source "${project_root_dir_abs}/${venv_name}/icarus_runtime/bin/activate"
 echo -e "\n\n${bold_green}${green_check_mark} venv ${venv_name} activated:${end}"
 echo -e "OS Version: $(uname)"
 echo -e "Kernel Version: $(uname -r)"

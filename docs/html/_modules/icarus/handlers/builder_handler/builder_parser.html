@@ -66,6 +66,13 @@
 
 <span class="c1"># Standard Library Imports</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># Third Party Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+
+<span class="c1"># My Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">carlogtt_python_library</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mylib</span>
 
 <span class="c1"># Local Folder (Relative) Imports</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">utils</span>
@@ -125,6 +132,8 @@
 
         <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;build.sh&#39;</span>
         <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">build</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">clean</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">isort</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">flake8</span><span class="p">,</span>
@@ -135,14 +144,39 @@
             <span class="n">args</span><span class="o">.</span><span class="n">eofnewline</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">gitleaks</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">pytest</span><span class="p">,</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">build</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">docs</span><span class="p">,</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">clean</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">release</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
             <span class="n">args</span><span class="o">.</span><span class="n">test</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">script_args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">arg</span> <span class="ow">and</span> <span class="n">arg</span> <span class="o">!=</span> <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                        <span class="s1">&#39;--exec is a standalone argument and must be used alone&#39;</span>
+                    <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;--exec --exec&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="s1">&#39;--exec requires at least one argument to execute&#39;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">clean</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">script_args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">arg</span> <span class="ow">and</span> <span class="n">arg</span> <span class="o">!=</span> <span class="s1">&#39;--clean&#39;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                        <span class="s1">&#39;--clean is a standalone argument and must be used alone&#39;</span>
+                    <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">script_args</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_NAME</span><span class="si">}</span><span class="s1"> builder build requires at least one argument&#39;</span>
+            <span class="p">)</span>
+
+        <span class="n">script_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_icarus_build_config</span><span class="p">())</span>
 
         <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
 
@@ -152,6 +186,199 @@
         <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;the following arguments are required: &lt;subcommand&gt;&#39;</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_icarus_build_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">config_filename</span> <span class="o">=</span> <span class="s1">&#39;icarus.cfg&#39;</span>
+    <span class="n">empty_string</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">empty_array</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">([])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;( &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39; )&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">,&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">pwd</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">!=</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pwd</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">config_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pwd</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+            <span class="s1">&#39;No `icarus.cfg` file found!</span><span class="se">\n</span><span class="s1">               You are not in an icarus build enabled&#39;</span>
+            <span class="s1">&#39; directory.</span><span class="se">\n</span><span class="s1">               To enable icarus build create a `icarus.cfg` in the&#39;</span>
+            <span class="s1">&#39; project root directory.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">config_filepath</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pwd</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">config_filename</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">mmp</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;icarus_config_filename&#39;</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="n">config_filename</span><span class="p">),</span>
+        <span class="s1">&#39;icarus_config_filepath&#39;</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">),</span>
+        <span class="s1">&#39;project_root_dir_abs&#39;</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="n">mmp</span> <span class="o">=</span> <span class="n">parse_icarus_build_config</span><span class="p">(</span>
+        <span class="n">mmp</span><span class="o">=</span><span class="n">mmp</span><span class="p">,</span>
+        <span class="n">icarus_config_filepath</span><span class="o">=</span><span class="n">config_filepath</span><span class="p">,</span>
+        <span class="n">empty_string</span><span class="o">=</span><span class="n">empty_string</span><span class="p">,</span>
+        <span class="n">empty_array</span><span class="o">=</span><span class="n">empty_array</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">mmp</span> <span class="o">=</span> <span class="n">validate_icarus_build_config</span><span class="p">(</span>
+        <span class="n">mmp</span><span class="o">=</span><span class="n">mmp</span><span class="p">,</span>
+        <span class="n">icarus_config_filename</span><span class="o">=</span><span class="n">config_filename</span><span class="p">,</span>
+        <span class="n">empty_string</span><span class="o">=</span><span class="n">empty_string</span><span class="p">,</span>
+        <span class="n">empty_array</span><span class="o">=</span><span class="n">empty_array</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">args_from_python_script_validator_str</span> <span class="o">=</span> <span class="n">normalize_args_from_python_script</span><span class="p">(</span><span class="n">mmp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">args_from_python_script_validator_str</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_icarus_build_config</span><span class="p">(</span>
+    <span class="n">mmp</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">icarus_config_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">empty_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">empty_array</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">icarus_config_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">icarus_build_config</span><span class="p">:</span>
+        <span class="n">ibc</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">icarus_build_config</span><span class="p">)</span>
+
+    <span class="n">pkg</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;package&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">bs</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build-system&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">brz</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">vnv</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;venv&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">ignrs</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">pkg</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;package_language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">pkg</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;language&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;package_language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;runtime&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;python-default&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">brz</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python-default&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">repr</span><span class="p">([</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">el</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">brz</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">])</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;( &#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39; )&#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">,&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_array</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;venv_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;venv_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;python-default&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python-default&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;requirements_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;requirements&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;requirements_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_string</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">repr</span><span class="p">([</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">el</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">])</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;( &#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39; )&#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">,&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_array</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">repr</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ignrs</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;( &#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39; )&#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">,&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">empty_array</span>
+
+    <span class="k">return</span> <span class="n">mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_icarus_build_config</span><span class="p">(</span>
+    <span class="n">mmp</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">icarus_config_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">empty_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">empty_array</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+
+    <span class="n">icfg</span> <span class="o">=</span> <span class="n">icarus_config_filename</span>
+    <span class="n">stru</span> <span class="o">=</span> <span class="n">mylib</span><span class="o">.</span><span class="n">StringUtils</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;package_name_pascal_case&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No project name specified in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;package_name_snake_case&#39;</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span>
+                    <span class="n">stru</span><span class="o">.</span><span class="n">snake_case</span><span class="p">(</span><span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">})</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid project name in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;package_name_dashed&#39;</span><span class="p">:</span> <span class="n">mmp</span><span class="p">[</span><span class="s1">&#39;package_name_snake_case&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)})</span>
+
+    <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;package_language&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No package language specified in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;build_system_in_use&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No build system specified in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;build_system_in_use&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;&#39;brazil&#39;&quot;</span><span class="p">:</span>
+        <span class="n">python_versions</span> <span class="o">=</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;python_versions_for_brazil&quot;</span><span class="p">)</span>
+        <span class="n">default_version</span> <span class="o">=</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;python_version_default_for_brazil&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">python_versions</span> <span class="o">==</span> <span class="n">empty_array</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No python version(s) specified in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">default_version</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No default python version specified in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;build_system_in_use&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;&#39;venv&#39;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;venv_name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No venv name specified in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;python_versions_for_venv&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_array</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No python version(s) specified in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;python_version_default_for_venv&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No default python version specified in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requirements_path&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">empty_string</span><span class="p">:</span>
+            <span class="c1"># not a mandatory field</span>
+            <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid build system in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_args_from_python_script</span><span class="p">(</span><span class="n">mmp</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">args_from_python_script_validator_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mmp</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+    <span class="k">return</span> <span class="n">args_from_python_script_validator_str</span>
 </pre></div>
 
           </div>

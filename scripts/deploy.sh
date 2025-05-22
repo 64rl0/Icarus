@@ -82,17 +82,19 @@ update_version="${script_dir_abs}/update_version.sh"
 declare -r update_version
 
 pushd "${project_root_dir_abs}" >/dev/null 2>&1
-
-"${project_root_dir_abs}"/bin/icarus builder build --release
-
-echo -e "\n\n"
-
 git fetch
 
-# Update version if fetch is successful
+# Running icarus builder build tool
+"${project_root_dir_abs}"/bin/icarus builder build --release
+
+echo -e "${bold_green}Select release type${end}"
 . "${update_version}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source update_version.sh"
 
+echo -e "${bold_green}Pushing changes to git${end}"
 git add .
 git commit -m "REFACTOR: update version to 'build ${new_major}.${new_minor}.${new_patch} built on ${today}'"
-
 git push
+
+echo
+echo -e "${bold_green}Updating local version of icarus${end}"
+icarus --update

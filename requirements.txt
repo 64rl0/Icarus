@@ -9,6 +9,9 @@ pyyaml
 # Test dependencies
 pytest
 
+# Type checking depencencies
+types-PyYAML
+
 # Documentation dependencies
 sphinx
 
