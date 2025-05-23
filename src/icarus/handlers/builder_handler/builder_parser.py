@@ -34,7 +34,7 @@ This module ...
 # Standard Library Imports
 import argparse
 import os
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 # Third Party Library Imports
 import yaml
@@ -97,52 +97,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'build.sh'
-        script_args = [
-            args.build,
-            args.clean,
-            args.isort,
-            args.black,
-            args.flake8,
-            args.mypy,
-            args.shfmt,
-            args.whitespaces,
-            args.trailing,
-            args.eofnewline,
-            args.gitleaks,
-            args.pytest,
-            args.docs,
-            f"--exec {args.exec}" if args.exec else '',
-            args.release,
-            args.format,
-            args.test,
-        ]
-
-        if args.exec:
-            for arg in script_args:
-                if arg and arg != f"--exec {args.exec}":
-                    print(arg)
-                    raise utils.IcarusParserException(
-                        '--exec is a standalone argument and must be used alone'
-                    )
-
-            if script_args[16] == '--exec --exec':
-                raise utils.IcarusParserException(
-                    '--exec requires at least one argument to execute'
-                )
-
-        if args.clean:
-            for arg in script_args:
-                if arg and arg != '--clean':
-                    raise utils.IcarusParserException(
-                        '--clean is a standalone argument and must be used alone'
-                    )
-
-        if not any(script_args):
-            raise utils.IcarusParserException(
-                f'{config.CLI_NAME} builder build requires at least one argument'
-            )
-
-        script_args.append(process_icarus_build_config())
+        script_args = prepare_script_args(args=args)
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 
@@ -169,9 +124,217 @@ class KwArgs(TypedDict):
     python_versions_for_venv: list
     requirements_path: str
     icarus_ignore_array: list
+    build: str
+    is_only_build_hook: str
+    clean: str
+    isort: str
+    black: str
+    flake8: str
+    mypy: str
+    shfmt: str
+    whitespaces: str
+    trailing: str
+    eofnewline: str
+    gitleaks: str
+    pytest: str
+    docs: str
+    exec: str
+    initial_command_received: str
+    initial_exec_command_received: list
+    running_hooks_name: list
+    running_hooks_count: str
+    all_hooks: tuple[
+        Literal['build'],
+        Literal['clean'],
+        Literal['isort'],
+        Literal['black'],
+        Literal['flake8'],
+        Literal['mypy'],
+        Literal['shfmt'],
+        Literal['whitespaces'],
+        Literal['trailing'],
+        Literal['eofnewline'],
+        Literal['gitleaks'],
+        Literal['pytest'],
+        Literal['docs'],
+        Literal['exec'],
+    ]
 
 
-def process_icarus_build_config() -> str:
+def prepare_script_args(args: argparse.Namespace) -> list[str]:
+    """
+    Prepare the arguments for the build.sh script.
+
+    This function takes the parsed arguments and prepares them for the
+    build.sh script to eval them and set as script variables.
+
+    :param args:
+    :return:
+    """
+
+    # Clean the args to remove the unutilized args
+    script_args = [
+        args.build,
+        args.clean,
+        args.isort,
+        args.black,
+        args.flake8,
+        args.mypy,
+        args.shfmt,
+        args.whitespaces,
+        args.trailing,
+        args.eofnewline,
+        args.gitleaks,
+        args.pytest,
+        args.docs,
+        args.exec,  # DO NOT move this idx or update ref below
+        args.release,
+        args.format,
+        args.test,
+    ]
+
+    # Initial validations
+    if args.clean and sum(1 for el in script_args if el) > 1:
+        raise utils.IcarusParserException('--clean is a standalone argument and must be used alone')
+    if args.exec and sum(1 for el in script_args if el) > 1:
+        raise utils.IcarusParserException('--exec is a standalone argument and must be used alone')
+    if not any(script_args):
+        raise utils.IcarusParserException(
+            f'{config.CLI_NAME} builder build requires at least one argument'
+        )
+
+    kwargs: KwArgs = {
+        'all_hooks': (
+            'build',
+            'clean',
+            'isort',
+            'black',
+            'flake8',
+            'mypy',
+            'shfmt',
+            'whitespaces',
+            'trailing',
+            'eofnewline',
+            'gitleaks',
+            'pytest',
+            'docs',
+            'exec',
+        ),
+        'icarus_config_filename': '',
+        'icarus_config_filepath': '',
+        'project_root_dir_abs': '',
+        'package_name_pascal_case': '',
+        'package_name_snake_case': '',
+        'package_name_dashed': '',
+        'package_language': '',
+        'build_system_in_use': '',
+        'python_version_default_for_brazil': '',
+        'python_versions_for_brazil': [],
+        'venv_name': '',
+        'python_version_default_for_venv': '',
+        'python_versions_for_venv': [],
+        'requirements_path': '',
+        'icarus_ignore_array': [],
+        'build': 'Y' if args.build else 'N',
+        'is_only_build_hook': 'N',
+        'clean': 'Y' if args.clean else 'N',
+        'isort': 'Y' if args.isort else 'N',
+        'black': 'Y' if args.black else 'N',
+        'flake8': 'Y' if args.flake8 else 'N',
+        'mypy': 'Y' if args.mypy else 'N',
+        'shfmt': 'Y' if args.shfmt else 'N',
+        'whitespaces': 'Y' if args.whitespaces else 'N',
+        'trailing': 'Y' if args.trailing else 'N',
+        'eofnewline': 'Y' if args.eofnewline else 'N',
+        'gitleaks': 'Y' if args.gitleaks else 'N',
+        'pytest': 'Y' if args.pytest else 'N',
+        'docs': 'Y' if args.docs else 'N',
+        'exec': 'Y' if args.exec else 'N',
+        'initial_command_received': 'icarus builder build',
+        'initial_exec_command_received': [],
+        'running_hooks_name': [],
+        'running_hooks_count': '',
+    }
+
+    kwargs = process_icarus_build_config(kwargs=kwargs)
+    kwargs = parse_icarus_build_config(kwargs=kwargs)
+    kwargs = validate_icarus_build_config(kwargs=kwargs)
+
+    if args.exec:
+        kwargs.update({'initial_exec_command_received': args.exec[0].split()})
+        # altering the args.exec value so it can be used from the
+        # for loop here below to make up the initial_command_received
+        script_args[13] = f"--exec {' '.join(args.exec)}"
+
+    if args.release:
+        if kwargs['build_system_in_use'] in {'brazil', 'venv'}:
+            kwargs.update({
+                'build': 'Y',
+                'isort': 'Y',
+                'black': 'Y',
+                'flake8': 'Y',
+                'mypy': 'Y',
+                'shfmt': 'Y',
+                'whitespaces': 'Y',
+                'trailing': 'Y',
+                'eofnewline': 'Y',
+                'pytest': 'Y',
+                'gitleaks': 'Y',
+                'docs': 'Y',
+            })
+        else:
+            raise utils.IcarusParserException(
+                'The --release argument is only valid for brazil or venv build systems'
+            )
+
+    if args.format:
+        if kwargs['build_system_in_use'] in {'brazil', 'venv'}:
+            kwargs.update({
+                'isort': 'Y',
+                'black': 'Y',
+                'flake8': 'Y',
+                'mypy': 'Y',
+                'shfmt': 'Y',
+                'whitespaces': 'Y',
+                'trailing': 'Y',
+                'eofnewline': 'Y',
+            })
+        else:
+            raise utils.IcarusParserException(
+                'The --format argument is only valid for brazil or venv build systems'
+            )
+
+    if args.test:
+        if kwargs['build_system_in_use'] in {'brazil', 'venv'}:
+            kwargs.update({
+                'pytest': 'Y',
+            })
+        else:
+            raise utils.IcarusParserException(
+                'The --test argument is only valid for brazil or venv build systems'
+            )
+
+    for arg in script_args:
+        if arg:
+            kwargs['initial_command_received'] += f" {arg}"
+
+    for hook in kwargs['all_hooks']:
+        if kwargs[hook] == 'Y':
+            kwargs['running_hooks_name'].append(hook)
+
+    kwargs['running_hooks_count'] = str(len(kwargs['running_hooks_name']))
+
+    if kwargs['build'] == 'Y' and kwargs['running_hooks_count'] == 1:
+        kwargs['is_only_build_hook'] = 'Y'
+
+    kwargs = normalize_args_from_python_script(kwargs=kwargs)
+    kwargs_str = convert_dict_to_bash_kwargs_string(kwargs=kwargs)
+    list_kwargs_str = [kwargs_str]
+
+    return list_kwargs_str
+
+
+def process_icarus_build_config(kwargs: KwArgs) -> KwArgs:
     """
     Process the icarus build config file and return a string with
     all the kwargs to be then eval from the sh script.
@@ -194,29 +357,12 @@ def process_icarus_build_config() -> str:
         )
 
     config_filepath = f"{pwd}/{config_filename}"
-    kwargs: KwArgs = {
-        'icarus_config_filename': config_filename,
-        'icarus_config_filepath': config_filepath,
-        'project_root_dir_abs': pwd,
-        'package_name_pascal_case': '',
-        'package_name_snake_case': '',
-        'package_name_dashed': '',
-        'package_language': '',
-        'build_system_in_use': '',
-        'python_version_default_for_brazil': '',
-        'python_versions_for_brazil': [],
-        'venv_name': '',
-        'python_version_default_for_venv': '',
-        'python_versions_for_venv': [],
-        'requirements_path': '',
-        'icarus_ignore_array': [],
-    }
 
-    kwargs = parse_icarus_build_config(kwargs=kwargs)
-    kwargs = validate_icarus_build_config(kwargs=kwargs)
-    kwargs_str = normalize_args_from_python_script(kwargs=kwargs)
+    kwargs['icarus_config_filename'] = config_filename
+    kwargs['icarus_config_filepath'] = config_filepath
+    kwargs['project_root_dir_abs'] = pwd
 
-    return kwargs_str
+    return kwargs
 
 
 def parse_icarus_build_config(kwargs: KwArgs) -> KwArgs:
@@ -415,7 +561,7 @@ def validate_icarus_build_config(kwargs: KwArgs) -> KwArgs:
     return kwargs
 
 
-def normalize_args_from_python_script(kwargs: KwArgs) -> str:
+def normalize_args_from_python_script(kwargs: KwArgs) -> KwArgs:
     """
     Normalize the kwargs to be used in the python script.
 
@@ -449,14 +595,35 @@ def normalize_args_from_python_script(kwargs: KwArgs) -> str:
     )
     kwargs['icarus_ignore_array'] = list(set(kwargs['icarus_ignore_array']))
 
+    return kwargs
+
+
+def convert_dict_to_bash_kwargs_string(kwargs: KwArgs) -> str:
+    """
+    Convert a dictionary to a bash kwargs string.
+
+    :param kwargs:
+    :return:
+    """
+
     temp_kwargs = {}
+
+    module_logger.debug('*' * 50)
+
     for k, v in kwargs.items():
+        if not (isinstance(v, str) or isinstance(v, list) or isinstance(v, tuple)):
+            raise utils.IcarusParserException(f"Invalid type for `{k}`")
+
         if isinstance(v, str):
             temp_kwargs[k] = repr(v)
-        elif isinstance(v, list):
+        if isinstance(v, tuple):
+            v = list(v)
+        if isinstance(v, list):
             temp_kwargs[k] = repr(v).replace('[', '( ').replace(']', ' )').replace('\',', '\'')
-        else:
-            raise utils.IcarusParserException(f"Invalid value for {k} in {icfg}")
+
+        module_logger.debug(f"kwargs -> {k}={temp_kwargs[k]}")
+
+    module_logger.debug('*' * 50)
 
     kwargs_str = ' '.join([f"{k}={v}" for k, v in temp_kwargs.items()])
 

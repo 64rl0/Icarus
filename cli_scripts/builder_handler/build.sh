@@ -131,7 +131,7 @@ function echo_summary() {
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${build_hooks[@]}"; do
+    for hook in "${all_hooks[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
         if [[ "${status}" == "${skipped}" ]]; then
@@ -142,7 +142,7 @@ function echo_summary() {
         printf "%-30s | %-7s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${build_hooks[@]}"; do
+    for hook in "${all_hooks[@]}"; do
         eval execution_time_partial='$'"${hook}_execution_time"
         execution_time_partial="$(printf "%.3f" "${execution_time_partial}")"
         execution_time_total="$(echo "${execution_time_total} + ${execution_time_partial}" | bc)"
@@ -167,7 +167,7 @@ function set_constants() {
     echo_title "Analyzing icarus.cfg"
 
     echo -e "Reading constants"
-    eval "${@: -1}"
+    eval "${@}"
 
     declare -r -g icarus_config_filename
     declare -r -g icarus_config_filepath
@@ -178,28 +178,33 @@ function set_constants() {
     declare -r -g package_language
     declare -r -g build_system_in_use
     declare -r -g python_version_default_for_brazil
+    declare -r -g python_versions_for_brazil
     declare -r -g venv_name
-    declare -r -g python_versions_for_venv
     declare -r -g python_version_default_for_venv
+    declare -r -g python_versions_for_venv
     declare -r -g requirements_path
     declare -r -g icarus_ignore_array
+    declare -r -g build
+    declare -r -g is_only_build_hook
+    declare -r -g clean
+    declare -r -g isort
+    declare -r -g black
+    declare -r -g flake8
+    declare -r -g mypy
+    declare -r -g shfmt
+    declare -r -g whitespaces
+    declare -r -g trailing
+    declare -r -g eofnewline
+    declare -r -g gitleaks
+    declare -r -g pytest
+    declare -r -g docs
+    declare -r -g exec
+    declare -r -g initial_command_received
+    declare -r -g initial_exec_command_received
+    declare -r -g running_hooks_name
+    declare -r -g running_hooks_count
 
     exit_code=0
-
-    initial_command_received="icarus builder build"
-    for arg in "${@:1:$#-1}"; do
-        if [[ "${arg}" != "" ]]; then
-            initial_command_received+=" ${arg}"
-        fi
-    done
-    declare -r -g initial_command_received
-
-    declare -a -g initial_exec_command_receive=()
-
-    declare -a -g running_hooks_name=()
-    running_hooks_count=0
-
-    declare -a -g python_versions=()
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         python_version_default="${python_version_default_for_brazil}"
@@ -218,12 +223,6 @@ function set_constants() {
         for py_v in "${python_versions_for_venv[@]}"; do
             python_versions_pretty+="Python${py_v} "
         done
-    else
-        declare -a -g python_versions=()
-        python_versions_pretty=""
-        python_version_default=""
-        python_version_in_use=""
-        python_version_default_pretty=""
     fi
 
     declare -r -g python_version_default
@@ -234,39 +233,6 @@ function set_constants() {
     passed="${bold_black}${bg_green} PASS ${end}"
     skipped="${bold_black}${bg_white} SKIP ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
-
-    build_hooks=(
-        "build"
-        "clean"
-        "isort"
-        "black"
-        "flake8"
-        "mypy"
-        "shfmt"
-        "whitespaces"
-        "trailing"
-        "eofnewline"
-        "gitleaks"
-        "pytest"
-        "docs"
-        "exec"
-    )
-
-    build="N"
-    is_only_build_hook="N"
-    clean="N"
-    isort="N"
-    black="N"
-    flake8="N"
-    mypy="N"
-    shfmt="N"
-    whitespaces="N"
-    trailing="N"
-    eofnewline="N"
-    gitleaks="N"
-    pytest="N"
-    docs="N"
-    exec="N"
 
     build_summary_status="${skipped}"
     clean_summary_status="${skipped}"
@@ -468,8 +434,8 @@ function run_mypy() {
 
     for el in "${elements[@]}"; do
         echo -e "${blue}${el}${end}"
-        output=$(mypy "${el}" 2>&1 | tee /dev/tty) || {
-            if [[ ! "${output}" =~ ^There\ are\ no\ \.py\[i\]\ files\ in\ directory ]]; then
+        mypy --color-output "${el}" || {
+            if [[ "${?}" -eq 1 ]]; then
                 mypy_summary_status="${failed}"
                 exit_code=1
             fi
@@ -972,10 +938,10 @@ function clean_venv_env() {
 
 function exec_brazil() {
     echo_title "Running exec"
-    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_receive[*]}"
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
     echo
 
-    brazil-test-exec "${initial_exec_command_receive[@]}" || {
+    brazil-test-exec "${initial_exec_command_received[@]}" || {
         exec_summary_status="${failed}"
         exit_code=1
     }
@@ -984,10 +950,10 @@ function exec_brazil() {
 
 function exec_venv() {
     echo_title "Running exec"
-    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_receive[*]}"
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
     echo
 
-    "${initial_exec_command_receive[@]}" || {
+    "${initial_exec_command_received[@]}" || {
         exec_summary_status="${failed}"
         exit_code=1
     }
@@ -1286,150 +1252,11 @@ function dispatch_hooks() {
 }
 
 ####################################################################################################
-# PARSER
-####################################################################################################
-function parse_args() {
-    if [[ "${1}" == "--build" ]]; then
-        build="Y"
-    fi
-
-    if [[ "${2}" == "--clean" ]]; then
-        clean="Y"
-    fi
-
-    if [[ "${3}" == "--isort" ]]; then
-        isort="Y"
-    fi
-
-    if [[ "${4}" == "--black" ]]; then
-        black="Y"
-    fi
-
-    if [[ "${5}" == "--flake8" ]]; then
-        flake8="Y"
-    fi
-
-    if [[ "${6}" == "--mypy" ]]; then
-        mypy="Y"
-    fi
-
-    if [[ "${7}" == "--shfmt" ]]; then
-        shfmt="Y"
-    fi
-
-    if [[ "${8}" == "--whitespaces" ]]; then
-        whitespaces="Y"
-    fi
-
-    if [[ "${9}" == "--trailing" ]]; then
-        trailing="Y"
-    fi
-
-    if [[ "${10}" == "--eofnewline" ]]; then
-        eofnewline="Y"
-    fi
-
-    if [[ "${11}" == "--gitleaks" ]]; then
-        gitleaks="Y"
-    fi
-
-    if [[ "${12}" == "--pytest" ]]; then
-        pytest="Y"
-    fi
-
-    if [[ "${13}" == "--docs" ]]; then
-        docs="Y"
-    fi
-
-    if [[ "${14}" =~ ^--exec ]]; then
-        exec="Y"
-        read -r -a initial_exec_command_receive <<<"$(echo "${14}" | sed 's/^--exec //')"
-        declare -r -g initial_exec_command_receive
-    fi
-
-    if [[ "${15}" == "--release" ]]; then
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            build="Y"
-            isort="Y"
-            black="Y"
-            flake8="Y"
-            mypy="Y"
-            shfmt="Y"
-            whitespaces="Y"
-            trailing="Y"
-            eofnewline="Y"
-            pytest="Y"
-            gitleaks="Y"
-            docs="Y"
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
-            build="Y"
-            isort="Y"
-            black="Y"
-            flake8="Y"
-            mypy="Y"
-            shfmt="Y"
-            whitespaces="Y"
-            trailing="Y"
-            eofnewline="Y"
-            pytest="Y"
-            gitleaks="Y"
-            docs="Y"
-        fi
-    fi
-
-    if [[ "${16}" == "--format" ]]; then
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            isort="Y"
-            black="Y"
-            flake8="Y"
-            mypy="Y"
-            shfmt="Y"
-            whitespaces="Y"
-            trailing="Y"
-            eofnewline="Y"
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
-            isort="Y"
-            black="Y"
-            flake8="Y"
-            mypy="Y"
-            shfmt="Y"
-            whitespaces="Y"
-            trailing="Y"
-            eofnewline="Y"
-        fi
-    fi
-
-    if [[ "${17}" == "--test" ]]; then
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            pytest="Y"
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
-            pytest="Y"
-        fi
-    fi
-
-    for hook in "${build_hooks[@]}"; do
-        if [[ "${!hook}" == "Y" ]]; then
-            running_hooks_name+=("${hook}")
-            running_hooks_count=$((running_hooks_count + 1))
-        fi
-    done
-    declare -r -g running_hooks_name
-    declare -r -g running_hooks_count
-
-    if [[ "${build}" == "Y" ]] && ((running_hooks_count <= 1)); then
-        is_only_build_hook="Y"
-        declare -r -g is_only_build_hook
-    fi
-}
-
-####################################################################################################
 # MAIN
 ####################################################################################################
 function main() {
     validate_prerequisites
     set_constants "${@}"
-
-    parse_args "${@}"
     dispatch_hooks "${@}"
 
     return "${exit_code}"
