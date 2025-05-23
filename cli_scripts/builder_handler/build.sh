@@ -736,7 +736,7 @@ function build_brazil_env() {
 
 function build_venv_env() {
     local active_venv_pyversion_fullname="Python${python_version_in_use}"
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/${active_venv_pyversion_fullname}"
+    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${active_venv_pyversion_fullname}"
     local single_run_status=0
 
     # Create Local venv
@@ -775,19 +775,19 @@ function build_venv_env() {
     }
 
     # Cleanup pre silently
-    rm -rf "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}"
+    rm -rf "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package
     echo -e "\n\n${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
-    python3 -m build --wheel --outdir "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}" "${project_root_dir_abs}" || {
+    python3 -m build --wheel --outdir "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         single_run_status=1
         exit_code=1
     }
     echo -e "\n\n${bold_green}${package} Checking package health${end}"
-    twine check "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/"*.whl || {
+    twine check "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}/"*.whl || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         single_run_status=1
@@ -796,7 +796,7 @@ function build_venv_env() {
 
     # Install local package into venv (as last so it will override the same name)
     echo -e "\n\n${bold_green}${sparkles} Installing '${package_name_snake_case}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
-    pip install -I "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/"*.whl || {
+    pip install -I "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}/"*.whl || {
         echo_error "Failed to install '${project_root_dir_abs}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv."
         build_summary_status="${failed}"
         single_run_status=1
@@ -806,33 +806,38 @@ function build_venv_env() {
     # Cleanup post
     echo -e "\n\n${bold_green}${broom} Cleaning up...${end}"
     if [[ "${venv_name}" == 'build' ]]; then
-        mkdir -p "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/build" || {
+        mkdir -p "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}/build" || {
             echo_error "Failed to create build dir."
             build_summary_status="${failed}"
             single_run_status=1
             exit_code=1
         }
-        mv "${project_root_dir_abs}/build/lib" "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/build" || {
+        mv "${project_root_dir_abs}/build/lib" "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}/build" || {
             echo_error "Failed to move build/lib dir to venv dir."
             build_summary_status="${failed}"
             single_run_status=1
             exit_code=1
         }
-        mv "${project_root_dir_abs}/build/bdist."* "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/build" || {
+        mv "${project_root_dir_abs}/build/bdist."* "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}/build" || {
             echo_error "Failed to move build/bdist dir to venv dir."
             build_summary_status="${failed}"
             single_run_status=1
             exit_code=1
         }
     else
-        mv "${project_root_dir_abs}/build" "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}" || {
+        mv "${project_root_dir_abs}/build" "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}" || {
             echo_error "Failed to move build dir to venv dir."
             build_summary_status="${failed}"
             single_run_status=1
             exit_code=1
         }
     fi
-    rm -rf "${project_root_dir_abs}/src/"*".egg-info"
+    mv "${project_root_dir_abs}/src/"*".egg-info" "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}" || {
+        echo_error "Failed to move build dir to venv dir."
+        build_summary_status="${failed}"
+        single_run_status=1
+        exit_code=1
+    }
     echo -e "cleanup completed"
 
     # Deactivate virtual env silently
@@ -877,7 +882,7 @@ function activate_brazil_env() {
 
 function activate_venv_env() {
     local active_venv_pyversion_fullname="Python${python_version_in_use}"
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/${active_venv_pyversion_fullname}"
+    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${active_venv_pyversion_fullname}"
 
     if [[ ! -e "${path_to_venv_root}/bin/activate" ]]; then
         echo_error "Cannot find the requested venv: \`${venv_name}/${active_venv_pyversion_fullname}\` to activate!\n venv: ${path_to_venv_root}"
