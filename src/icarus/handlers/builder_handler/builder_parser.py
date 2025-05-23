@@ -261,7 +261,13 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
     kwargs = validate_icarus_build_config(kwargs=kwargs)
 
     if args.exec:
-        kwargs.update({'initial_exec_command_received': args.exec[0].split()})
+        if len(args.exec) == 1:
+            initial_exec_command_received = args.exec[0].split()
+        elif len(args.exec) > 1:
+            initial_exec_command_received = args.exec
+        else:
+            raise utils.IcarusParserException('Invalid --exec argument')
+        kwargs.update({'initial_exec_command_received': initial_exec_command_received})
         # altering the args.exec value so it can be used from the
         # for loop here below to make up the initial_command_received
         script_args[13] = f"--exec {' '.join(args.exec)}"

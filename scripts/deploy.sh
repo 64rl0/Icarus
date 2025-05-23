@@ -97,4 +97,8 @@ git push
 
 echo
 echo -e "${bold_green}Updating local version of icarus${end}"
-icarus --update
+icarus --update || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to update icarus"
+
+echo
+echo -e "${bold_green}Updating local version of icarus${end}"
+icarus --update || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to update icarus"
