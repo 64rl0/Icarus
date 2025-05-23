@@ -888,23 +888,8 @@ function deactivate_venv_env() {
     echo
 }
 
-function clean_brazil_env() {
-    brazil-build clean || {
-        clean_summary_status="${failed}"
-        exit_code=1
-    }
-    echo
-}
-
-function clean_venv_env() {
-    local single_run_status=0
-
-    echo -e "Cleaning up..."
-    echo
-
+function clean_common() {
     local dirs_to_clean=(
-        "${project_root_dir_abs}/${venv_name}"
-        "${project_root_dir_abs}/dist"
         "${project_root_dir_abs}/src/"*".egg-info"
     )
     for dir in "${dirs_to_clean[@]}"; do
@@ -949,6 +934,43 @@ function clean_venv_env() {
         }
         echo
     done
+
+}
+
+function clean_brazil_env() {
+    echo -e "Cleaning up..."
+    echo
+    clean_common
+
+    brazil-build clean || {
+        clean_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function clean_venv_env() {
+    local single_run_status=0
+
+    echo -e "Cleaning up..."
+    echo
+
+    local dirs_to_clean=(
+        "${project_root_dir_abs}/${venv_name}"
+    )
+    for dir in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}$(basename ${dir})${end}'"
+        echo -e "${dir}"
+        rm -rf "${dir}" || {
+            echo_error "Failed to clean '${dir}'."
+            clean_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+        echo
+    done
+
+    clean_common
 
     if [[ "${single_run_status}" -eq 0 ]]; then
         echo
