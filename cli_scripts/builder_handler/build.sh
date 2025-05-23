@@ -774,22 +774,20 @@ function build_venv_env() {
         exit_code=1
     }
 
-    # Cleanup pre
-    echo -e "\n\n${bold_green}${broom} Cleaning up...${end}"
-    rm -rf "${project_root_dir_abs}/dist/"
+    # Cleanup pre silently
+    rm -rf "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
-    echo -e "cleanup completed"
 
     # Building local package
-    echo -e "\n\n${bold_green}${hammer_and_wrench}  Building '${project_root_dir_abs}'...${end}"
-    python3 -m build "${project_root_dir_abs}" || {
+    echo -e "\n\n${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
+    python3 -m build --wheel --outdir "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         single_run_status=1
         exit_code=1
     }
     echo -e "\n\n${bold_green}${package} Checking package health${end}"
-    twine check "${project_root_dir_abs}/dist/"*.whl || {
+    twine check "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/"*.whl || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         single_run_status=1
@@ -797,8 +795,8 @@ function build_venv_env() {
     }
 
     # Install local package into venv (as last so it will override the same name)
-    echo -e "\n\n${bold_green}${sparkles} Installing '${project_root_dir_abs}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
-    pip install -I "${project_root_dir_abs}/dist/"*.whl || {
+    echo -e "\n\n${bold_green}${sparkles} Installing '${package_name_snake_case}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
+    pip install -I "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/"*.whl || {
         echo_error "Failed to install '${project_root_dir_abs}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv."
         build_summary_status="${failed}"
         single_run_status=1
@@ -807,7 +805,33 @@ function build_venv_env() {
 
     # Cleanup post
     echo -e "\n\n${bold_green}${broom} Cleaning up...${end}"
-    rm -rf "${project_root_dir_abs}/dist/"
+    if [[ "${venv_name}" == 'build' ]]; then
+        mkdir -p "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/build" || {
+            echo_error "Failed to create build dir."
+            build_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+        mv "${project_root_dir_abs}/build/lib" "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/build" || {
+            echo_error "Failed to move build/lib dir to venv dir."
+            build_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+        mv "${project_root_dir_abs}/build/bdist."* "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}/build" || {
+            echo_error "Failed to move build/bdist dir to venv dir."
+            build_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+    else
+        mv "${project_root_dir_abs}/build" "${project_root_dir_abs}/${venv_name}/wheels/${package_name_snake_case}" || {
+            echo_error "Failed to move build dir to venv dir."
+            build_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+    fi
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
     echo -e "cleanup completed"
 
@@ -906,6 +930,7 @@ function clean_venv_env() {
 
     echo -e "Cleaning up..."
 
+    echo -e "Cleaning dist dir"
     rm -rf "${project_root_dir_abs}/dist/" || {
         echo_error "Failed to clean '${project_root_dir_abs}/dist/'."
         clean_summary_status="${failed}"
@@ -913,6 +938,7 @@ function clean_venv_env() {
         exit_code=1
     }
 
+    echo -e "Cleaning *.egg files"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info" || {
         echo_error "Failed to clean '${project_root_dir_abs}/src/' egg-info files."
         clean_summary_status="${failed}"
@@ -920,6 +946,7 @@ function clean_venv_env() {
         exit_code=1
     }
 
+    echo -e "Cleaning '${venv_name}' dir"
     rm -rf "${project_root_dir_abs}/${venv_name}" || {
         echo_error "Failed to clean '${project_root_dir_abs}/${venv_name}'."
         clean_summary_status="${failed}"
@@ -928,9 +955,11 @@ function clean_venv_env() {
     }
 
     if [[ "${single_run_status}" -eq 0 ]]; then
+        echo
         echo -e "Virtual environment '${venv_name}' cleaned!"
         echo
     else
+        echo
         echo -e "${bold_red}${stop_sign} Virtual environment '${venv_name}' clean failed!${end}"
         echo
     fi
