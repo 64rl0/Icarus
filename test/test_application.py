@@ -24,7 +24,8 @@ This module ...
 # These exceptions may be necessary due to specific coding requirements
 # or to bypass false positives.
 # ======================================================================
-#
+# flake8: noqa
+# mypy: ignore-errors
 
 # ======================================================================
 # IMPORTS
@@ -57,3 +58,7 @@ def test_that_you_wrote_tests():
     then remove this!
     """)
     assert True, assertion_string
+
+
+def test_application_importable():
+    import icarus.main

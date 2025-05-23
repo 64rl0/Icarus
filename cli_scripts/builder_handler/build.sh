@@ -900,30 +900,55 @@ function clean_venv_env() {
     local single_run_status=0
 
     echo -e "Cleaning up..."
+    echo
 
-    echo -e "Cleaning dist dir"
-    rm -rf "${project_root_dir_abs}/dist/" || {
-        echo_error "Failed to clean '${project_root_dir_abs}/dist/'."
-        clean_summary_status="${failed}"
-        single_run_status=1
-        exit_code=1
-    }
+    local dirs_to_clean=(
+        "${project_root_dir_abs}/${venv_name}"
+        "${project_root_dir_abs}/dist"
+        "${project_root_dir_abs}/src/"*".egg-info"
+    )
+    for dir in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}$(basename ${dir})${end}'"
+        echo -e "${dir}"
+        rm -rf "${dir}" || {
+            echo_error "Failed to clean '${dir}'."
+            clean_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+        echo
+    done
 
-    echo -e "Cleaning *.egg files"
-    rm -rf "${project_root_dir_abs}/src/"*".egg-info" || {
-        echo_error "Failed to clean '${project_root_dir_abs}/src/' egg-info files."
-        clean_summary_status="${failed}"
-        single_run_status=1
-        exit_code=1
-    }
+    local dirs_to_clean=(
+        ".mypy_cache"
+        ".pytest_cache"
+        "__pycache__"
+    )
+    for dir in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}${dir}${end}'"
+        find "${project_root_dir_abs}" -type d -name "${dir}" -print -exec rm -rf {} + || {
+            echo_error "Failed to clean '${dir}'."
+            clean_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+        echo
+    done
 
-    echo -e "Cleaning '${venv_name}' dir"
-    rm -rf "${project_root_dir_abs}/${venv_name}" || {
-        echo_error "Failed to clean '${project_root_dir_abs}/${venv_name}'."
-        clean_summary_status="${failed}"
-        single_run_status=1
-        exit_code=1
-    }
+    local files_to_clean=(
+        ".DS_Store"
+        "Thumbs.db"
+    )
+    for file in "${files_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}${file}${end}'"
+        find "${project_root_dir_abs}" -type f -name "${file}" -print -exec rm -rf {} + || {
+            echo_error "Failed to clean '${file}'."
+            clean_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+        echo
+    done
 
     if [[ "${single_run_status}" -eq 0 ]]; then
         echo
