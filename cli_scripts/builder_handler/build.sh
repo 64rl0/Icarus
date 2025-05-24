@@ -532,8 +532,6 @@ function run_eofnewline() {
         # Read the last byte; add '\n' only if it isn't one already.
         if [[ $(tail -c 1 -- "${el}" | od -An -tu1) -ne 10 ]]; then
             echo "Fixing: ${el}"
-            echo "EOF char is: $(tail -c1 -- "${el}")"
-            echo
             printf '\n' >>"${el}" || {
                 eofnewline_summary_status="${failed}"
                 exit_code=1
@@ -545,8 +543,6 @@ function run_eofnewline() {
                     if [[ "${entered}" != true ]]; then
                         local entered=true
                         echo "Fixing: ${el}"
-                        echo "Removing extra EOF new-lines"
-                        echo
                         ((counter = counter + 1))
                     fi
                     truncate -s -1 -- "${el}" || {
@@ -560,6 +556,9 @@ function run_eofnewline() {
         fi
     done
 
+    if [[ "${counter}" -ge 1 ]]; then
+        echo
+    fi
     echo -e "Fixed ${counter} file(s)"
     echo
 }
