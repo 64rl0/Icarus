@@ -625,7 +625,7 @@ def convert_dict_to_bash_kwargs_string(kwargs: KwArgs) -> str:
         if isinstance(v, tuple):
             v = list(v)
         if isinstance(v, list):
-            temp_kwargs[k] = repr(v).replace('[', '( ').replace(']', ' )').replace('\',', '\'')
+            temp_kwargs[k] = f"( {' '.join(repr(el) for el in v)} )"
 
         module_logger.debug(f"kwargs -> {k}={temp_kwargs[k]}")
 
