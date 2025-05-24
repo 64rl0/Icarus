@@ -566,15 +566,44 @@ function run_eofnewline() {
 
 function run_trailingwhitespaces() {
     elements=("${active_files_all[@]}")
+    local counter=0
 
-    {
-        # TODO(carlogtt): implement this tool
-        echo -e "${bold_yellow}Tool not implemented yet!${end}"
-        echo
-    } || {
-        trailing_summary_status="${failed}"
-        exit_code=1
-    }
+    for el in "${elements[@]}"; do
+        # Skip empty files – they already satisfy the “blank line” rule.
+        if [[ ! -s "${el}" ]]; then
+            continue
+        fi
+
+        # Skip non-text (binary) files
+        if file_path=$(command -v file); then
+            if [[ $("${file_path}" -b --mime-type -- "${el}") != text/* ]]; then
+                continue
+            fi
+        else
+            grep -Iq . "${el}" || continue
+        fi
+
+        # Trail whitespaces
+        echo "Fixing: ${el}"
+        ((counter = counter + 1))
+
+        if [[ $(uname -s) == "Darwin" ]]; then
+            # macOS
+            sed -E -i '' 's/[[:space:]]+$//' "${el}" || {
+                trailing_summary_status="${failed}"
+                exit_code=1
+            }
+        else
+            # Linux
+            sed -E -i 's/[[:space:]]+$//' "${el}" || {
+                trailing_summary_status="${failed}"
+                exit_code=1
+            }
+        fi
+    done
+
+    echo
+    echo -e "Fixed ${counter} file(s)"
     echo
 }
 
