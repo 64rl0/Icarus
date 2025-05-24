@@ -53,7 +53,7 @@ function echo_time() {
 function validate_command() {
     local command_to_validate="${1}"
     if [[ -z "$(command -v "${command_to_validate}" 2>/dev/null)" ]]; then
-        echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH"
+        echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH" "errexit"
     fi
 }
 

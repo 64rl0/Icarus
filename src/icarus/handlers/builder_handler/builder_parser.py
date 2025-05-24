@@ -330,7 +330,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
 
     kwargs['running_hooks_count'] = str(len(kwargs['running_hooks_name']))
 
-    if kwargs['build'] == 'Y' and kwargs['running_hooks_count'] == 1:
+    if kwargs['build'] == 'Y' and kwargs['running_hooks_count'] == str(1):
         kwargs['is_only_build_hook'] = 'Y'
 
     kwargs = normalize_args_from_python_script(kwargs=kwargs)
