@@ -13,3 +13,4 @@ Submodules
    :maxdepth: 1000
 
    icarus.handlers.builder_handler.builder_parser
+   icarus.handlers.builder_handler.ibb

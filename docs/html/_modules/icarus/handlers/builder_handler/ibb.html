@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>icarus.handlers.builder_handler.ibb &#8212; Icarus r. documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=9d6d948b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=772fa434" />
+    <script src="../../../../_static/documentation_options.js?v=30015795"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for icarus.handlers.builder_handler.ibb</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ======================================================================</span>
+<span class="c1"># MODULE DETAILS</span>
+<span class="c1"># This section provides metadata about the module, including its</span>
+<span class="c1"># creation date, author, copyright information, and a brief description</span>
+<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># ======================================================================</span>
+
+<span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
+<span class="c1">#  (      _ \     /  |     (   | (_ |    |      |</span>
+<span class="c1"># \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|</span>
+
+<span class="c1"># src/icarus/handlers/builder_handler/ibb.py</span>
+<span class="c1"># Created 5/24/25 - 8:48 PM UK Time (London) by carlogtt</span>
+<span class="c1"># Copyright (c) Amazon.com Inc. All Rights Reserved.</span>
+<span class="c1"># AMAZON.COM CONFIDENTIAL</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module ...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ======================================================================</span>
+<span class="c1"># EXCEPTIONS</span>
+<span class="c1"># This section documents any exceptions made code or quality rules.</span>
+<span class="c1"># These exceptions may be necessary due to specific coding requirements</span>
+<span class="c1"># or to bypass false positives.</span>
+<span class="c1"># ======================================================================</span>
+<span class="c1">#</span>
+
+<span class="c1"># ======================================================================</span>
+<span class="c1"># IMPORTS</span>
+<span class="c1"># Importing required libraries and modules for the application.</span>
+<span class="c1"># ======================================================================</span>
+
+<span class="c1"># Standard Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">TypedDict</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="c1"># Third Party Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+
+<span class="c1"># My Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">carlogtt_python_library</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mylib</span>
+
+<span class="c1"># Local Folder (Relative) Imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">utils</span>
+
+<span class="c1"># END IMPORTS</span>
+<span class="c1"># ======================================================================</span>
+
+
+<span class="c1"># List of public names in the module</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_argv&#39;</span><span class="p">]</span>
+
+<span class="c1"># Setting up logger for current module</span>
+<span class="n">module_logger</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">get_child_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># Type aliases</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IbbArgMmp</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+    <span class="n">icarus_config_filename</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">icarus_config_filepath</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">project_root_dir_abs</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">package_name_pascal_case</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">package_name_snake_case</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">package_name_dashed</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">package_language</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">build_system_in_use</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">python_version_default_for_brazil</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">python_versions_for_brazil</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">venv_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">python_version_default_for_venv</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">python_versions_for_venv</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">requirements_paths</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">icarus_ignore_array</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">build</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">is_only_build_hook</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">isort</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">black</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">flake8</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">mypy</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">shfmt</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">eolnorm</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">whitespaces</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">trailing</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">eofnewline</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">gitleaks</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">pytest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">docs</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">exec</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">initial_command_received</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">initial_exec_command_received</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">running_hooks_name</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">running_hooks_count</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">all_hooks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;clean&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;isort&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;black&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;flake8&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mypy&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;shfmt&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;eolnorm&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;whitespaces&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;trailing&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;eofnewline&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;gitleaks&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;pytest&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;docs&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+
+
+<div class="viewcode-block" id="get_argv">
+<a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.ibb.html#icarus.handlers.builder_handler.ibb.get_argv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_argv</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the arguments for the build.sh script.</span>
+
+<span class="sd">    :return: The arguments for the build.sh script.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Clean the args to remove the unutilized args</span>
+    <span class="n">ibb_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">build</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">clean</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">isort</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">flake8</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">mypy</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">shfmt</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">eolnorm</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">whitespaces</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">trailing</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">eofnewline</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">gitleaks</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">pytest</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">docs</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">,</span>  <span class="c1"># DO NOT move this idx or update ref below</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">release</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">test</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">validate_build_cli_args_base_rules</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">ibb_args</span><span class="o">=</span><span class="n">ibb_args</span><span class="p">)</span>
+
+    <span class="n">ibb_arg_mmp</span> <span class="o">=</span> <span class="n">initialize_ibb_arg_mmp</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span> <span class="o">=</span> <span class="n">read_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">=</span><span class="n">ibb_arg_mmp</span><span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span> <span class="o">=</span> <span class="n">parse_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">=</span><span class="n">ibb_arg_mmp</span><span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span> <span class="o">=</span> <span class="n">validate_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">=</span><span class="n">ibb_arg_mmp</span><span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span> <span class="o">=</span> <span class="n">process_ibb_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">ibb_arg_mmp</span><span class="o">=</span><span class="n">ibb_arg_mmp</span><span class="p">,</span> <span class="n">ibb_args</span><span class="o">=</span><span class="n">ibb_args</span><span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span> <span class="o">=</span> <span class="n">normalize_and_set_defaults_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">=</span><span class="n">ibb_arg_mmp</span><span class="p">)</span>
+
+    <span class="n">ibb_argv</span> <span class="o">=</span> <span class="n">convert_ibb_arg_mmp_to_ibb_argv</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">=</span><span class="n">ibb_arg_mmp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ibb_argv</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_ibb_arg_mmp</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IbbArgMmp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize the IbbArgMmp dictionary with default values.</span>
+
+<span class="sd">    :param args: The parsed arguments.</span>
+<span class="sd">    :return: The initialized IbbArgMmp dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Initialize the IbbArgMmp dictionary with default values</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;all_hooks&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">&#39;build&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;clean&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;isort&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;flake8&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;mypy&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;shfmt&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;eolnorm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whitespaces&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;trailing&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;eofnewline&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gitleaks&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;pytest&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;docs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;exec&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s1">&#39;icarus_config_filename&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;icarus_config_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;project_root_dir_abs&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;package_name_snake_case&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;package_name_dashed&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;package_language&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;build_system_in_use&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;venv_name&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;requirements_paths&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;build&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">build</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;is_only_build_hook&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">clean</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;isort&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">isort</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">black</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;flake8&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">flake8</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;mypy&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mypy</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;shfmt&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">shfmt</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;eolnorm&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">eolnorm</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;whitespaces&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">whitespaces</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;trailing&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">trailing</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;eofnewline&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">eofnewline</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gitleaks&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">gitleaks</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pytest&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">pytest</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;docs&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">docs</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;exec&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;initial_command_received&#39;</span><span class="p">:</span> <span class="s1">&#39;icarus builder build&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;initial_exec_command_received&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;running_hooks_name&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;running_hooks_count&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_build_cli_args_base_rules</span><span class="p">(</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span> <span class="n">ibb_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prepare the arguments for the build.sh script.</span>
+
+<span class="sd">    This function takes the parsed arguments and prepares them for the</span>
+<span class="sd">    build.sh script to eval them and set as script variables.</span>
+
+<span class="sd">    :param args:</span>
+<span class="sd">    :param ibb_args:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Initial validations</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">clean</span> <span class="ow">and</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ibb_args</span> <span class="k">if</span> <span class="n">el</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;--clean is a standalone argument and must be used alone&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span> <span class="ow">and</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ibb_args</span> <span class="k">if</span> <span class="n">el</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;--exec is a standalone argument and must be used alone&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">ibb_args</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;icarus builder build requires at least one argument&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_ibb_args</span><span class="p">(</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span> <span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span><span class="p">,</span> <span class="n">ibb_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IbbArgMmp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prepare the arguments for the build.sh script.</span>
+
+<span class="sd">    :param args:</span>
+<span class="sd">    :param ibb_arg_mmp:</span>
+<span class="sd">    :param ibb_args:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">initial_exec_command_received</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">initial_exec_command_received</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">exec</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;Invalid --exec argument&#39;</span><span class="p">)</span>
+        <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;initial_exec_command_received&#39;</span><span class="p">:</span> <span class="n">initial_exec_command_received</span><span class="p">})</span>
+        <span class="c1"># altering the args.exec value so it can be used from the</span>
+        <span class="c1"># for loop here below to make up the initial_command_received</span>
+        <span class="n">ibb_args</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">release</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="s1">&#39;venv&#39;</span><span class="p">}:</span>
+            <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;build&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;isort&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;flake8&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mypy&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shfmt&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;eolnorm&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;whitespaces&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;trailing&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;eofnewline&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;pytest&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gitleaks&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;docs&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+            <span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="s1">&#39;The --release argument is only valid for brazil or venv build systems&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="s1">&#39;venv&#39;</span><span class="p">}:</span>
+            <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;isort&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;flake8&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mypy&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shfmt&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;eolnorm&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;whitespaces&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;trailing&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;eofnewline&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+            <span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="s1">&#39;The --format argument is only valid for brazil or venv build systems&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">test</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="s1">&#39;venv&#39;</span><span class="p">}:</span>
+            <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;pytest&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+            <span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="s1">&#39;The --test argument is only valid for brazil or venv build systems&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">ibb_args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
+            <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;initial_command_received&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;all_hooks&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="n">hook</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span>
+            <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;running_hooks_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
+
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;running_hooks_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;running_hooks_name&#39;</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="ow">and</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;running_hooks_count&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;is_only_build_hook&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">read_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IbbArgMmp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process the icarus build config file and return a string with</span>
+<span class="sd">    all the ibb_arg_mmp to be then eval from the sh script.</span>
+
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">config_filename</span> <span class="o">=</span> <span class="s1">&#39;icarus.cfg&#39;</span>
+
+    <span class="n">pwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">pwd</span> <span class="o">!=</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pwd</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">config_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pwd</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+            <span class="s1">&#39;No `icarus.cfg` file found!</span><span class="se">\n</span><span class="s1">               You are not in an icarus build enabled&#39;</span>
+            <span class="s1">&#39; directory.</span><span class="se">\n</span><span class="s1">               To enable icarus build create a `icarus.cfg` in the&#39;</span>
+            <span class="s1">&#39; project root directory.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">config_filepath</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pwd</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">config_filename</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_config_filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_filename</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_config_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_filepath</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;project_root_dir_abs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pwd</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IbbArgMmp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse the icarus build config file.</span>
+
+<span class="sd">    :param ibb_arg_mmp:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_config_filepath&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">icarus_build_config</span><span class="p">:</span>
+            <span class="n">ibc</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">icarus_build_config</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Error parsing </span><span class="si">{</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_config_filepath&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">               </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">pkg</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;package&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">bs</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build-system&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">brz</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">vnv</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;venv&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">ignrs</span> <span class="o">=</span> <span class="n">ibc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">pkg</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;package_language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">pkg</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;language&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;runtime&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;python-default&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">brz</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python-default&#39;</span><span class="p">)</span>
+        <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">brz</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;venv_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;python-default&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python-default&#39;</span><span class="p">)</span>
+        <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;requirements&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements&#39;</span><span class="p">)</span>
+        <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vnv</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python&#39;</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ignrs</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IbbArgMmp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate the icarus build config file.</span>
+
+<span class="sd">    :param ibb_arg_mmp:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">accepted_build_systems</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="s1">&#39;venv&#39;</span><span class="p">]</span>
+    <span class="n">icfg</span> <span class="o">=</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_config_filename&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No package name specified in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Package name in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a string&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;package_language&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No package language specified in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;package_language&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Package language in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a string&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No build system specified in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Build system in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a string&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accepted_build_systems</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Invalid build system in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;brazil&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No python version(s) specified in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;All python versions in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be strings&#39;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Python versions in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a list of string&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;No default python version specified in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Default python version in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a string&#39;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version_default_for_brazil&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">,</span> <span class="p">[]</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Default python version in brazil </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be in the list of python&#39;</span>
+                    <span class="s1">&#39; versions&#39;</span>
+                <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;venv&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;venv_name&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No venv name specified in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;venv_name&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Venv name in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a string&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No python version(s) specified in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">,</span> <span class="p">[])):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;All python versions in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be strings&#39;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Python versions in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a list of string&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No default python version specified in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Default python version in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a string&#39;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;python_version_default_for_venv&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">,</span> <span class="p">[]</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Default python version in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be in the list of python versions&#39;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">):</span>
+            <span class="c1"># not a mandatory field</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">,</span> <span class="p">[])):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;All requirements path array in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be strings&#39;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Requirements path array in venv </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a list of strings&#39;</span>
+                <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">):</span>
+        <span class="c1"># not a mandatory field</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">,</span> <span class="p">[])):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;All icarus ignore array in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be strings&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Icarus ignore array in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s1"> must be a list of string&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_and_set_defaults_icarus_build_cfg</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IbbArgMmp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize the ibb_arg_mmp to be used in the python script.</span>
+
+<span class="sd">    :param ibb_arg_mmp:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">stru</span> <span class="o">=</span> <span class="n">mylib</span><span class="o">.</span><span class="n">StringUtils</span><span class="p">()</span>
+    <span class="n">skey</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)]))</span>  <span class="c1"># noqa</span>
+    <span class="n">icfg</span> <span class="o">=</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_config_filename&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Optional settings will get here as None, set defaults</span>
+    <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Add pkg name snake anf dashed</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;package_name_snake_case&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stru</span><span class="o">.</span><span class="n">snake_case</span><span class="p">(</span>
+            <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;package_name_pascal_case&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;package_name_dashed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;package_name_snake_case&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid package name in </span><span class="si">{</span><span class="n">icfg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Remove duplicates and sort from newest to oldest version</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_brazil&#39;</span><span class="p">])),</span> <span class="n">key</span><span class="o">=</span><span class="n">skey</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_venv&#39;</span><span class="p">])),</span> <span class="n">key</span><span class="o">=</span><span class="n">skey</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">]))</span>
+    <span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">[</span><span class="s1">&#39;requirements_paths&#39;</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_ibb_arg_mmp_to_ibb_argv</span><span class="p">(</span><span class="n">ibb_arg_mmp</span><span class="p">:</span> <span class="n">IbbArgMmp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a dictionary to a bash ibb_arg_mmp string.</span>
+
+<span class="sd">    :param ibb_arg_mmp:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">temp_ibb_arg_mmp</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ibb_arg_mmp</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid type for `</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">temp_ibb_arg_mmp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">temp_ibb_arg_mmp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">el</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">el</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2"> )&quot;</span>
+
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ibb_arg_mmp -&gt; </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">temp_ibb_arg_mmp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+
+    <span class="n">ibb_arg_mmp_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">temp_ibb_arg_mmp</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+    <span class="k">return</span> <span class="n">ibb_arg_mmp_str</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Icarus</a></h1>
+
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../_apidoc/modules.html">src</a></li>
+</ul>
+
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Carlo Gatti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
