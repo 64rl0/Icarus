@@ -312,147 +312,130 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_build.add_argument(
+        '--exec',
+        required=False,
+        nargs='+',
+        metavar='CMD',
+        default=False,
+        help='command to run inside the runtime environment',
+    )
+    builder_build.add_argument(
         '--build',
         required=False,
-        action='store_const',
-        const='--build',
-        default='',
+        action='store_true',
+        default=False,
         help='create/re-create the project runtime environment',
     )
     builder_build.add_argument(
         '--clean',
         required=False,
-        action='store_const',
-        const='--clean',
-        default='',
+        action='store_true',
+        default=False,
         help='clean the project runtime environment',
     )
     builder_build.add_argument(
         '--release',
         required=False,
-        action='store_const',
-        const='--release',
-        default='',
+        action='store_true',
+        default=False,
         help='run the full “release” pipeline',
     )
     builder_build.add_argument(
         '--format',
         required=False,
-        action='store_const',
-        const='--format',
-        default='',
+        action='store_true',
+        default=False,
         help='run only the formatting tools',
     )
     builder_build.add_argument(
         '--test',
         required=False,
-        action='store_const',
-        const='--test',
-        default='',
+        action='store_true',
+        default=False,
         help='run only the automated test suite',
-    )
-    builder_build.add_argument(
-        '--exec',
-        required=False,
-        nargs='+',
-        metavar='CMD',
-        default='',
-        help='command to run inside the runtime environment',
     )
     builder_build.add_argument(
         '--isort',
         required=False,
-        action='store_const',
-        const='--isort',
-        default='',
+        action='store_true',
+        default=False,
         help='sort python imports with isort',
     )
     builder_build.add_argument(
         '--black',
         required=False,
-        action='store_const',
-        const='--black',
-        default='',
+        action='store_true',
+        default=False,
         help='re-format python code with black',
     )
     builder_build.add_argument(
         '--flake8',
         required=False,
-        action='store_const',
-        const='--flake8',
-        default='',
+        action='store_true',
+        default=False,
         help='run static analysis with flake8',
     )
     builder_build.add_argument(
         '--mypy',
         required=False,
-        action='store_const',
-        const='--mypy',
-        default='',
+        action='store_true',
+        default=False,
         help='type-check the codebase with mypy',
     )
     builder_build.add_argument(
         '--shfmt',
         required=False,
-        action='store_const',
-        const='--shfmt',
-        default='',
+        action='store_true',
+        default=False,
         help='format shell scripts with shfmt',
     )
     builder_build.add_argument(
         '--whitespaces',
         required=False,
-        action='store_const',
-        const='--whitespaces',
-        default='',
+        action='store_true',
+        default=False,
         help='normalize mixed or excessive whitespace',
     )
     builder_build.add_argument(
         '--trailing',
         required=False,
-        action='store_const',
-        const='--trailing',
-        default='',
+        action='store_true',
+        default=False,
         help='remove trailing whitespace',
     )
     builder_build.add_argument(
         '--eofnewline',
         required=False,
-        action='store_const',
-        const='--eofnewline',
-        default='',
+        action='store_true',
+        default=False,
         help='ensure files end with a single newline',
     )
     builder_build.add_argument(
         '--eolnorm',
         required=False,
-        action='store_const',
-        const='--eolnorm',
-        default='',
+        action='store_true',
+        default=False,
         help='normalize line endings to LF',
     )
     builder_build.add_argument(
         '--gitleaks',
         required=False,
-        action='store_const',
-        const='--gitleaks',
-        default='',
+        action='store_true',
+        default=False,
         help='scan for secrets with gitleaks',
     )
     builder_build.add_argument(
         '--pytest',
         required=False,
-        action='store_const',
-        const='--pytest',
-        default='',
+        action='store_true',
+        default=False,
         help='execute the unit/integration-test suite via pytest',
     )
     builder_build.add_argument(
         '--docs',
         required=False,
-        action='store_const',
-        const='--docs',
-        default='',
+        action='store_true',
+        default=False,
         help='generate user documentation',
     )
 

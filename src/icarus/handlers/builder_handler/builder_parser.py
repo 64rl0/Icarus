@@ -357,7 +357,8 @@ def process_icarus_build_config(kwargs: KwArgs) -> KwArgs:
 
     config_filename = 'icarus.cfg'
 
-    while (pwd := os.getcwd()) != '/':
+    pwd = os.getcwd()
+    while pwd != '/':
         if os.path.exists(f"{pwd}/{config_filename}"):
             break
         else:
