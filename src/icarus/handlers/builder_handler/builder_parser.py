@@ -122,7 +122,7 @@ class KwArgs(TypedDict):
     venv_name: str
     python_version_default_for_venv: str
     python_versions_for_venv: list
-    requirements_path: str
+    requirements_paths: list
     icarus_ignore_array: list
     build: str
     is_only_build_hook: str
@@ -233,7 +233,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
         'venv_name': '',
         'python_version_default_for_venv': '',
         'python_versions_for_venv': [],
-        'requirements_path': '',
+        'requirements_paths': [],
         'icarus_ignore_array': [],
         'build': 'Y' if args.build else 'N',
         'is_only_build_hook': 'N',
@@ -434,7 +434,7 @@ def parse_icarus_build_config(kwargs: KwArgs) -> KwArgs:
         pass
 
     try:
-        kwargs['requirements_path'] = [d['requirements'] for d in vnv if d.get('requirements')][0]
+        kwargs['requirements_paths'] = [d['requirements'] for d in vnv if d.get('requirements')][0]
     except Exception:
         pass
 
@@ -462,106 +462,113 @@ def validate_icarus_build_config(kwargs: KwArgs) -> KwArgs:
     accepted_build_systems = ['brazil', 'venv']
     icfg = kwargs['icarus_config_filename']
 
-    if not kwargs.get("package_name_pascal_case"):
-        raise utils.IcarusParserException(f"No package name specified in {icfg}")
+    if not kwargs.get('package_name_pascal_case'):
+        raise utils.IcarusParserException(f'No package name specified in {icfg}')
     else:
         if not isinstance(kwargs.get('package_name_pascal_case'), str):
-            raise utils.IcarusParserException(f"Package name in {icfg} must be a string")
+            raise utils.IcarusParserException(f'Package name in {icfg} must be a string')
 
-    if not kwargs.get("package_language"):
-        raise utils.IcarusParserException(f"No package language specified in {icfg}")
+    if not kwargs.get('package_language'):
+        raise utils.IcarusParserException(f'No package language specified in {icfg}')
     else:
         if not isinstance(kwargs.get('package_language'), str):
-            raise utils.IcarusParserException(f"Package language in {icfg} must be a string")
+            raise utils.IcarusParserException(f'Package language in {icfg} must be a string')
 
-    if not kwargs.get("build_system_in_use"):
-        raise utils.IcarusParserException(f"No build system specified in {icfg}")
+    if not kwargs.get('build_system_in_use'):
+        raise utils.IcarusParserException(f'No build system specified in {icfg}')
     else:
         if not isinstance(kwargs.get('build_system_in_use'), str):
-            raise utils.IcarusParserException(f"Build system in {icfg} must be a string")
-        if kwargs.get("build_system_in_use") not in accepted_build_systems:
-            raise utils.IcarusParserException(f"Invalid build system in {icfg}")
+            raise utils.IcarusParserException(f'Build system in {icfg} must be a string')
+        if kwargs.get('build_system_in_use') not in accepted_build_systems:
+            raise utils.IcarusParserException(f'Invalid build system in {icfg}')
 
-    if kwargs.get("build_system_in_use") == 'brazil':
-        if not kwargs.get("python_versions_for_brazil"):
-            raise utils.IcarusParserException(f"No python version(s) specified in brazil {icfg}")
-        elif isinstance(kwargs.get("python_versions_for_brazil"), list):
-            if not all(isinstance(v, str) for v in kwargs.get("python_versions_for_brazil", [])):
+    if kwargs.get('build_system_in_use') == 'brazil':
+        if not kwargs.get('python_versions_for_brazil'):
+            raise utils.IcarusParserException(f'No python version(s) specified in brazil {icfg}')
+        elif isinstance(kwargs.get('python_versions_for_brazil'), list):
+            if not all(isinstance(v, str) for v in kwargs.get('python_versions_for_brazil', [])):
                 raise utils.IcarusParserException(
-                    f"All python versions in brazil {icfg} must be strings"
+                    f'All python versions in brazil {icfg} must be strings'
                 )
         else:
             raise utils.IcarusParserException(
-                f"Python versions in brazil {icfg} must be a list of string"
+                f'Python versions in brazil {icfg} must be a list of string'
             )
 
-        if not kwargs.get("python_version_default_for_brazil"):
+        if not kwargs.get('python_version_default_for_brazil'):
             raise utils.IcarusParserException(
-                f"No default python version specified in brazil {icfg}"
+                f'No default python version specified in brazil {icfg}'
             )
         else:
-            if not isinstance(kwargs.get("python_version_default_for_brazil"), str):
+            if not isinstance(kwargs.get('python_version_default_for_brazil'), str):
                 raise utils.IcarusParserException(
-                    f"Default python version in brazil {icfg} must be a string"
+                    f'Default python version in brazil {icfg} must be a string'
                 )
-            if kwargs.get("python_version_default_for_brazil") not in kwargs.get(
-                "python_versions_for_brazil", []
+            if kwargs.get('python_version_default_for_brazil') not in kwargs.get(
+                'python_versions_for_brazil', []
             ):
                 raise utils.IcarusParserException(
-                    f"Default python version in brazil {icfg} must be in the list of python"
-                    " versions"
+                    f'Default python version in brazil {icfg} must be in the list of python'
+                    ' versions'
                 )
 
-    if kwargs.get("build_system_in_use") == 'venv':
-        if not kwargs.get("venv_name"):
-            raise utils.IcarusParserException(f"No venv name specified in venv {icfg}")
+    if kwargs.get('build_system_in_use') == 'venv':
+        if not kwargs.get('venv_name'):
+            raise utils.IcarusParserException(f'No venv name specified in venv {icfg}')
         else:
             if not isinstance(kwargs.get('venv_name'), str):
-                raise utils.IcarusParserException(f"Venv name in {icfg} must be a string")
+                raise utils.IcarusParserException(f'Venv name in {icfg} must be a string')
 
-        if not kwargs.get("python_versions_for_venv"):
-            raise utils.IcarusParserException(f"No python version(s) specified in venv {icfg}")
-        elif isinstance(kwargs.get("python_versions_for_venv"), list):
-            if not all(isinstance(v, str) for v in kwargs.get("python_versions_for_venv", [])):
+        if not kwargs.get('python_versions_for_venv'):
+            raise utils.IcarusParserException(f'No python version(s) specified in venv {icfg}')
+        elif isinstance(kwargs.get('python_versions_for_venv'), list):
+            if not all(isinstance(v, str) for v in kwargs.get('python_versions_for_venv', [])):
                 raise utils.IcarusParserException(
-                    f"All python versions in venv {icfg} must be strings"
+                    f'All python versions in venv {icfg} must be strings'
                 )
         else:
             raise utils.IcarusParserException(
-                f"Python versions in venv {icfg} must be a list of string"
+                f'Python versions in venv {icfg} must be a list of string'
             )
 
-        if not kwargs.get("python_version_default_for_venv"):
-            raise utils.IcarusParserException(f"No default python version specified in venv {icfg}")
+        if not kwargs.get('python_version_default_for_venv'):
+            raise utils.IcarusParserException(f'No default python version specified in venv {icfg}')
         else:
-            if not isinstance(kwargs.get("python_version_default_for_venv"), str):
+            if not isinstance(kwargs.get('python_version_default_for_venv'), str):
                 raise utils.IcarusParserException(
-                    f"Default python version in {icfg} must be a string"
+                    f'Default python version in venv {icfg} must be a string'
                 )
-            if kwargs.get("python_version_default_for_venv") not in kwargs.get(
-                "python_versions_for_venv", []
+            if kwargs.get('python_version_default_for_venv') not in kwargs.get(
+                'python_versions_for_venv', []
             ):
                 raise utils.IcarusParserException(
-                    f"Default python version in venv {icfg} must be in the list of python versions"
+                    f'Default python version in venv {icfg} must be in the list of python versions'
                 )
 
-        if not kwargs.get("requirements_path"):
+        if not kwargs.get('requirements_paths'):
             # not a mandatory field
             pass
+        elif isinstance(kwargs.get('requirements_paths'), list):
+            if not all(isinstance(v, str) for v in kwargs.get('requirements_paths', [])):
+                raise utils.IcarusParserException(
+                    f'All requirements path array in venv {icfg} must be strings'
+                )
         else:
-            if not isinstance(kwargs.get('requirements_path'), str):
-                raise utils.IcarusParserException(f"Requirements path in {icfg} must be a string")
+            if not isinstance(kwargs.get('requirements_paths'), list):
+                raise utils.IcarusParserException(
+                    f'Requirements path array in venv {icfg} must be a list of strings'
+                )
 
-    if not kwargs.get("icarus_ignore_array"):
+    if not kwargs.get('icarus_ignore_array'):
         # not a mandatory field
         pass
-    elif isinstance(kwargs.get("icarus_ignore_array"), list):
-        if not all(isinstance(v, str) for v in kwargs.get("icarus_ignore_array", [])):
-            raise utils.IcarusParserException(f"All icarus ignore array in {icfg} must be strings")
+    elif isinstance(kwargs.get('icarus_ignore_array'), list):
+        if not all(isinstance(v, str) for v in kwargs.get('icarus_ignore_array', [])):
+            raise utils.IcarusParserException(f'All icarus ignore array in {icfg} must be strings')
     else:
-        if not isinstance(kwargs.get("icarus_ignore_array"), list):
+        if not isinstance(kwargs.get('icarus_ignore_array'), list):
             raise utils.IcarusParserException(
-                f"Icarus ignore array in {icfg} must be a list of string"
+                f'Icarus ignore array in {icfg} must be a list of string'
             )
 
     return kwargs
@@ -580,8 +587,8 @@ def normalize_args_from_python_script(kwargs: KwArgs) -> KwArgs:
     icfg = kwargs['icarus_config_filename']
 
     # Optional settings will get here as None, set defaults
-    if kwargs.get('requirements_path') is None:
-        kwargs['requirements_path'] = ''
+    if kwargs.get('requirements_paths') is None:
+        kwargs['requirements_paths'] = []
     if kwargs.get('icarus_ignore_array') is None:
         kwargs['icarus_ignore_array'] = []
 
@@ -600,6 +607,7 @@ def normalize_args_from_python_script(kwargs: KwArgs) -> KwArgs:
         list(set(kwargs['python_versions_for_venv'])), key=skey, reverse=True
     )
     kwargs['icarus_ignore_array'] = list(set(kwargs['icarus_ignore_array']))
+    kwargs['requirements_paths'] = list(set(kwargs['requirements_paths']))
 
     return kwargs
 

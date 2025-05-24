@@ -182,7 +182,7 @@ function set_constants() {
     declare -r -g venv_name
     declare -r -g python_version_default_for_venv
     declare -r -g python_versions_for_venv
-    declare -r -g requirements_path
+    declare -r -g requirements_paths
     declare -r -g icarus_ignore_array
     declare -r -g build
     declare -r -g is_only_build_hook
@@ -733,12 +733,14 @@ function build_venv_env() {
 
     # Install requirements
     echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
-    pip install -I -r "${project_root_dir_abs}/${requirements_path}" || {
-        echo_error "Failed to install requirements into '${venv_name}' '${active_venv_pyversion_fullname}' venv."
-        build_summary_status="${failed}"
-        single_run_status=1
-        exit_code=1
-    }
+    for requirements_path in "${requirements_paths[@]}"; do
+        pip install -I -r "${project_root_dir_abs}/${requirements_path}" || {
+            echo_error "Failed to install requirements ${requirements_path} into '${venv_name}' '${active_venv_pyversion_fullname}' venv."
+            build_summary_status="${failed}"
+            single_run_status=1
+            exit_code=1
+        }
+    done
 
     # Cleanup pre silently
     rm -rf "${project_root_dir_abs}/${venv_name}/wheel/${active_venv_pyversion_fullname}/${package_name_snake_case}"
