@@ -132,6 +132,7 @@ class KwArgs(TypedDict):
     flake8: str
     mypy: str
     shfmt: str
+    eolnorm: str
     whitespaces: str
     trailing: str
     eofnewline: str
@@ -151,6 +152,7 @@ class KwArgs(TypedDict):
         Literal['flake8'],
         Literal['mypy'],
         Literal['shfmt'],
+        Literal['eolnorm'],
         Literal['whitespaces'],
         Literal['trailing'],
         Literal['eofnewline'],
@@ -181,6 +183,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
         args.flake8,
         args.mypy,
         args.shfmt,
+        args.eolnorm,
         args.whitespaces,
         args.trailing,
         args.eofnewline,
@@ -212,6 +215,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
             'flake8',
             'mypy',
             'shfmt',
+            'eolnorm',
             'whitespaces',
             'trailing',
             'eofnewline',
@@ -243,6 +247,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
         'flake8': 'Y' if args.flake8 else 'N',
         'mypy': 'Y' if args.mypy else 'N',
         'shfmt': 'Y' if args.shfmt else 'N',
+        'eolnorm': 'Y' if args.eolnorm else 'N',
         'whitespaces': 'Y' if args.whitespaces else 'N',
         'trailing': 'Y' if args.trailing else 'N',
         'eofnewline': 'Y' if args.eofnewline else 'N',
@@ -270,7 +275,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
         kwargs.update({'initial_exec_command_received': initial_exec_command_received})
         # altering the args.exec value so it can be used from the
         # for loop here below to make up the initial_command_received
-        script_args[13] = f"--exec {' '.join(args.exec)}"
+        script_args[14] = f"--exec {' '.join(args.exec)}"
 
     if args.release:
         if kwargs['build_system_in_use'] in {'brazil', 'venv'}:
@@ -281,6 +286,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
                 'flake8': 'Y',
                 'mypy': 'Y',
                 'shfmt': 'Y',
+                'eolnorm': 'Y',
                 'whitespaces': 'Y',
                 'trailing': 'Y',
                 'eofnewline': 'Y',
@@ -301,6 +307,7 @@ def prepare_script_args(args: argparse.Namespace) -> list[str]:
                 'flake8': 'Y',
                 'mypy': 'Y',
                 'shfmt': 'Y',
+                'eolnorm': 'Y',
                 'whitespaces': 'Y',
                 'trailing': 'Y',
                 'eofnewline': 'Y',

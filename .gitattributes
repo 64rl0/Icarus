@@ -17,7 +17,7 @@
 *.pyx           text diff=python
 *.pyz           text diff=python
 
-#These files are binary files and should NOT be normalized
+# These files are binary files and should NOT be normalized
 *.db            binary
 *.p             binary
 *.pkl           binary

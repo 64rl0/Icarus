@@ -222,6 +222,7 @@ _icarus() {
                   '--whitespaces:normalize mixed or excessive whitespace'
                   '--trailing:remove trailing whitespace'
                   '--eofnewline:ensure files end with a single newline'
+                  '--eolnorm:normalize line endings to LF'
                   '--gitleaks:scan for secrets with gitleaks'
                   '--pytest:execute the unit/integration-test suite via pytest'
                   '--docs:generate user documentation'

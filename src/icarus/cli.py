@@ -424,6 +424,14 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='ensure files end with a single newline',
     )
     builder_build.add_argument(
+        '--eolnorm',
+        required=False,
+        action='store_const',
+        const='--eolnorm',
+        default='',
+        help='normalize line endings to LF',
+    )
+    builder_build.add_argument(
         '--gitleaks',
         required=False,
         action='store_const',

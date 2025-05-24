@@ -168,6 +168,7 @@
     <span class="n">flake8</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">mypy</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">shfmt</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">eolnorm</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">whitespaces</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">trailing</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">eofnewline</span><span class="p">:</span> <span class="nb">str</span>
@@ -187,6 +188,7 @@
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;flake8&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mypy&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;shfmt&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;eolnorm&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;whitespaces&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;trailing&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;eofnewline&#39;</span><span class="p">],</span>
@@ -217,6 +219,7 @@
         <span class="n">args</span><span class="o">.</span><span class="n">flake8</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">mypy</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">shfmt</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">eolnorm</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">whitespaces</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">trailing</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">eofnewline</span><span class="p">,</span>
@@ -248,6 +251,7 @@
             <span class="s1">&#39;flake8&#39;</span><span class="p">,</span>
             <span class="s1">&#39;mypy&#39;</span><span class="p">,</span>
             <span class="s1">&#39;shfmt&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;eolnorm&#39;</span><span class="p">,</span>
             <span class="s1">&#39;whitespaces&#39;</span><span class="p">,</span>
             <span class="s1">&#39;trailing&#39;</span><span class="p">,</span>
             <span class="s1">&#39;eofnewline&#39;</span><span class="p">,</span>
@@ -279,6 +283,7 @@
         <span class="s1">&#39;flake8&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">flake8</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;mypy&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mypy</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;shfmt&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">shfmt</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;eolnorm&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">eolnorm</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;whitespaces&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">whitespaces</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;trailing&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">trailing</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;eofnewline&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">eofnewline</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
@@ -306,7 +311,7 @@
         <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;initial_exec_command_received&#39;</span><span class="p">:</span> <span class="n">initial_exec_command_received</span><span class="p">})</span>
         <span class="c1"># altering the args.exec value so it can be used from the</span>
         <span class="c1"># for loop here below to make up the initial_command_received</span>
-        <span class="n">script_args</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">script_args</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exec</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">release</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;brazil&#39;</span><span class="p">,</span> <span class="s1">&#39;venv&#39;</span><span class="p">}:</span>
@@ -317,6 +322,7 @@
                 <span class="s1">&#39;flake8&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;mypy&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shfmt&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;eolnorm&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;whitespaces&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;trailing&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;eofnewline&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
@@ -337,6 +343,7 @@
                 <span class="s1">&#39;flake8&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;mypy&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shfmt&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;eolnorm&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;whitespaces&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;trailing&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;eofnewline&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>

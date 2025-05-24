@@ -193,6 +193,7 @@ function set_constants() {
     declare -r -g mypy
     declare -r -g shfmt
     declare -r -g whitespaces
+    declare -r -g eolnorm
     declare -r -g trailing
     declare -r -g eofnewline
     declare -r -g gitleaks
@@ -242,6 +243,7 @@ function set_constants() {
     mypy_summary_status="${skipped}"
     shfmt_summary_status="${skipped}"
     whitespaces_summary_status="${skipped}"
+    eolnorm_summary_status="${skipped}"
     trailing_summary_status="${skipped}"
     eofnewline_summary_status="${skipped}"
     gitleaks_summary_status="${skipped}"
@@ -257,6 +259,7 @@ function set_constants() {
     mypy_execution_time=0
     shfmt_execution_time=0
     whitespaces_execution_time=0
+    eolnorm_execution_time=0
     trailing_execution_time=0
     eofnewline_execution_time=0
     gitleaks_execution_time=0
@@ -602,6 +605,48 @@ function run_trailingwhitespaces() {
     done
 
     echo
+    echo -e "Fixed ${counter} file(s)"
+    echo
+}
+
+function run_eolnorm() {
+    elements=("${active_files_all[@]}")
+    local counter=0
+
+    for el in "${elements[@]}"; do
+        # Skip empty files – they already satisfy the “blank line” rule.
+        if [[ ! -s "${el}" ]]; then
+            continue
+        fi
+
+        # Skip non-text (binary) files
+        if file_path=$(command -v file); then
+            if [[ $("${file_path}" -b --mime-type -- "${el}") != text/* ]]; then
+                continue
+            fi
+        else
+            grep -Iq . "${el}" || continue
+        fi
+
+        # Does the file actually contain a CR?
+        if ! grep -q $'\r' "${el}"; then
+            continue
+        fi
+
+        echo "Fixing: ${el}"
+        ((counter = counter + 1))
+
+        tmp=$(mktemp --tmpdir="$(dirname "${el}")" "$(basename "${el}").XXXX")
+        { sed 's/\r$//' "${el}" | tr '\r' '\n'; } >"${tmp}" && mv "${tmp}" "${el}" || {
+            echo_error "Failed to normalize EOLs in ${el}"
+            eolnorm_summary_status="$failed"
+            exit_code=1
+        }
+    done
+
+    if [[ "${counter}" -ge 1 ]]; then
+        echo
+    fi
     echo -e "Fixed ${counter} file(s)"
     echo
 }
@@ -1175,6 +1220,23 @@ function dispatch_tools() {
 
         end_block=$(date +%s.%N)
         shfmt_execution_time=$(echo "${shfmt_execution_time}" + "${end_block} - ${start_block}" | bc)
+    fi
+
+    if [[ "${eolnorm}" == "Y" ]]; then
+        if [[ "${eolnorm_summary_status}" == "${skipped}" ]]; then
+            eolnorm_summary_status="${passed}"
+        fi
+        start_block=$(date +%s.%N)
+
+        echo_title "Running eol-norm (convert CR and CRLF to LF)"
+        if [[ "${build_system_in_use}" == "brazil" ]]; then
+            run_eolnorm
+        elif [[ "${build_system_in_use}" == "venv" ]]; then
+            run_eolnorm
+        fi
+
+        end_block=$(date +%s.%N)
+        eolnorm_execution_time=$(echo "${eolnorm_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
