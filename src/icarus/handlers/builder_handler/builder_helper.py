@@ -220,7 +220,9 @@ def validate_build_cli_args_base_rules(ib_args: dict[str, Union[str, list[str]]]
         raise utils.IcarusParserException('--exec is a standalone argument and must be used alone')
 
     if not any(ib_args.values()):
-        raise utils.IcarusParserException('icarus builder build requires at least one argument')
+        raise utils.IcarusParserException(
+            f'{config.CLI_NAME} builder requires at least one argument'
+        )
 
 
 def process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str]]]) -> IbArgMmp:

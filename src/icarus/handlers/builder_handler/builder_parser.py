@@ -109,11 +109,6 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         return return_code
 
     elif args.builder_command in {'build', 'clean', 'release', 'format', 'test', 'exec', None}:
-        if not any(builder_args.values()):
-            raise utils.IcarusParserException(
-                f'{config.CLI_NAME} builder requires at least one argument'
-            )
-
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
