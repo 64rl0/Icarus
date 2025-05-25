@@ -33,8 +33,12 @@ This module ...
 
 # Standard Library Imports
 import functools
+import os
 import pathlib
+import platform
+import re
 import subprocess
+import sys
 from collections.abc import Callable
 from typing import Any, Optional, Union
 
@@ -50,6 +54,7 @@ __all__ = [
     'set_logger_level',
     'run_bash_script',
     'capture_exit_code',
+    'platform_id',
 ]
 
 # Setting up logger for current module
@@ -57,7 +62,7 @@ module_logger = config.master_logger.get_child_logger(__name__)
 
 # Type aliases
 OriginalFunction = Callable[..., Any]
-InnerFunction = Callable[..., Any]
+InnerFunction = Callable[..., int]
 
 
 def capture_exit_code(original_function: OriginalFunction) -> InnerFunction:
@@ -151,3 +156,53 @@ def run_bash_script(
         module_logger.debug(f"Exception occurred while running {command=} | exception: {repr(ex)}")
 
         return 1
+
+
+def _sanitize(raw: str) -> str:
+    """
+    Keep only letters, digits, dot, dash.
+    """
+
+    sanitized = re.sub(r"[^A-Za-z0-9.-]", "-", raw)
+
+    return sanitized
+
+
+def _linux_flavour() -> str:
+    """
+    Try `/etc/os-release` first (present on every modern distro).
+    Fallback: 'linux' if file missing / unreadable.
+    Returns strings like 'debian12', 'fedora39', 'ubuntu2204'.
+    """
+
+    try:
+        with open("/etc/os-release", encoding="utf-8") as fh:
+            data = dict(line.strip().split("=", 1) for line in fh if "=" in line)
+        distro = data.get("ID", "linux").lower()
+        version = data.get("VERSION_ID", "").split(".")
+        return f"{distro}{version}"
+    except Exception:
+        return "linux"
+
+
+def platform_id() -> str:
+    """
+    Returns a string that uniquely identifies the current platform.
+
+    :return:
+    """
+
+    arch = platform.machine().lower()
+
+    if sys.platform.startswith("linux"):
+        os_part = _linux_flavour()
+    elif sys.platform == "darwin":
+        major = platform.mac_ver()[0] or "0"
+        os_part = f"macos{major}"
+    elif os.name == "nt":
+        release = platform.win32_ver()[0]
+        os_part = f"win{release}"
+    else:
+        os_part = sys.platform.replace(" ", "-")
+
+    return _sanitize(f"{os_part}-{arch}")

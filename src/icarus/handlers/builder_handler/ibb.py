@@ -66,6 +66,7 @@ class IbbArgMmp(TypedDict):
     package_name_dashed: str
     package_language: str
     build_system_in_use: str
+    platform_identifier: str
     python_version_default_for_brazil: str
     python_versions_for_brazil: list
     venv_name: str
@@ -190,6 +191,7 @@ def initialize_ibb_arg_mmp(args: argparse.Namespace) -> IbbArgMmp:
         'package_name_dashed': '',
         'package_language': '',
         'build_system_in_use': '',
+        'platform_identifier': utils.platform_id(),
         'python_version_default_for_brazil': '',
         'python_versions_for_brazil': [],
         'venv_name': '',

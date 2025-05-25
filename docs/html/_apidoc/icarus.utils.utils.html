@@ -38,7 +38,7 @@
 <p>This module …</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="icarus.utils.utils.capture_exit_code">
-<span class="sig-prename descclassname"><span class="pre">icarus.utils.utils.</span></span><span class="sig-name descname"><span class="pre">capture_exit_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/icarus/utils/utils.html#capture_exit_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.utils.utils.capture_exit_code" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">icarus.utils.utils.</span></span><span class="sig-name descname"><span class="pre">capture_exit_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/icarus/utils/utils.html#capture_exit_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.utils.utils.capture_exit_code" title="Link to this definition">¶</a></dt>
 <dd><p>Decorator function to capture the exit code of a Python function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -46,6 +46,17 @@
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Exit code of the Python function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="icarus.utils.utils.platform_id">
+<span class="sig-prename descclassname"><span class="pre">icarus.utils.utils.</span></span><span class="sig-name descname"><span class="pre">platform_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/icarus/utils/utils.html#platform_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.utils.utils.platform_id" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a string that uniquely identifies the current platform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p>
 </dd>
 </dl>
 </dd></dl>
@@ -120,6 +131,7 @@
 <li class="toctree-l6"><a class="reference internal" href="icarus.utils.exceptions.html">icarus.utils.exceptions module</a></li>
 <li class="toctree-l6 current"><a class="current reference internal" href="#">icarus.utils.utils module</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="#icarus.utils.utils.capture_exit_code"><code class="docutils literal notranslate"><span class="pre">capture_exit_code()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#icarus.utils.utils.platform_id"><code class="docutils literal notranslate"><span class="pre">platform_id()</span></code></a></li>
 <li class="toctree-l7"><a class="reference internal" href="#icarus.utils.utils.run_bash_script"><code class="docutils literal notranslate"><span class="pre">run_bash_script()</span></code></a></li>
 <li class="toctree-l7"><a class="reference internal" href="#icarus.utils.utils.set_logger_level"><code class="docutils literal notranslate"><span class="pre">set_logger_level()</span></code></a></li>
 </ul>

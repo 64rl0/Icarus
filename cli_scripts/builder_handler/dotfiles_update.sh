@@ -37,7 +37,6 @@ dotfiles_update() {
         "${HOME}/.carlogtt_script"
         "${HOME}/.aws"
         "${HOME}/.vim"
-        "${HOME}/.icarus"
         "${HOME}/.config/alacritty"
         "${HOME}/.config/apple-terminal"
         "${HOME}/.config/bat"

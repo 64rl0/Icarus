@@ -71,6 +71,8 @@ def handle_global_command(args: argparse.Namespace) -> int:
 
         return_code = cli_version.cli_version()
 
+        assert isinstance(return_code, int)
+
         return return_code
 
     else:

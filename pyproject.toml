@@ -130,6 +130,14 @@ known_local_folder = []
 # annotations.
 check_untyped_defs = true
 
+# Generate a warning when returning a value with type Any from a function
+# declared with a non-Any return type.
+warn_return_any = true
+
+# Treat parameters with a None default value as having an implicit
+# optional type (T | None).
+implicit_optional = false
+
 # Displaying specific error codes makes it easier to silence specific
 # errors.
 show_error_codes = true

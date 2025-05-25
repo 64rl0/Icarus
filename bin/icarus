@@ -70,7 +70,7 @@ declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 
-python_interpreter_abs="${project_root_dir_abs}/build_venv/env/icarus_runtime/bin/python3"
+python_interpreter_abs="${project_root_dir_abs}/build_venv/env/icarus-runtime/bin/python3"
 declare -r python_interpreter_abs
 
 python_entrypoint_abs="${project_root_dir_abs}/entrypoint.py"
