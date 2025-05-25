@@ -53,8 +53,8 @@ function dotfiles_update() {
             echo_time ""
             echo -e "${sparkles}${bold_yellow}${dotfile}${end}"
             pushd "${dotfile}" >/dev/null
-            git fetch
-            git pull
+            git fetch --all --prune
+            git pull --rebase=false
             git status
             popd >/dev/null
             echo -e ""
