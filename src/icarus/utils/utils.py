@@ -178,11 +178,11 @@ def _linux_flavour() -> str:
     try:
         with open("/etc/os-release", encoding="utf-8") as fh:
             data = dict(line.strip().split("=", 1) for line in fh if "=" in line)
-        distro = data.get("ID", "linux").lower()
-        version = data.get("VERSION_ID", "").split(".")
+        distro = data.get("ID", "linux")
+        version = data.get("VERSION_ID", "0")
         return f"{distro}{version}"
     except Exception:
-        return "linux"
+        return "linux0"
 
 
 def platform_id() -> str:
@@ -200,9 +200,9 @@ def platform_id() -> str:
         major = platform.mac_ver()[0] or "0"
         os_part = f"macos{major}"
     elif os.name == "nt":
-        release = platform.win32_ver()[0]
+        release = platform.win32_ver()[0] or "0"
         os_part = f"win{release}"
     else:
         os_part = sys.platform.replace(" ", "-")
 
-    return _sanitize(f"{os_part}-{arch}")
+    return _sanitize(f"{os_part}-{arch}".casefold())

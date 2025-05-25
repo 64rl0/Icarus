@@ -27,7 +27,7 @@ set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
 # User defined variables
-dotfiles_update() {
+function dotfiles_update() {
     local -a dotfiles=(
         "${HOME}/.bash/config"
         "${HOME}/.bash/completion"
@@ -50,6 +50,7 @@ dotfiles_update() {
 
     for dotfile in "${dotfiles[@]}"; do
         if [[ -d "${dotfile}/.git" ]]; then
+            echo_time ""
             echo -e "${sparkles}${bold_yellow}${dotfile}${end}"
             pushd "${dotfile}" >/dev/null
             git fetch

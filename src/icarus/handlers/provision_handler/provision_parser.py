@@ -9,8 +9,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# src/icarus/handlers/build_handler/__init__.py
-# Created 1/19/25 - 11:12 AM UK Time (London) by carlogtt
+# src/icarus/handlers/provision_handler/provision_parser.py
+# Created 5/25/25 - 8:35 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
 
@@ -24,26 +24,57 @@ This module ...
 # These exceptions may be necessary due to specific coding requirements
 # or to bypass false positives.
 # ======================================================================
-# flake8: noqa
+#
 
 # ======================================================================
 # IMPORTS
 # Importing required libraries and modules for the application.
 # ======================================================================
 
+# Standard Library Imports
+import argparse
+
 # Local Folder (Relative) Imports
-from .builder_helper import *
-from .builder_parser import *
+from ... import config, utils
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-# __all__ = []
+__all__ = ['handle_provision_command']
 
 # Setting up logger for current module
-# module_logger =
+module_logger = config.master_logger.get_child_logger(__name__)
 
 # Type aliases
 #
+
+
+def handle_provision_command(args: argparse.Namespace) -> int:
+    """
+    Handle execution of subcommands under the 'provision' top-level
+    command.
+
+    This function routes the parsed arguments to the appropriate logic
+    based on the value of the `provision_command` argument.
+
+    :param args: The parsed arguments containing the `provision_command`
+        and any associated options or parameters.
+    :return: Exit code of the script.
+    :raise ValueError: If an unknown `provision_command` is provided.
+    """
+
+    if args.provision_command == 'dotfiles-update':
+        module_logger.debug(f"Running {args.provision_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'provision_handler' / 'dotfiles_update.sh'
+        script_args = None
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
+    else:
+        module_logger.debug(f"Running {args.provision_command=}")
+        raise utils.IcarusParserException('the following arguments are required: <subcommand>')

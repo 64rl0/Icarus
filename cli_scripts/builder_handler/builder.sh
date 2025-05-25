@@ -2,7 +2,7 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# cli_scripts/builder_handler/build.sh
+# cli_scripts/builder_handler/builder.sh
 # Created 5/15/25 - 11:55 PM UK Time (London) by carlogtt
 # Copyright (c) Amazon.com Inc. All Rights Reserved.
 # AMAZON.COM CONFIDENTIAL
@@ -27,29 +27,6 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 ####################################################################################################
 # SYSTEM
 ####################################################################################################
-function echo_error() {
-    local message="${1}"
-    local errexit="${2}"
-
-    echo
-    echo -e "${bold_black}${bg_red} ERROR! ${end}"
-    echo -e " [$(date '+%Y-%m-%d %T %Z')]"
-    echo -e " ${message}"
-    echo
-
-    if [[ "${errexit}" == "errexit" ]]; then
-        return 1
-    else
-        return 0
-    fi
-}
-
-function echo_time() {
-    local message="${1}"
-
-    echo -e "[$(date '+%Y-%m-%d %T %Z')] ${message}"
-}
-
 function validate_command() {
     local command_to_validate="${1}"
     if [[ -z "$(command -v "${command_to_validate}" 2>/dev/null)" ]]; then

@@ -85,7 +85,7 @@ pushd "${project_root_dir_abs}" >/dev/null 2>&1
 git fetch
 
 # Running icarus builder build tool
-"${project_root_dir_abs}"/bin/icarus builder build --release
+"${project_root_dir_abs}"/bin/icarus builder release
 
 echo -e "${bold_green}Select release type${end}"
 . "${update_version}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source update_version.sh"

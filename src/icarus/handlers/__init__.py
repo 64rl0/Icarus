@@ -36,6 +36,7 @@ from .amazon_handler import *
 from .builder_handler import *
 from .global_handler import *
 from .macos_handler import *
+from .provision_handler import *
 from .unison_handler import *
 
 # END IMPORTS

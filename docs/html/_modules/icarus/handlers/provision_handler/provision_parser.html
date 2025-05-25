@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>icarus.handlers.provision_handler.provision_parser &#8212; Icarus r. documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=9d6d948b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=772fa434" />
+    <script src="../../../../_static/documentation_options.js?v=30015795"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for icarus.handlers.provision_handler.provision_parser</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ======================================================================</span>
+<span class="c1"># MODULE DETAILS</span>
+<span class="c1"># This section provides metadata about the module, including its</span>
+<span class="c1"># creation date, author, copyright information, and a brief description</span>
+<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># ======================================================================</span>
+
+<span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
+<span class="c1">#  (      _ \     /  |     (   | (_ |    |      |</span>
+<span class="c1"># \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|</span>
+
+<span class="c1"># src/icarus/handlers/provision_handler/provision_parser.py</span>
+<span class="c1"># Created 5/25/25 - 8:35 PM UK Time (London) by carlogtt</span>
+<span class="c1"># Copyright (c) Amazon.com Inc. All Rights Reserved.</span>
+<span class="c1"># AMAZON.COM CONFIDENTIAL</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module ...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ======================================================================</span>
+<span class="c1"># EXCEPTIONS</span>
+<span class="c1"># This section documents any exceptions made code or quality rules.</span>
+<span class="c1"># These exceptions may be necessary due to specific coding requirements</span>
+<span class="c1"># or to bypass false positives.</span>
+<span class="c1"># ======================================================================</span>
+<span class="c1">#</span>
+
+<span class="c1"># ======================================================================</span>
+<span class="c1"># IMPORTS</span>
+<span class="c1"># Importing required libraries and modules for the application.</span>
+<span class="c1"># ======================================================================</span>
+
+<span class="c1"># Standard Library Imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+<span class="c1"># Local Folder (Relative) Imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">utils</span>
+
+<span class="c1"># END IMPORTS</span>
+<span class="c1"># ======================================================================</span>
+
+
+<span class="c1"># List of public names in the module</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;handle_provision_command&#39;</span><span class="p">]</span>
+
+<span class="c1"># Setting up logger for current module</span>
+<span class="n">module_logger</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">get_child_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Type aliases</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="handle_provision_command">
+<a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.provision_handler.provision_parser.html#icarus.handlers.provision_handler.provision_parser.handle_provision_command">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_provision_command</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handle execution of subcommands under the &#39;provision&#39; top-level</span>
+<span class="sd">    command.</span>
+
+<span class="sd">    This function routes the parsed arguments to the appropriate logic</span>
+<span class="sd">    based on the value of the `provision_command` argument.</span>
+
+<span class="sd">    :param args: The parsed arguments containing the `provision_command`</span>
+<span class="sd">        and any associated options or parameters.</span>
+<span class="sd">    :return: Exit code of the script.</span>
+<span class="sd">    :raise ValueError: If an unknown `provision_command` is provided.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">provision_command</span> <span class="o">==</span> <span class="s1">&#39;dotfiles-update&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">provision_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;provision_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;dotfiles_update.sh&#39;</span>
+        <span class="n">script_args</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">provision_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;the following arguments are required: &lt;subcommand&gt;&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Icarus</a></h1>
+
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../_apidoc/modules.html">src</a></li>
+</ul>
+
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Carlo Gatti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

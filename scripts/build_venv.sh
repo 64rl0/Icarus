@@ -79,14 +79,10 @@ declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 
-# Get venv name or set to default 'build_undefined'
-if [[ -z "$1" ]]; then
-    venv_name="build_venv"
-    echo -e "\n\n${bold_red}${warning_sign} No venv name supplied! Using: ${venv_name}${end}"
-elif [[ -n "$1" ]]; then
-    venv_name="$1"
-    echo -e "\n\n${bold_green}${green_check_mark} Building venv ${venv_name}${end}"
-fi
+venv_name="build_venv"
+declare -r venv_name
+
+echo -e "[$(date '+%Y-%m-%d %T %Z')] building icarus-runtime started"
 
 # Find the most recent Python version in the system
 accepted_python_versions=("3.13" "3.12" "3.11" "3.10" "3.9")

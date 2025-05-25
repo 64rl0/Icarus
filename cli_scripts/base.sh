@@ -76,3 +76,26 @@ source "${HOME}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed 
 # CLI variables
 declare -r cli_name='icarus'
 declare -r this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
+
+function echo_error() {
+    local message="${1}"
+    local errexit="${2}"
+
+    echo
+    echo -e "${bold_black}${bg_red} ERROR! ${end}"
+    echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+    echo -e " ${message}"
+    echo
+
+    if [[ "${errexit}" == "errexit" ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function echo_time() {
+    local message="${1}"
+
+    echo -e "[$(date '+%Y-%m-%d %T %Z')] ${message}"
+}

@@ -128,7 +128,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_sub = builder_par.add_subparsers(
-        title='subcommands', dest='builder_command', required=True, metavar='<subcommand>'
+        title='subcommands', dest='builder_command', required=False, metavar='<subcommand>'
     )
 
     # MacOS
@@ -163,6 +163,25 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     unison_sub = unison_par.add_subparsers(
         title='subcommands', dest='unison_command', required=True, metavar='<subcommand>'
+    )
+
+    # Provision
+    provision_par = sl_par.add_parser(
+        name='provision',
+        help='utilities for provisioning and maintaining a workstation',
+        description=(
+            'description:\n'
+            '  The \'icarus provision\' command offers utilities for provisioning and'
+            ' maintaining a workstation.\n  Its tools streamline first-time'
+            ' machine setup and ongoing upkeep by automating tasks. Use this\n  command'
+            ' to ensure your local environment stays aligned with project standards'
+            ' and ready for\n  productive work.'
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    provision_sub = provision_par.add_subparsers(
+        title='subcommands', dest='provision_command', required=True, metavar='<subcommand>'
     )
 
     # ==================
@@ -275,12 +294,149 @@ def initialize_parser() -> argparse.ArgumentParser:
     # ===================
     # Builder subcommands
     # ===================
-    builder_sub.add_parser(
-        name='dotfiles-update',
-        help='update dotfiles from their specified repository',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
+    builder_par.add_argument(
+        '--exec',
+        required=False,
+        nargs='+',
+        metavar='CMD',
+        default='',
+        help='run a command inside the runtime environment',
+    )
+    builder_par.add_argument(
+        '--build',
+        required=False,
+        action='store_const',
+        const='--build',
+        default='',
+        help='create/re-create the project runtime environment',
+    )
+    builder_par.add_argument(
+        '--clean',
+        required=False,
+        action='store_const',
+        const='--clean',
+        default='',
+        help='clean the project runtime environment',
+    )
+    builder_par.add_argument(
+        '--release',
+        required=False,
+        action='store_const',
+        const='--release',
+        default='',
+        help='run the full “release” pipeline',
+    )
+    builder_par.add_argument(
+        '--format',
+        required=False,
+        action='store_const',
+        const='--format',
+        default='',
+        help='run the formatting tools',
+    )
+    builder_par.add_argument(
+        '--test',
+        required=False,
+        action='store_const',
+        const='--test',
+        default='',
+        help='run the automated test suite',
+    )
+    builder_par.add_argument(
+        '--isort',
+        required=False,
+        action='store_const',
+        const='--isort',
+        default='',
+        help='sort python imports with isort',
+    )
+    builder_par.add_argument(
+        '--black',
+        required=False,
+        action='store_const',
+        const='--black',
+        default='',
+        help='re-format python code with black',
+    )
+    builder_par.add_argument(
+        '--flake8',
+        required=False,
+        action='store_const',
+        const='--flake8',
+        default='',
+        help='run static analysis with flake8',
+    )
+    builder_par.add_argument(
+        '--mypy',
+        required=False,
+        action='store_const',
+        const='--mypy',
+        default='',
+        help='type-check the codebase with mypy',
+    )
+    builder_par.add_argument(
+        '--shfmt',
+        required=False,
+        action='store_const',
+        const='--shfmt',
+        default='',
+        help='format shell scripts with shfmt',
+    )
+    builder_par.add_argument(
+        '--whitespaces',
+        required=False,
+        action='store_const',
+        const='--whitespaces',
+        default='',
+        help='normalize mixed or excessive whitespace',
+    )
+    builder_par.add_argument(
+        '--trailing',
+        required=False,
+        action='store_const',
+        const='--trailing',
+        default='',
+        help='remove trailing whitespace',
+    )
+    builder_par.add_argument(
+        '--eofnewline',
+        required=False,
+        action='store_const',
+        const='--eofnewline',
+        default='',
+        help='ensure files end with a single newline',
+    )
+    builder_par.add_argument(
+        '--eolnorm',
+        required=False,
+        action='store_const',
+        const='--eolnorm',
+        default='',
+        help='normalize line endings to LF',
+    )
+    builder_par.add_argument(
+        '--gitleaks',
+        required=False,
+        action='store_const',
+        const='--gitleaks',
+        default='',
+        help='scan for secrets with gitleaks',
+    )
+    builder_par.add_argument(
+        '--pytest',
+        required=False,
+        action='store_const',
+        const='--pytest',
+        default='',
+        help='execute the unit/integration-test suite via pytest',
+    )
+    builder_par.add_argument(
+        '--docs',
+        required=False,
+        action='store_const',
+        const='--docs',
+        default='',
+        help='generate user documentation',
     )
 
     builder_create = builder_sub.add_parser(
@@ -306,154 +462,62 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     builder_build = builder_sub.add_parser(
         name='build',
-        help='invoke the builder build system',
+        help='create/re-create the project runtime environment',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
-    builder_build.add_argument(
-        '--exec',
-        required=False,
+    builder_build.set_defaults(build='--build')
+
+    builder_clean = builder_sub.add_parser(
+        name='clean',
+        help='clean the project runtime environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_clean.set_defaults(clean='--clean')
+
+    builder_release = builder_sub.add_parser(
+        name='release',
+        help='run the full “release” pipeline',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_release.set_defaults(release='--release')
+
+    builder_format = builder_sub.add_parser(
+        name='format',
+        help='run the formatting tools',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_format.set_defaults(format='--format')
+
+    builder_test = builder_sub.add_parser(
+        name='test',
+        help='run the automated test suite',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_test.set_defaults(test='--test')
+
+    builder_exec = builder_sub.add_parser(
+        name='exec',
+        help='run a command inside the runtime environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_exec.add_argument(
+        'exec',
         nargs='+',
         metavar='CMD',
         default='',
         help='command to run inside the runtime environment',
-    )
-    builder_build.add_argument(
-        '--build',
-        required=False,
-        action='store_const',
-        const='--build',
-        default='',
-        help='create/re-create the project runtime environment',
-    )
-    builder_build.add_argument(
-        '--clean',
-        required=False,
-        action='store_const',
-        const='--clean',
-        default='',
-        help='clean the project runtime environment',
-    )
-    builder_build.add_argument(
-        '--release',
-        required=False,
-        action='store_const',
-        const='--release',
-        default='',
-        help='run the full “release” pipeline',
-    )
-    builder_build.add_argument(
-        '--format',
-        required=False,
-        action='store_const',
-        const='--format',
-        default='',
-        help='run only the formatting tools',
-    )
-    builder_build.add_argument(
-        '--test',
-        required=False,
-        action='store_const',
-        const='--test',
-        default='',
-        help='run only the automated test suite',
-    )
-    builder_build.add_argument(
-        '--isort',
-        required=False,
-        action='store_const',
-        const='--isort',
-        default='',
-        help='sort python imports with isort',
-    )
-    builder_build.add_argument(
-        '--black',
-        required=False,
-        action='store_const',
-        const='--black',
-        default='',
-        help='re-format python code with black',
-    )
-    builder_build.add_argument(
-        '--flake8',
-        required=False,
-        action='store_const',
-        const='--flake8',
-        default='',
-        help='run static analysis with flake8',
-    )
-    builder_build.add_argument(
-        '--mypy',
-        required=False,
-        action='store_const',
-        const='--mypy',
-        default='',
-        help='type-check the codebase with mypy',
-    )
-    builder_build.add_argument(
-        '--shfmt',
-        required=False,
-        action='store_const',
-        const='--shfmt',
-        default='',
-        help='format shell scripts with shfmt',
-    )
-    builder_build.add_argument(
-        '--whitespaces',
-        required=False,
-        action='store_const',
-        const='--whitespaces',
-        default='',
-        help='normalize mixed or excessive whitespace',
-    )
-    builder_build.add_argument(
-        '--trailing',
-        required=False,
-        action='store_const',
-        const='--trailing',
-        default='',
-        help='remove trailing whitespace',
-    )
-    builder_build.add_argument(
-        '--eofnewline',
-        required=False,
-        action='store_const',
-        const='--eofnewline',
-        default='',
-        help='ensure files end with a single newline',
-    )
-    builder_build.add_argument(
-        '--eolnorm',
-        required=False,
-        action='store_const',
-        const='--eolnorm',
-        default='',
-        help='normalize line endings to LF',
-    )
-    builder_build.add_argument(
-        '--gitleaks',
-        required=False,
-        action='store_const',
-        const='--gitleaks',
-        default='',
-        help='scan for secrets with gitleaks',
-    )
-    builder_build.add_argument(
-        '--pytest',
-        required=False,
-        action='store_const',
-        const='--pytest',
-        default='',
-        help='execute the unit/integration-test suite via pytest',
-    )
-    builder_build.add_argument(
-        '--docs',
-        required=False,
-        action='store_const',
-        const='--docs',
-        default='',
-        help='generate user documentation',
     )
 
     # =================
@@ -578,6 +642,17 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
 
+    # =====================
+    # Provision subcommands
+    # =====================
+    provision_sub.add_parser(
+        name='dotfiles-update',
+        help='update dotfiles from their specified repository',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+
     return tl_par
 
 
@@ -647,6 +722,14 @@ def execute(args: argparse.Namespace) -> int:
             f"Running {args.tl_command=} handler={handlers.handle_unison_command.__name__}"
         )
         return_code = handlers.handle_unison_command(args=args)
+
+        return return_code
+
+    elif args.tl_command == 'provision':
+        module_logger.debug(
+            f"Running {args.tl_command=} handler={handlers.handle_provision_command.__name__}"
+        )
+        return_code = handlers.handle_provision_command(args=args)
 
         return return_code
 

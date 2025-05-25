@@ -98,7 +98,7 @@ if [[ "$1" == '--update' ]]; then
 		git fetch
 		git reset --hard origin/HEAD
 		git pull
-		make build
+		bash "${project_root_dir_abs}/scripts/build_venv.sh"
 	} >"${log_filepath}" 2>&1 || {
 		echo -e "${bg_red}${bold_black}[ERROR]${end} - Failed to install icarus CLI"
 		echo -e " logs saved in ${log_filepath}"
@@ -115,7 +115,7 @@ if [ ! -x "${python_interpreter_abs}" ]; then
 	{
 		pushd "${project_root_dir_abs}"
 		rm -rf "${project_root_dir_abs}/build_venv"
-		make build
+		bash "${project_root_dir_abs}/scripts/build_venv.sh"
 	} >"${log_filepath}" 2>&1 || {
 		echo -e "${bg_red}${bold_black}[ERROR]${end} - Failed to install icarus CLI"
 		echo -e " logs saved in ${log_filepath}"

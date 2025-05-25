@@ -12,5 +12,5 @@ Submodules
 .. toctree::
    :maxdepth: 1000
 
+   icarus.handlers.builder_handler.builder_helper
    icarus.handlers.builder_handler.builder_parser
-   icarus.handlers.builder_handler.ibb

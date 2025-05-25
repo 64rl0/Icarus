@@ -33,10 +33,11 @@ This module ...
 
 # Standard Library Imports
 import argparse
+from typing import Union
 
 # Local Folder (Relative) Imports
 from ... import config, utils
-from . import ibb
+from . import builder_helper
 
 # END IMPORTS
 # ======================================================================
@@ -66,10 +67,31 @@ def handle_builder_command(args: argparse.Namespace) -> int:
     :raise ValueError: If an unknown `builder_command` is provided.
     """
 
+    builder_args: dict[str, Union[str, list[str]]] = {
+        'build': args.build,
+        'clean': args.clean,
+        'isort': args.isort,
+        'black': args.black,
+        'flake8': args.flake8,
+        'mypy': args.mypy,
+        'shfmt': args.shfmt,
+        'eolnorm': args.eolnorm,
+        'whitespaces': args.whitespaces,
+        'trailing': args.trailing,
+        'eofnewline': args.eofnewline,
+        'gitleaks': args.gitleaks,
+        'pytest': args.pytest,
+        'docs': args.docs,
+        'exec': args.exec,
+        'release': args.release,
+        'format': args.format,
+        'test': args.test,
+    }
+
     if args.builder_command == 'dotfiles-update':
         module_logger.debug(f"Running {args.builder_command=}")
 
-        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'dotfiles_update.sh'
+        script_path = config.CLI_SCRIPTS_DIR / 'provision_handler' / 'dotfiles_update.sh'
         script_args = None
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
@@ -86,11 +108,16 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command == 'build':
+    elif args.builder_command in {'build', 'clean', 'release', 'format', 'test', 'exec', None}:
+        if not any(builder_args.values()):
+            raise utils.IcarusParserException(
+                f'{config.CLI_NAME} builder requires at least one argument'
+            )
+
         module_logger.debug(f"Running {args.builder_command=}")
 
-        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'build.sh'
-        script_args = [ibb.get_argv(args=args)]
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
+        script_args = [builder_helper.get_argv(ib_args=builder_args)]
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 
