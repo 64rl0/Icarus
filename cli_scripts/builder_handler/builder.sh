@@ -507,19 +507,25 @@ function run_eofnewline() {
             grep -Iq . "${el}" || continue
         fi
 
-        # Read the last byte; add '\n' only if it isn't one already.
-        if [[ $(tail -c 1 -- "${el}" | od -An -tu1) -ne 10 ]]; then
+        # Read last byte safely (strip spaces cranked out by od)
+        local last_byte=$(tail -c 1 -- "${el}" | od -An -tu1 | tr -d '[:space:]')
+        local fixed=false
+
+        # Add \n only if it isn't one already.
+        if [[ "${last_byte}" != 10 ]]; then
             echo "Fixing: ${el}"
             printf '\n' >>"${el}" || {
                 eofnewline_summary_status="${failed}"
                 exit_code=1
             }
             ((counter = counter + 1))
+        # The last char already is a \n.
         else
             while true; do
-                if [[ $(tail -c 2 -- "${el}" | head -c 1 | od -An -tu1) -eq 10 ]]; then
-                    if [[ "${entered}" != true ]]; then
-                        local entered=true
+                local penultimate_byte=$(tail -c 2 -- "${el}" | head -c 1 | od -An -tu1 | tr -d '[:space:]')
+                if [[ "${penultimate_byte}" == 10 ]]; then
+                    if [[ "${fixed}" != true ]]; then
+                        fixed=true
                         echo "Fixing: ${el}"
                         ((counter = counter + 1))
                     fi
