@@ -82,13 +82,12 @@ declare -r project_root_dir_abs
 venv_name="build_venv"
 declare -r venv_name
 
-echo -e "[$(date '+%Y-%m-%d %T %Z')] building icarus-runtime started"
-
 # Find the most recent Python version in the system
 accepted_python_versions=("3.13" "3.12" "3.11" "3.10" "3.9")
 for version in "${accepted_python_versions[@]}"; do
     if command -v "python${version}" >/dev/null 2>&1; then
         python_version_for_venv="${version}"
+        echo -e "\nFound Python${python_version_for_venv}!"
         break
     fi
 done

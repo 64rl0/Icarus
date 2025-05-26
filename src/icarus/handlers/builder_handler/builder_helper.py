@@ -116,6 +116,7 @@ def get_argv(ib_args: dict[str, Union[str, list[str]]]) -> str:
     """
     Get the arguments for the builder.sh script.
 
+    :param ib_args:
     :return: The arguments for the builder.sh script.
     """
 
@@ -229,8 +230,8 @@ def process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str
     """
     Prepare the arguments for the builder.sh script.
 
-    :param ib_args:
     :param ib_arg_mmp:
+    :param ib_args:
     :return:
     """
 
@@ -318,27 +319,26 @@ def read_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     Process the icarus build config file and return a string with
     all the ib_arg_mmp to be then eval from the sh script.
 
+    :param ib_arg_mmp:
     :return:
     """
 
-    config_filename = 'icarus.cfg'
-
     pwd = os.getcwd()
     while pwd != '/':
-        if os.path.exists(f"{pwd}/{config_filename}"):
+        if os.path.exists(f"{pwd}/{config.ICARUS_CFG_FILENAME}"):
             break
         else:
             pwd = os.path.dirname(pwd)
     else:
         raise utils.IcarusParserException(
-            'No `icarus.cfg` file found!\n               You are not in an icarus build enabled'
-            ' directory.\n               To enable icarus build create a `icarus.cfg` in the'
-            ' project root directory.'
+            f'No `{config.ICARUS_CFG_FILENAME}` file found!\n               You are not in an'
+            ' icarus build enabled directory.\n               To enable icarus build create a'
+            f' `{config.ICARUS_CFG_FILENAME}` in the project root directory.'
         )
 
-    config_filepath = f"{pwd}/{config_filename}"
+    config_filepath = f"{pwd}/{config.ICARUS_CFG_FILENAME}"
 
-    ib_arg_mmp['icarus_config_filename'] = config_filename
+    ib_arg_mmp['icarus_config_filename'] = config.ICARUS_CFG_FILENAME
     ib_arg_mmp['icarus_config_filepath'] = config_filepath
     ib_arg_mmp['project_root_dir_abs'] = pwd
 
@@ -436,91 +436,116 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     """
 
     accepted_build_systems = ['brazil', 'venv']
-    icfg = ib_arg_mmp['icarus_config_filename']
 
     if not ib_arg_mmp.get('package_name_pascal_case'):
-        raise utils.IcarusParserException(f'No package name specified in {icfg}')
+        raise utils.IcarusParserException(
+            f'No package name specified in {config.ICARUS_CFG_FILENAME}'
+        )
     else:
         if not isinstance(ib_arg_mmp.get('package_name_pascal_case'), str):
-            raise utils.IcarusParserException(f'Package name in {icfg} must be a string')
+            raise utils.IcarusParserException(
+                f'Package name in {config.ICARUS_CFG_FILENAME} must be a string'
+            )
 
     if not ib_arg_mmp.get('package_language'):
-        raise utils.IcarusParserException(f'No package language specified in {icfg}')
+        raise utils.IcarusParserException(
+            f'No package language specified in {config.ICARUS_CFG_FILENAME}'
+        )
     else:
         if not isinstance(ib_arg_mmp.get('package_language'), str):
-            raise utils.IcarusParserException(f'Package language in {icfg} must be a string')
+            raise utils.IcarusParserException(
+                f'Package language in {config.ICARUS_CFG_FILENAME} must be a string'
+            )
 
     if not ib_arg_mmp.get('build_system_in_use'):
-        raise utils.IcarusParserException(f'No build system specified in {icfg}')
+        raise utils.IcarusParserException(
+            f'No build system specified in {config.ICARUS_CFG_FILENAME}'
+        )
     else:
         if not isinstance(ib_arg_mmp.get('build_system_in_use'), str):
-            raise utils.IcarusParserException(f'Build system in {icfg} must be a string')
+            raise utils.IcarusParserException(
+                f'Build system in {config.ICARUS_CFG_FILENAME} must be a string'
+            )
         if ib_arg_mmp.get('build_system_in_use') not in accepted_build_systems:
-            raise utils.IcarusParserException(f'Invalid build system in {icfg}')
+            raise utils.IcarusParserException(
+                f'Invalid build system in {config.ICARUS_CFG_FILENAME}'
+            )
 
     if ib_arg_mmp.get('build_system_in_use') == 'brazil':
         if not ib_arg_mmp.get('python_versions_for_brazil'):
-            raise utils.IcarusParserException(f'No python version(s) specified in brazil {icfg}')
+            raise utils.IcarusParserException(
+                f'No python version(s) specified in brazil {config.ICARUS_CFG_FILENAME}'
+            )
         elif isinstance(ib_arg_mmp.get('python_versions_for_brazil'), list):
             if not all(
                 isinstance(v, str) for v in ib_arg_mmp.get('python_versions_for_brazil', [])
             ):
                 raise utils.IcarusParserException(
-                    f'All python versions in brazil {icfg} must be strings'
+                    f'All python versions in brazil {config.ICARUS_CFG_FILENAME} must be strings'
                 )
         else:
             raise utils.IcarusParserException(
-                f'Python versions in brazil {icfg} must be a list of string'
+                f'Python versions in brazil {config.ICARUS_CFG_FILENAME} must be a list of string'
             )
 
         if not ib_arg_mmp.get('python_version_default_for_brazil'):
             raise utils.IcarusParserException(
-                f'No default python version specified in brazil {icfg}'
+                f'No default python version specified in brazil {config.ICARUS_CFG_FILENAME}'
             )
         else:
             if not isinstance(ib_arg_mmp.get('python_version_default_for_brazil'), str):
                 raise utils.IcarusParserException(
-                    f'Default python version in brazil {icfg} must be a string'
+                    f'Default python version in brazil {config.ICARUS_CFG_FILENAME} must be a'
+                    ' string'
                 )
             if ib_arg_mmp.get('python_version_default_for_brazil') not in ib_arg_mmp.get(
                 'python_versions_for_brazil', []
             ):
                 raise utils.IcarusParserException(
-                    f'Default python version in brazil {icfg} must be in the list of python'
-                    ' versions'
+                    f'Default python version in brazil {config.ICARUS_CFG_FILENAME} must be in the'
+                    ' list of python versions'
                 )
 
     if ib_arg_mmp.get('build_system_in_use') == 'venv':
         if not ib_arg_mmp.get('venv_name'):
-            raise utils.IcarusParserException(f'No venv name specified in venv {icfg}')
+            raise utils.IcarusParserException(
+                f'No venv name specified in venv {config.ICARUS_CFG_FILENAME}'
+            )
         else:
             if not isinstance(ib_arg_mmp.get('venv_name'), str):
-                raise utils.IcarusParserException(f'Venv name in {icfg} must be a string')
+                raise utils.IcarusParserException(
+                    f'Venv name in {config.ICARUS_CFG_FILENAME} must be a string'
+                )
 
         if not ib_arg_mmp.get('python_versions_for_venv'):
-            raise utils.IcarusParserException(f'No python version(s) specified in venv {icfg}')
+            raise utils.IcarusParserException(
+                f'No python version(s) specified in venv {config.ICARUS_CFG_FILENAME}'
+            )
         elif isinstance(ib_arg_mmp.get('python_versions_for_venv'), list):
             if not all(isinstance(v, str) for v in ib_arg_mmp.get('python_versions_for_venv', [])):
                 raise utils.IcarusParserException(
-                    f'All python versions in venv {icfg} must be strings'
+                    f'All python versions in venv {config.ICARUS_CFG_FILENAME} must be strings'
                 )
         else:
             raise utils.IcarusParserException(
-                f'Python versions in venv {icfg} must be a list of string'
+                f'Python versions in venv {config.ICARUS_CFG_FILENAME} must be a list of string'
             )
 
         if not ib_arg_mmp.get('python_version_default_for_venv'):
-            raise utils.IcarusParserException(f'No default python version specified in venv {icfg}')
+            raise utils.IcarusParserException(
+                f'No default python version specified in venv {config.ICARUS_CFG_FILENAME}'
+            )
         else:
             if not isinstance(ib_arg_mmp.get('python_version_default_for_venv'), str):
                 raise utils.IcarusParserException(
-                    f'Default python version in venv {icfg} must be a string'
+                    f'Default python version in venv {config.ICARUS_CFG_FILENAME} must be a string'
                 )
             if ib_arg_mmp.get('python_version_default_for_venv') not in ib_arg_mmp.get(
                 'python_versions_for_venv', []
             ):
                 raise utils.IcarusParserException(
-                    f'Default python version in venv {icfg} must be in the list of python versions'
+                    f'Default python version in venv {config.ICARUS_CFG_FILENAME} must be in the'
+                    ' list of python versions'
                 )
 
         if not ib_arg_mmp.get('requirements_paths'):
@@ -529,12 +554,14 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         elif isinstance(ib_arg_mmp.get('requirements_paths'), list):
             if not all(isinstance(v, str) for v in ib_arg_mmp.get('requirements_paths', [])):
                 raise utils.IcarusParserException(
-                    f'All requirements path array in venv {icfg} must be strings'
+                    f'All requirements path array in venv {config.ICARUS_CFG_FILENAME} must be'
+                    ' strings'
                 )
         else:
             if not isinstance(ib_arg_mmp.get('requirements_paths'), list):
                 raise utils.IcarusParserException(
-                    f'Requirements path array in venv {icfg} must be a list of strings'
+                    f'Requirements path array in venv {config.ICARUS_CFG_FILENAME} must be a list'
+                    ' of strings'
                 )
 
     if not ib_arg_mmp.get('icarus_ignore_array'):
@@ -542,11 +569,13 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
     elif isinstance(ib_arg_mmp.get('icarus_ignore_array'), list):
         if not all(isinstance(v, str) for v in ib_arg_mmp.get('icarus_ignore_array', [])):
-            raise utils.IcarusParserException(f'All icarus ignore array in {icfg} must be strings')
+            raise utils.IcarusParserException(
+                f'All icarus ignore array in {config.ICARUS_CFG_FILENAME} must be strings'
+            )
     else:
         if not isinstance(ib_arg_mmp.get('icarus_ignore_array'), list):
             raise utils.IcarusParserException(
-                f'Icarus ignore array in {icfg} must be a list of string'
+                f'Icarus ignore array in {config.ICARUS_CFG_FILENAME} must be a list of string'
             )
 
     return ib_arg_mmp
@@ -562,7 +591,6 @@ def normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMm
 
     stru = mylib.StringUtils()
     skey = lambda v: int(''.join([i for i in str(v).split('.')]))  # noqa
-    icfg = ib_arg_mmp['icarus_config_filename']
 
     # Optional settings will get here as None, set defaults
     if ib_arg_mmp.get('requirements_paths') is None:
@@ -577,7 +605,7 @@ def normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMm
         )
         ib_arg_mmp['package_name_dashed'] = ib_arg_mmp['package_name_snake_case'].replace("_", "-")
     except Exception:
-        raise utils.IcarusParserException(f"Invalid package name in {icfg}")
+        raise utils.IcarusParserException(f"Invalid package name in {config.ICARUS_CFG_FILENAME}")
 
     # Remove duplicates and sort from newest to oldest version
     ib_arg_mmp['python_versions_for_brazil'] = sorted(

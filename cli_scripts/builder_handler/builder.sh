@@ -108,18 +108,15 @@ function echo_summary() {
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${all_hooks[@]}"; do
+    for hook in "${running_hooks_name[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
-        if [[ "${status}" == "${skipped}" ]]; then
-            continue
-        fi
         eval execution_time='$'"${hook}_execution_time"
         execution_time="$(printf "%.3f" "${execution_time}")s"
         printf "%-30s | %-7s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${all_hooks[@]}"; do
+    for hook in "${running_hooks_name[@]}"; do
         eval execution_time_partial='$'"${hook}_execution_time"
         execution_time_partial="$(printf "%.3f" "${execution_time_partial}")"
         execution_time_total="$(echo "${execution_time_total} + ${execution_time_partial}" | bc)"
@@ -146,6 +143,7 @@ function set_constants() {
     echo -e "Reading constants"
     eval "${@}"
 
+    declare -r -g all_hooks
     declare -r -g icarus_config_filename
     declare -r -g icarus_config_filepath
     declare -r -g project_root_dir_abs
@@ -210,24 +208,23 @@ function set_constants() {
     declare -r -g python_versions_pretty
 
     passed="${bold_black}${bg_green} PASS ${end}"
-    skipped="${bold_black}${bg_white} SKIP ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
 
-    build_summary_status="${skipped}"
-    clean_summary_status="${skipped}"
-    isort_summary_status="${skipped}"
-    black_summary_status="${skipped}"
-    flake8_summary_status="${skipped}"
-    mypy_summary_status="${skipped}"
-    shfmt_summary_status="${skipped}"
-    whitespaces_summary_status="${skipped}"
-    eolnorm_summary_status="${skipped}"
-    trailing_summary_status="${skipped}"
-    eofnewline_summary_status="${skipped}"
-    gitleaks_summary_status="${skipped}"
-    pytest_summary_status="${skipped}"
-    docs_summary_status="${skipped}"
-    exec_summary_status="${skipped}"
+    build_summary_status="${passed}"
+    clean_summary_status="${passed}"
+    isort_summary_status="${passed}"
+    black_summary_status="${passed}"
+    flake8_summary_status="${passed}"
+    mypy_summary_status="${passed}"
+    shfmt_summary_status="${passed}"
+    whitespaces_summary_status="${passed}"
+    eolnorm_summary_status="${passed}"
+    trailing_summary_status="${passed}"
+    eofnewline_summary_status="${passed}"
+    gitleaks_summary_status="${passed}"
+    pytest_summary_status="${passed}"
+    docs_summary_status="${passed}"
+    exec_summary_status="${passed}"
 
     build_execution_time=0
     clean_execution_time=0
@@ -1067,9 +1064,6 @@ function exec_venv() {
 ####################################################################################################
 function dispatch_tools() {
     if [[ "${build}" == "Y" ]]; then
-        if [[ "${build_summary_status}" == "${skipped}" ]]; then
-            build_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         if [[ "${build_system_in_use}" == "brazil" ]]; then
@@ -1090,9 +1084,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${clean}" == "Y" ]]; then
-        if [[ "${clean_summary_status}" == "${skipped}" ]]; then
-            clean_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         if [[ "${build_system_in_use}" == "brazil" ]]; then
@@ -1118,9 +1109,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${isort}" == "Y" ]]; then
-        if [[ "${isort_summary_status}" == "${skipped}" ]]; then
-            isort_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running iSort"
@@ -1135,9 +1123,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${black}" == "Y" ]]; then
-        if [[ "${black_summary_status}" == "${skipped}" ]]; then
-            black_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running Black"
@@ -1152,9 +1137,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
-        if [[ "${flake8_summary_status}" == "${skipped}" ]]; then
-            flake8_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running Flake8"
@@ -1169,9 +1151,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${mypy}" == "Y" ]]; then
-        if [[ "${mypy_summary_status}" == "${skipped}" ]]; then
-            mypy_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running mypy"
@@ -1186,9 +1165,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${shfmt}" == "Y" ]]; then
-        if [[ "${shfmt_summary_status}" == "${skipped}" ]]; then
-            shfmt_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running shfmt (bash formatter)"
@@ -1203,9 +1179,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${eolnorm}" == "Y" ]]; then
-        if [[ "${eolnorm_summary_status}" == "${skipped}" ]]; then
-            eolnorm_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running eol-norm (convert CR and CRLF to LF)"
@@ -1220,9 +1193,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
-        if [[ "${whitespaces_summary_status}" == "${skipped}" ]]; then
-            whitespaces_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Replacing non-breaking-space (NBSP) characters"
@@ -1237,9 +1207,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${trailing}" == "Y" ]]; then
-        if [[ "${trailing_summary_status}" == "${skipped}" ]]; then
-            trailing_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running trailing-whitespaces"
@@ -1254,9 +1221,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${eofnewline}" == "Y" ]]; then
-        if [[ "${eofnewline_summary_status}" == "${skipped}" ]]; then
-            eofnewline_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running eof-newline"
@@ -1271,9 +1235,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${gitleaks}" == "Y" ]]; then
-        if [[ "${gitleaks_summary_status}" == "${skipped}" ]]; then
-            gitleaks_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running gitleaks"
@@ -1288,9 +1249,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${pytest}" == "Y" ]]; then
-        if [[ "${pytest_summary_status}" == "${skipped}" ]]; then
-            pytest_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Running pytest"
@@ -1305,9 +1263,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${docs}" == "Y" ]]; then
-        if [[ "${docs_summary_status}" == "${skipped}" ]]; then
-            docs_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         echo_title "Generating documentation"
@@ -1322,9 +1277,6 @@ function dispatch_tools() {
     fi
 
     if [[ "${exec}" == "Y" ]]; then
-        if [[ "${exec_summary_status}" == "${skipped}" ]]; then
-            exec_summary_status="${passed}"
-        fi
         start_block=$(date +%s.%N)
 
         if [[ "${build_system_in_use}" == "brazil" ]]; then
