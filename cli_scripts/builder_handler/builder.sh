@@ -755,9 +755,9 @@ function build_brazil_env() {
 }
 
 function build_venv_env() {
-    local active_venv_pyversion_fullname="Python${python_version_in_use}"
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${platform_identifier}/${active_venv_pyversion_fullname}"
-    local active_wheel_path="${project_root_dir_abs}/${venv_name}/wheel/${package_name_snake_case}/${platform_identifier}/${active_venv_pyversion_fullname}"
+    local active_venv_pyversion_fullname="CPython${python_full_version_in_use}"
+    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${platform_identifier}/CPython/${python_full_version_in_use}"
+    local active_wheel_path="${project_root_dir_abs}/${venv_name}/wheel/${package_name_snake_case}/${platform_identifier}/CPython/${python_full_version_in_use}"
     local active_wheel_build_path="${active_wheel_path}/build"
     local active_wheel_dist_path="${active_wheel_path}/dist"
     local single_run_status=0
@@ -907,8 +907,8 @@ function activate_brazil_env() {
 }
 
 function activate_venv_env() {
-    local active_venv_pyversion_fullname="Python${python_version_in_use}"
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${platform_identifier}/${active_venv_pyversion_fullname}"
+    local active_venv_pyversion_fullname="CPython${python_full_version_in_use}"
+    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${platform_identifier}/CPython/${python_full_version_in_use}"
 
     if [[ ! -e "${path_to_venv_root}/bin/activate" ]]; then
         echo_error "Cannot find the requested venv: \`${venv_name}/${active_venv_pyversion_fullname}\` to activate!\n venv: ${path_to_venv_root}"
@@ -1314,14 +1314,17 @@ function dispatch_hooks() {
     elif [[ "${build_system_in_use}" == "venv" ]]; then
         if [[ "${clean}" == "Y" ]]; then
             python_version_in_use="${python_version_default}"
+            python_full_version_in_use=$(python${python_version_in_use} -c "import sys; print(sys.version.split()[0])")
             dispatch_tools
         elif [[ "${exec}" == "Y" ]]; then
             python_version_in_use="${python_version_default}"
+            python_full_version_in_use=$(python${python_version_in_use} -c "import sys; print(sys.version.split()[0])")
             dispatch_tools
         else
             for py_v in "${python_versions[@]}"; do
                 echo_title "Running tools for: Python${py_v}" "header"
                 python_version_in_use="${py_v}"
+                python_full_version_in_use=$(python${python_version_in_use} -c "import sys; print(sys.version.split()[0])")
                 dispatch_tools
             done
         fi
