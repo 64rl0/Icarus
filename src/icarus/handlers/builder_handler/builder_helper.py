@@ -33,9 +33,11 @@ This module ...
 
 # Standard Library Imports
 import os
+import re
 from typing import Literal, TypedDict, Union
 
 # Third Party Library Imports
+import requests
 import yaml
 
 # My Library Imports
@@ -67,12 +69,12 @@ class IbArgMmp(TypedDict):
     build_system_in_use: str
     platform_identifier: str
     python_version_default_for_brazil: str
-    python_versions_for_brazil: list
-    venv_name: str
-    python_version_default_for_venv: str
-    python_versions_for_venv: list
-    requirements_paths: list
-    icarus_ignore_array: list
+    python_versions_for_brazil: list[str]
+    build_env_dir_name: str
+    python_version_default_for_icarus: str
+    python_versions_for_icarus: list[str]
+    requirements_paths: list[str]
+    icarus_ignore_array: list[str]
     build: str
     is_only_build_hook: str
     clean: str
@@ -90,8 +92,8 @@ class IbArgMmp(TypedDict):
     docs: str
     exec: str
     initial_command_received: str
-    initial_exec_command_received: list
-    running_hooks_name: list
+    initial_exec_command_received: list[str]
+    running_hooks_name: list[str]
     running_hooks_count: str
     all_hooks: tuple[
         Literal['build'],
@@ -110,6 +112,9 @@ class IbArgMmp(TypedDict):
         Literal['docs'],
         Literal['exec'],
     ]
+    python_default_version: str
+    python_default_full_version: str
+    python_versions: list[str]
 
 
 def get_argv(ib_args: dict[str, Union[str, list[str]]]) -> str:
@@ -128,6 +133,7 @@ def get_argv(ib_args: dict[str, Union[str, list[str]]]) -> str:
     ib_arg_mmp = validate_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
     ib_arg_mmp = process_ib_args(ib_arg_mmp=ib_arg_mmp, ib_args=ib_args)
     ib_arg_mmp = normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = normalize_and_set_python_version(ib_arg_mmp=ib_arg_mmp)
 
     ib_argv = convert_ib_arg_mmp_to_ib_argv(ib_arg_mmp=ib_arg_mmp)
 
@@ -172,9 +178,9 @@ def initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMmp
         'platform_identifier': utils.platform_id(),
         'python_version_default_for_brazil': '',
         'python_versions_for_brazil': [],
-        'venv_name': '',
-        'python_version_default_for_venv': '',
-        'python_versions_for_venv': [],
+        'build_env_dir_name': '',
+        'python_version_default_for_icarus': '',
+        'python_versions_for_icarus': [],
         'requirements_paths': [],
         'icarus_ignore_array': [],
         'build': 'Y' if ib_args.get('build') else 'N',
@@ -197,6 +203,9 @@ def initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMmp
         'initial_exec_command_received': [],
         'running_hooks_name': [],
         'running_hooks_count': '',
+        'python_default_version': '',
+        'python_default_full_version': '',
+        'python_versions': [],
     }
 
     return ib_arg_mmp
@@ -249,7 +258,7 @@ def process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str
         ib_args['exec'] = f"--exec {' '.join(ib_args['exec'])}"
 
     if ib_args.get('release'):
-        if ib_arg_mmp['build_system_in_use'] in {'brazil', 'venv'}:
+        if ib_arg_mmp['build_system_in_use'] in {'brazil', 'icarus'}:
             ib_arg_mmp.update({
                 'build': 'Y',
                 'isort': 'Y',
@@ -267,11 +276,11 @@ def process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str
             })
         else:
             raise utils.IcarusParserException(
-                'The --release argument is only valid for brazil or venv build systems'
+                'The --release argument is only valid for brazil or icarus build systems'
             )
 
     if ib_args.get('format'):
-        if ib_arg_mmp['build_system_in_use'] in {'brazil', 'venv'}:
+        if ib_arg_mmp['build_system_in_use'] in {'brazil', 'icarus'}:
             ib_arg_mmp.update({
                 'isort': 'Y',
                 'black': 'Y',
@@ -285,17 +294,17 @@ def process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str
             })
         else:
             raise utils.IcarusParserException(
-                'The --format argument is only valid for brazil or venv build systems'
+                'The --format argument is only valid for brazil or icarus build systems'
             )
 
     if ib_args.get('test'):
-        if ib_arg_mmp['build_system_in_use'] in {'brazil', 'venv'}:
+        if ib_arg_mmp['build_system_in_use'] in {'brazil', 'icarus'}:
             ib_arg_mmp.update({
                 'pytest': 'Y',
             })
         else:
             raise utils.IcarusParserException(
-                'The --test argument is only valid for brazil or venv build systems'
+                'The --test argument is only valid for brazil or icarus build systems'
             )
 
     for arg in ib_args.values():
@@ -364,7 +373,7 @@ def parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     pkg = ibc.get('package', [])
     bs = ibc.get('build-system', [])
     brz = ibc.get('brazil', [])
-    vnv = ibc.get('venv', [])
+    vnv = ibc.get('icarus', [])
     ignrs = ibc.get('ignore', [])
 
     try:
@@ -395,12 +404,12 @@ def parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
 
     try:
-        ib_arg_mmp['venv_name'] = [d['name'] for d in vnv if d.get('name')][0]
+        ib_arg_mmp['build_env_dir_name'] = [d['name'] for d in vnv if d.get('name')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['python_version_default_for_venv'] = [
+        ib_arg_mmp['python_version_default_for_icarus'] = [
             d['python-default'] for d in vnv if d.get('python-default')
         ][0]
 
@@ -415,7 +424,7 @@ def parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
 
     try:
-        ib_arg_mmp['python_versions_for_venv'] = [d['python'] for d in vnv if d.get('python')][0]
+        ib_arg_mmp['python_versions_for_icarus'] = [d['python'] for d in vnv if d.get('python')][0]
     except Exception:
         pass
 
@@ -435,7 +444,7 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     :return:
     """
 
-    accepted_build_systems = ['brazil', 'venv']
+    accepted_build_systems = ['brazil', 'icarus']
 
     if not ib_arg_mmp.get('package_name_pascal_case'):
         raise utils.IcarusParserException(
@@ -483,6 +492,13 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                 raise utils.IcarusParserException(
                     f'All python versions in brazil {config.ICARUS_CFG_FILENAME} must be strings'
                 )
+            if not all(
+                len(v.split('.')) in {2, 3}
+                for v in ib_arg_mmp.get('python_versions_for_brazil', [])
+            ):
+                raise utils.IcarusParserException(
+                    f'All python versions in brazil {config.ICARUS_CFG_FILENAME} must be valid'
+                )
         else:
             raise utils.IcarusParserException(
                 f'Python versions in brazil {config.ICARUS_CFG_FILENAME} must be a list of string'
@@ -498,6 +514,13 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                     f'Default python version in brazil {config.ICARUS_CFG_FILENAME} must be a'
                     ' string'
                 )
+            if len(ib_arg_mmp.get('python_version_default_for_brazil', '').split('.')) not in {
+                2,
+                3,
+            }:
+                raise utils.IcarusParserException(
+                    f'Invalid default python version in brazil {config.ICARUS_CFG_FILENAME}'
+                )
             if ib_arg_mmp.get('python_version_default_for_brazil') not in ib_arg_mmp.get(
                 'python_versions_for_brazil', []
             ):
@@ -506,45 +529,62 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                     ' list of python versions'
                 )
 
-    if ib_arg_mmp.get('build_system_in_use') == 'venv':
-        if not ib_arg_mmp.get('venv_name'):
+    if ib_arg_mmp.get('build_system_in_use') == 'icarus':
+        if not ib_arg_mmp.get('build_env_dir_name'):
             raise utils.IcarusParserException(
-                f'No venv name specified in venv {config.ICARUS_CFG_FILENAME}'
+                f'No `build_env_dir_name` specified in icarus {config.ICARUS_CFG_FILENAME}'
             )
         else:
-            if not isinstance(ib_arg_mmp.get('venv_name'), str):
+            if not isinstance(ib_arg_mmp.get('build_env_dir_name'), str):
                 raise utils.IcarusParserException(
-                    f'Venv name in {config.ICARUS_CFG_FILENAME} must be a string'
+                    f'`build_env_dir_name` in icarus {config.ICARUS_CFG_FILENAME} must be a string'
                 )
 
-        if not ib_arg_mmp.get('python_versions_for_venv'):
+        if not ib_arg_mmp.get('python_versions_for_icarus'):
             raise utils.IcarusParserException(
-                f'No python version(s) specified in venv {config.ICARUS_CFG_FILENAME}'
+                f'No python version(s) specified in icarus {config.ICARUS_CFG_FILENAME}'
             )
-        elif isinstance(ib_arg_mmp.get('python_versions_for_venv'), list):
-            if not all(isinstance(v, str) for v in ib_arg_mmp.get('python_versions_for_venv', [])):
-                raise utils.IcarusParserException(
-                    f'All python versions in venv {config.ICARUS_CFG_FILENAME} must be strings'
-                )
-        else:
-            raise utils.IcarusParserException(
-                f'Python versions in venv {config.ICARUS_CFG_FILENAME} must be a list of string'
-            )
-
-        if not ib_arg_mmp.get('python_version_default_for_venv'):
-            raise utils.IcarusParserException(
-                f'No default python version specified in venv {config.ICARUS_CFG_FILENAME}'
-            )
-        else:
-            if not isinstance(ib_arg_mmp.get('python_version_default_for_venv'), str):
-                raise utils.IcarusParserException(
-                    f'Default python version in venv {config.ICARUS_CFG_FILENAME} must be a string'
-                )
-            if ib_arg_mmp.get('python_version_default_for_venv') not in ib_arg_mmp.get(
-                'python_versions_for_venv', []
+        elif isinstance(ib_arg_mmp.get('python_versions_for_icarus'), list):
+            if not all(
+                isinstance(v, str) for v in ib_arg_mmp.get('python_versions_for_icarus', [])
             ):
                 raise utils.IcarusParserException(
-                    f'Default python version in venv {config.ICARUS_CFG_FILENAME} must be in the'
+                    f'All python versions in icarus {config.ICARUS_CFG_FILENAME} must be strings'
+                )
+            if not all(
+                len(v.split('.')) in {2, 3}
+                for v in ib_arg_mmp.get('python_versions_for_icarus', [])
+            ):
+                raise utils.IcarusParserException(
+                    f'All python versions in icarus {config.ICARUS_CFG_FILENAME} must be valid'
+                )
+        else:
+            raise utils.IcarusParserException(
+                f'Python versions in icarus {config.ICARUS_CFG_FILENAME} must be a list of string'
+            )
+
+        if not ib_arg_mmp.get('python_version_default_for_icarus'):
+            raise utils.IcarusParserException(
+                f'No default python version specified in icarus {config.ICARUS_CFG_FILENAME}'
+            )
+        else:
+            if not isinstance(ib_arg_mmp.get('python_version_default_for_icarus'), str):
+                raise utils.IcarusParserException(
+                    f'Default python version in icarus {config.ICARUS_CFG_FILENAME} must be a'
+                    ' string'
+                )
+            if len(ib_arg_mmp.get('python_version_default_for_icarus', '').split('.')) not in {
+                2,
+                3,
+            }:
+                raise utils.IcarusParserException(
+                    f'Invalid default python version in brazil {config.ICARUS_CFG_FILENAME}'
+                )
+            if ib_arg_mmp.get('python_version_default_for_icarus') not in ib_arg_mmp.get(
+                'python_versions_for_icarus', []
+            ):
+                raise utils.IcarusParserException(
+                    f'Default python version in icarus {config.ICARUS_CFG_FILENAME} must be in the'
                     ' list of python versions'
                 )
 
@@ -554,13 +594,13 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         elif isinstance(ib_arg_mmp.get('requirements_paths'), list):
             if not all(isinstance(v, str) for v in ib_arg_mmp.get('requirements_paths', [])):
                 raise utils.IcarusParserException(
-                    f'All requirements path array in venv {config.ICARUS_CFG_FILENAME} must be'
+                    f'All requirements path array in icarus {config.ICARUS_CFG_FILENAME} must be'
                     ' strings'
                 )
         else:
             if not isinstance(ib_arg_mmp.get('requirements_paths'), list):
                 raise utils.IcarusParserException(
-                    f'Requirements path array in venv {config.ICARUS_CFG_FILENAME} must be a list'
+                    f'Requirements path array in icarus {config.ICARUS_CFG_FILENAME} must be a list'
                     ' of strings'
                 )
 
@@ -590,7 +630,6 @@ def normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMm
     """
 
     stru = mylib.StringUtils()
-    skey = lambda v: int(''.join([i for i in str(v).split('.')]))  # noqa
 
     # Optional settings will get here as None, set defaults
     if ib_arg_mmp.get('requirements_paths') is None:
@@ -609,13 +648,68 @@ def normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMm
 
     # Remove duplicates and sort from newest to oldest version
     ib_arg_mmp['python_versions_for_brazil'] = sorted(
-        list(set(ib_arg_mmp['python_versions_for_brazil'])), key=skey, reverse=True
+        list(set(ib_arg_mmp['python_versions_for_brazil'])), key=sort_version, reverse=True
     )
-    ib_arg_mmp['python_versions_for_venv'] = sorted(
-        list(set(ib_arg_mmp['python_versions_for_venv'])), key=skey, reverse=True
+    ib_arg_mmp['python_versions_for_icarus'] = sorted(
+        list(set(ib_arg_mmp['python_versions_for_icarus'])), key=sort_version, reverse=True
     )
     ib_arg_mmp['icarus_ignore_array'] = list(set(ib_arg_mmp['icarus_ignore_array']))
     ib_arg_mmp['requirements_paths'] = list(set(ib_arg_mmp['requirements_paths']))
+
+    return ib_arg_mmp
+
+
+def normalize_and_set_python_version(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+    """
+    Set the python version to use.
+
+    :param ib_arg_mmp:
+    :return:
+    """
+
+    if ib_arg_mmp['build_system_in_use'] == 'brazil':
+        if len(ib_arg_mmp['python_version_default_for_brazil'].split('.')) == 2:
+            ib_arg_mmp['python_default_version'] = ib_arg_mmp['python_version_default_for_brazil']
+            ib_arg_mmp['python_default_full_version'] = get_latest_python_version(
+                ib_arg_mmp['python_default_version']
+            )
+        elif len(ib_arg_mmp['python_version_default_for_brazil'].split('.')) == 3:
+            ib_arg_mmp['python_default_version'] = '.'.join(
+                ib_arg_mmp['python_version_default_for_brazil'].split('.')[:2]
+            )
+            ib_arg_mmp['python_default_full_version'] = ib_arg_mmp[
+                'python_version_default_for_brazil'
+            ]
+
+        python_versions = []
+        for v in ib_arg_mmp['python_versions_for_brazil']:
+            if len(v.split('.')) == 2:
+                python_versions.append(':'.join([v, get_latest_python_version(v)]))
+            elif len(v.split('.')) == 3:
+                python_versions.append(':'.join(['.'.join(v.split('.')[:2]), v]))
+
+    elif ib_arg_mmp['build_system_in_use'] == 'icarus':
+        if len(ib_arg_mmp['python_version_default_for_icarus'].split('.')) == 2:
+            ib_arg_mmp['python_default_version'] = ib_arg_mmp['python_version_default_for_icarus']
+            ib_arg_mmp['python_default_full_version'] = get_latest_python_version(
+                ib_arg_mmp['python_default_version']
+            )
+        elif len(ib_arg_mmp['python_version_default_for_icarus'].split('.')) == 3:
+            ib_arg_mmp['python_default_version'] = '.'.join(
+                ib_arg_mmp['python_version_default_for_icarus'].split('.')[:2]
+            )
+            ib_arg_mmp['python_default_full_version'] = ib_arg_mmp[
+                'python_version_default_for_icarus'
+            ]
+
+        python_versions = []
+        for v in ib_arg_mmp['python_versions_for_icarus']:
+            if len(v.split('.')) == 2:
+                python_versions.append(':'.join([v, get_latest_python_version(v)]))
+            elif len(v.split('.')) == 3:
+                python_versions.append(':'.join(['.'.join(v.split('.')[:2]), v]))
+
+    ib_arg_mmp['python_versions'] = python_versions
 
     return ib_arg_mmp
 
@@ -633,16 +727,7 @@ def convert_ib_arg_mmp_to_ib_argv(ib_arg_mmp: IbArgMmp) -> str:
     module_logger.debug('*' * 50)
 
     for k, v in ib_arg_mmp.items():
-        if not (isinstance(v, str) or isinstance(v, list) or isinstance(v, tuple)):
-            raise utils.IcarusParserException(f"Invalid type for `{k}`")
-
-        if isinstance(v, str):
-            temp_ib_arg_mmp[k] = repr(v)
-        if isinstance(v, tuple):
-            v = list(v)
-        if isinstance(v, list):
-            temp_ib_arg_mmp[k] = f"( {' '.join(repr(el) for el in v)} )"
-
+        temp_ib_arg_mmp[k] = convert_value(v)
         module_logger.debug(f"ib_arg_mmp -> {k}={temp_ib_arg_mmp[k]}")
 
     module_logger.debug('*' * 50)
@@ -650,3 +735,89 @@ def convert_ib_arg_mmp_to_ib_argv(ib_arg_mmp: IbArgMmp) -> str:
     ib_arg_mmp_str = ' '.join([f"{k}={v}" for k, v in temp_ib_arg_mmp.items()])
 
     return ib_arg_mmp_str
+
+
+def get_latest_python_version(python_version: str) -> str:
+    """
+    Get the latest python full version for the given python version.
+
+    :param python_version:
+    :return:
+    """
+
+    given_major, given_minor = python_version.split('.')
+    given_patch = 0
+
+    reg = re.compile(r'(\d+)\.(\d+)\.(\d+)')
+
+    response = requests.get('https://www.python.org/ftp/python/')
+
+    for version in set(reg.findall(response.text)):
+        major = version[0]
+        minor = version[1]
+        patch = version[2]
+        if major != given_major:
+            continue
+        if minor != given_minor:
+            continue
+        if int(patch) > given_patch:
+            given_patch = int(patch)
+
+    return f"{given_major}.{given_minor}.{given_patch}"
+
+
+def convert_value(value):
+    """
+    Convert a value to a string representation suitable for use in a
+    Bash script.
+
+    :param value:
+    :return:
+    """
+
+    if isinstance(value, str):
+        return repr(value)
+    elif isinstance(value, list) or isinstance(value, tuple):
+        return f"( {' '.join(convert_value(el) for el in value)} )"
+    else:
+        raise utils.IcarusParserException(f"Invalid type for `{value}`")
+
+
+def sort_version(v):
+    """
+    Sort version.
+    """
+
+    version_split = v.split('.')
+    version_len = len(version_split)
+
+    if version_len == 1:
+        v = f"{version_split[0]}.0.0"
+    elif version_len == 2:
+        v = f"{version_split[0]}.{version_split[1]}.0"
+    elif version_len == 3:
+        v = f"{version_split[0]}.{version_split[1]}.{version_split[2]}"
+
+    major = v.split('.')[0]
+    if len(major) == 1:
+        major = f"00{major}"
+    elif len(major) == 2:
+        major = f"0{major}"
+
+    minor = v.split('.')[1]
+    if len(minor) == 1:
+        minor = f"00{minor}"
+    elif len(minor) == 2:
+        minor = f"0{minor}"
+
+    patch = v.split('.')[2]
+    if len(patch) == 1:
+        patch = f"00{patch}"
+    elif len(patch) == 2:
+        patch = f"0{patch}"
+
+    v = f"{major}{minor}{patch}"
+
+    skey = int(v)
+
+    return skey

@@ -78,44 +78,27 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
+platform_id_script_path_abs="${script_dir_abs}/platform_id.sh"
+declare -r platform_id_script_path_abs
 
 venv_name="build_venv"
-declare -r venv_name
+python_full_version_for_venv="3.13.4"
+platform_id="$(bash "${platform_id_script_path_abs}")"
+download_url="https://github.com/64rl0/PythonRuntime/releases/download/cpython-${python_full_version_for_venv}-${platform_id}/cpython-${python_full_version_for_venv}-${platform_id}.tar.gz"
+pybin="${project_root_dir_abs}/${venv_name}/env/icarus-runtime/bin/python3"
 
-# Find the most recent Python version in the system
-accepted_python_versions=("3.13" "3.12" "3.11" "3.10" "3.9")
-for version in "${accepted_python_versions[@]}"; do
-    if command -v "python${version}" >/dev/null 2>&1; then
-        python_version_for_venv="${version}"
-        echo -e "\nFound Python${python_version_for_venv}!"
-        break
-    fi
-done
-
-if [[ -z "${python_version_for_venv}" ]]; then
-    echo -e "\n\n${bold_red}${stop_sign} No Python version found!${end}"
-    exit 1
-fi
-
-# Create Local venv
-echo -e "\n\n${bold_green}${sparkles} Creating ${venv_name} venv...${end}"
-python${python_version_for_venv} -m venv --clear --copies "${project_root_dir_abs}/${venv_name}/env/icarus-runtime"
-
-# Activate local venv
-source "${project_root_dir_abs}/${venv_name}/env/icarus-runtime/bin/activate"
-echo -e "\n\n${bold_green}${green_check_mark} venv ${venv_name} activated:${end}"
-echo -e "OS Version: $(uname)"
-echo -e "Kernel Version: $(uname -r)"
-echo -e "venv: $VIRTUAL_ENV"
-echo -e "running: $(python --version)"
+# Download Python Runtime
+echo -e "\n\n${bold_green}${sparkles} Downloading Python Runtime...${end}"
+mkdir -p "${project_root_dir_abs}/${venv_name}/env"
+curl -L "${download_url}" -o "${project_root_dir_abs}/${venv_name}/env/cpython.tar.gz"
+tar -xzf "${project_root_dir_abs}/${venv_name}/env/cpython.tar.gz" -C "${project_root_dir_abs}/${venv_name}/env"
+mv "${project_root_dir_abs}/${venv_name}/env/${python_full_version_for_venv}" "${project_root_dir_abs}/${venv_name}/env/icarus-runtime"
+rm -rf "${project_root_dir_abs}/${venv_name}/env/cpython.tar.gz"
 
 # Install requirements
 echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
-pip install --upgrade pip
-pip install -I -r "${project_root_dir_abs}/requirements.txt"
+"${pybin}" -m pip install --upgrade pip
+"${pybin}" -m pip install -I -r "${project_root_dir_abs}/requirements.txt"
 
 # Build complete!
 echo -e "\n\n${bold_green}${sparkles} ${venv_name} venv build complete & Ready for use!...${end}"
-
-echo -e "\n\n${bold_yellow}${warning_sign} Virtual environment deactivated!${end}"
-deactivate

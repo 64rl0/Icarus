@@ -38,7 +38,7 @@ function validate_prerequisites() {
     # Validate we are not running the prod script on this dev env to prevent special formatting
     # of this script
     if [[ "${PWD}" =~ _Projects\/Icarus && ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
-        echo_error "You are not supposed to run production icarus in the icarus development environment" "errexit"
+        echo_error "You are not supposed to run production ${cli_name} in the ${cli_name} development environment" "errexit"
     fi
 
     validate_command "bc"
@@ -92,12 +92,17 @@ function echo_summary() {
     local execution_time_partial=""
     local tool=""
     local tet=""
+    local python_versions_pretty=""
+
+    for python_version_composite in "${python_versions[@]}"; do
+        python_versions_pretty+="Python$(echo "${python_version_composite}" | cut -d ':' -f 2) "
+    done
 
     local runtime="${bold_blue}Runtime:${end} \
         \n--| Package ${bold_green}${package_name_pascal_case}${end} \
         \n--| ${project_root_dir_abs} \
         \n--| Interpreters enabled ${bold_green}${python_versions_pretty}${end} \
-        \n--| Interpreter default ${bold_green}${python_version_default_pretty}${end}"
+        \n--| Interpreter default ${bold_green}Python${python_default_version}${end}"
 
     echo_title "Icarus Builder Build Summary"
     echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
@@ -113,7 +118,7 @@ function echo_summary() {
         eval status='$'"${hook}_summary_status"
         eval execution_time='$'"${hook}_execution_time"
         execution_time="$(printf "%.3f" "${execution_time}")s"
-        printf "%-30s | %-7s | %-7s\n" "${tool}" "${status}" "${execution_time}"
+        printf "%-30s | %-6s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     for hook in "${running_hooks_name[@]}"; do
@@ -155,9 +160,9 @@ function set_constants() {
     declare -r -g platform_identifier
     declare -r -g python_version_default_for_brazil
     declare -r -g python_versions_for_brazil
-    declare -r -g venv_name
-    declare -r -g python_version_default_for_venv
-    declare -r -g python_versions_for_venv
+    declare -r -g build_env_dir_name
+    declare -r -g python_version_default_for_icarus
+    declare -r -g python_versions_for_icarus
     declare -r -g requirements_paths
     declare -r -g icarus_ignore_array
     declare -r -g build
@@ -180,32 +185,11 @@ function set_constants() {
     declare -r -g initial_exec_command_received
     declare -r -g running_hooks_name
     declare -r -g running_hooks_count
+    declare -r -g python_default_version
+    declare -r -g python_default_full_version
+    declare -r -g python_versions
 
     exit_code=0
-
-    if [[ "${build_system_in_use}" == "brazil" ]]; then
-        python_version_default="${python_version_default_for_brazil}"
-        python_versions=("${python_versions_for_brazil[@]}")
-
-        python_version_default_pretty="Python${python_version_default_for_brazil}"
-        for py_v in "${python_versions_for_brazil[@]}"; do
-            python_versions_pretty+="Python${py_v} "
-        done
-
-    elif [[ "${build_system_in_use}" == "venv" ]]; then
-        python_version_default="${python_version_default_for_venv}"
-        python_versions=("${python_versions_for_venv[@]}")
-
-        python_version_default_pretty="Python${python_version_default_for_venv}"
-        for py_v in "${python_versions_for_venv[@]}"; do
-            python_versions_pretty+="Python${py_v} "
-        done
-    fi
-
-    declare -r -g python_version_default
-    declare -r -g python_versions
-    declare -r -g python_version_default_pretty
-    declare -r -g python_versions_pretty
 
     passed="${bold_black}${bg_green} PASS ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
@@ -341,11 +325,24 @@ function set_constants() {
     echo
 }
 
+function set_python_constants() {
+    python_version="$(echo "${1}" | cut -d ':' -f 1)"
+    python_full_version="$(echo "${1}" | cut -d ':' -f 2)"
+
+    path_to_cache_root="${project_root_dir_abs}/${build_env_dir_name}/cache"
+    path_to_runtime_root="${project_root_dir_abs}/${build_env_dir_name}/runtime/${platform_identifier}"
+    path_to_env_root="${project_root_dir_abs}/${build_env_dir_name}/env/${platform_identifier}/CPython/${python_full_version}"
+    path_to_wheel_root="${project_root_dir_abs}/${build_env_dir_name}/wheel/${package_name_snake_case}/${platform_identifier}/CPython/${python_full_version}"
+
+    python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
+    python_pkg_full_name="${python_pkg_name}.tar.gz"
+}
+
 ####################################################################################################
 # TOOLS
 ####################################################################################################
 function run_isort() {
-    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
 
     validate_command "isort" || {
         isort_summary_status="${failed}"
@@ -364,7 +361,7 @@ function run_isort() {
 }
 
 function run_black() {
-    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
 
     validate_command "black" || {
         black_summary_status="${failed}"
@@ -383,7 +380,7 @@ function run_black() {
 }
 
 function run_flake8() {
-    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
 
     validate_command "flake8" || {
         flake8_summary_status="${failed}"
@@ -402,7 +399,7 @@ function run_flake8() {
 }
 
 function run_mypy() {
-    elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
 
     validate_command "mypy" || {
         mypy_summary_status="${failed}"
@@ -423,7 +420,7 @@ function run_mypy() {
 }
 
 function run_shfmt() {
-    elements=("${active_dirs[@]}" "${active_sh_files[@]}")
+    local elements=("${active_dirs[@]}" "${active_sh_files[@]}")
 
     validate_command "shfmt" || {
         shfmt_summary_status="${failed}"
@@ -442,7 +439,7 @@ function run_shfmt() {
 }
 
 function run_char_replacement() {
-    elements=("${active_files_all[@]}")
+    local elements=("${active_files_all[@]}")
     local counter=0
 
     for el in "${elements[@]}"; do
@@ -489,7 +486,7 @@ function run_char_replacement() {
 }
 
 function run_eofnewline() {
-    elements=("${active_files_all[@]}")
+    local elements=("${active_files_all[@]}")
     local counter=0
 
     for el in "${elements[@]}"; do
@@ -548,7 +545,7 @@ function run_eofnewline() {
 }
 
 function run_trailingwhitespaces() {
-    elements=("${active_files_all[@]}")
+    local elements=("${active_files_all[@]}")
     local counter=0
 
     for el in "${elements[@]}"; do
@@ -591,7 +588,7 @@ function run_trailingwhitespaces() {
 }
 
 function run_eolnorm() {
-    elements=("${active_files_all[@]}")
+    local elements=("${active_files_all[@]}")
     local counter=0
 
     for el in "${elements[@]}"; do
@@ -670,6 +667,7 @@ function run_brazil_pytest() {
 }
 
 function run_venv_pytest() {
+    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
     echo -e "Preparing tests"
     echo
 
@@ -679,7 +677,7 @@ function run_venv_pytest() {
         return
     }
 
-    pytest "${project_root_dir_abs}" 2>&1 || {
+    pytest 2>&1 || {
         pytest_summary_status="${failed}"
         exit_code=1
     }
@@ -754,133 +752,202 @@ function build_brazil_env() {
     }
 }
 
-function build_venv_env() {
-    local active_venv_pyversion_fullname="CPython${python_full_version_in_use}"
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${platform_identifier}/CPython/${python_full_version_in_use}"
-    local active_wheel_path="${project_root_dir_abs}/${venv_name}/wheel/${package_name_snake_case}/${platform_identifier}/CPython/${python_full_version_in_use}"
-    local active_wheel_build_path="${active_wheel_path}/build"
-    local active_wheel_dist_path="${active_wheel_path}/dist"
-    local single_run_status=0
+function install_python_runtime() {
+    local download_url="https://github.com/64rl0/PythonRuntime/releases/download/${python_pkg_name}/${python_pkg_full_name}"
+    local dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
+    local root_tree=(
+        "${path_to_cache_root}/CPython"
+        "${path_to_runtime_root}/CPython"
+        "${path_to_runtime_root}/bin"
+        "${path_to_runtime_root}/include"
+        "${path_to_runtime_root}/lib"
+        "${path_to_runtime_root}/private"
+        "${path_to_runtime_root}/share"
+    )
 
-    # Create Local venv
-    echo -e "${bold_green}${sparkles} Creating '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
-    python${python_version_in_use} -m venv --clear --copies "${path_to_venv_root}" && echo -e "done!" || {
-        echo_error "Failed to create '${venv_name}' '${active_venv_pyversion_fullname}' venv."
+    for d in "${root_tree[@]}"; do
+        mkdir -p "${d}" || {
+            echo_error "Failed to create '${d}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
+
+    echo -e "${bold_green}${sparkles} Downloading & Installing 'Python${python_full_version}'${end}"
+    echo -e "This can take a while"
+    if [[ ! -e "${dest_tar}" ]]; then
+        curl -L "${download_url}" -o "${dest_tar}" || {
+            echo_error "Failed to download '${python_pkg_name}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    fi
+    rm -rf "${path_to_cache_root}/CPython/${python_full_version}" || {
+        echo_error "Failed to remove '${path_to_cache_root}/CPython/${python_full_version}'."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
         exit_code=1
     }
-
-    # Activate local venv silently
-    . "${path_to_venv_root}/bin/activate" || {
-        echo_error "Failed to activate '${venv_name}' '${active_venv_pyversion_fullname}' venv."
+    tar -vxzf "${dest_tar}" -C "${path_to_cache_root}/CPython" || {
+        echo_error "Failed to unpack '${python_pkg_name}'."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
+        exit_code=1
+    }
+    rm -rf "${path_to_runtime_root}/CPython/${python_full_version}" || {
+        echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    mv "${path_to_cache_root}/CPython/${python_full_version}" "${path_to_runtime_root}/CPython/${python_full_version}" || {
+        echo_error "Failed to move '${dest_tar}'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    if [[ "${build_single_run_status}" -eq 0 ]]; then
+        echo -e "done!"
+        echo
+    fi
+}
+
+function build_venv_env() {
+    build_single_run_status=0
+
+    # Adding runtime bin to path
+    OLD_PATH="${PATH}"
+    export PATH="${path_to_runtime_root}/bin:${path_to_env_root}/bin:${OLD_PATH}"
+
+    # Build python runtime
+    install_python_runtime
+
+    # Create Local env
+    mkdir -p "${path_to_env_root}" || {
+        echo_error "Failed to create '${path_to_env_root}'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    rm -rf "${path_to_env_root}" || {
+        echo_error "Failed to remove '${path_to_env_root}'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    ln -f -s "${path_to_runtime_root}/CPython/${python_full_version}" "${path_to_env_root}" || {
+        echo_error "Failed to create symlink to '${path_to_env_root}'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
         exit_code=1
     }
 
     # Install pip and update
-    echo -e "\n\n${bold_green}${sparkles} Updating pip...${end}"
-    pip install --upgrade pip || {
+    echo -e "${bold_green}${sparkles} Updating pip...${end}"
+    pip install --upgrade pip setuptools wheel || {
         echo_error "Failed to update pip."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
         exit_code=1
     }
 
     # Install requirements
-    echo -e "\n\n${bold_green}${sparkles} Installing requirements into '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
+    echo
+    echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
     for requirements_path in "${requirements_paths[@]}"; do
         pip install -I -r "${project_root_dir_abs}/${requirements_path}" || {
-            echo_error "Failed to install requirements ${requirements_path} into '${venv_name}' '${active_venv_pyversion_fullname}' venv."
+            echo_error "Failed to install requirements ${requirements_path} 'Python${python_full_version}' env."
             build_summary_status="${failed}"
-            single_run_status=1
+            build_single_run_status=1
             exit_code=1
         }
     done
 
     # Cleanup pre silently
     # We are about to rebuild the wheel so make sure the env is clean to accommodate the new one
-    rm -rf "${active_wheel_path}"
+    rm -rf "${path_to_wheel_root}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package
-    echo -e "\n\n${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
-    python3 -m build --wheel --outdir "${active_wheel_dist_path}" "${project_root_dir_abs}" || {
+    echo
+    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
+    python3 -m build --wheel --outdir "${path_to_wheel_root}/dist" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
         exit_code=1
     }
-    echo -e "\n\n${bold_green}${package} Checking package health${end}"
-    twine check "${active_wheel_dist_path}/"* || {
+    echo
+    echo -e "${bold_green}${package} Checking package health${end}"
+    twine check "${path_to_wheel_root}/dist/"* || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
         exit_code=1
     }
 
-    # Install local package into venv (as last so it will override the same name)
-    echo -e "\n\n${bold_green}${sparkles} Installing '${package_name_snake_case}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv...${end}"
-    pip install -I "${active_wheel_dist_path}/"*.whl || {
-        echo_error "Failed to install '${project_root_dir_abs}' into '${venv_name}' '${active_venv_pyversion_fullname}' venv."
+    # Install local package into env (as last so it will override the same name)
+    echo
+    echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
+    pip install -I "${path_to_wheel_root}/dist/"*.whl || {
+        echo_error "Failed to install '${project_root_dir_abs}' into 'Python${python_full_version}' env."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
         exit_code=1
     }
 
     # Cleanup post
-    echo -e "\n\n${bold_green}${broom} Cleaning up...${end}"
-    if [[ "${venv_name}" == 'build' ]]; then
-        mkdir -p "${active_wheel_build_path}" || {
+    echo
+    echo -e "${bold_green}${broom} Cleaning up...${end}"
+    if [[ "${build_env_dir_name}" == 'build' ]]; then
+        mkdir -p "${path_to_wheel_root}/build" || {
             echo_error "Failed to create build dir."
             build_summary_status="${failed}"
-            single_run_status=1
+            build_single_run_status=1
             exit_code=1
         }
-        mv "${project_root_dir_abs}/build/lib" "${active_wheel_build_path}" || {
-            echo_error "Failed to move build/lib dir to venv dir."
+        mv "${project_root_dir_abs}/build/lib" "${path_to_wheel_root}/build" || {
+            echo_error "Failed to move build/lib dir to env dir."
             build_summary_status="${failed}"
-            single_run_status=1
+            build_single_run_status=1
             exit_code=1
         }
-        mv "${project_root_dir_abs}/build/bdist."* "${active_wheel_build_path}" || {
-            echo_error "Failed to move build/bdist dir to venv dir."
+        mv "${project_root_dir_abs}/build/bdist."* "${path_to_wheel_root}/build" || {
+            echo_error "Failed to move build/bdist dir to env dir."
             build_summary_status="${failed}"
-            single_run_status=1
+            build_single_run_status=1
             exit_code=1
         }
     else
-        mv "${project_root_dir_abs}/build" "${active_wheel_path}" || {
-            echo_error "Failed to move build dir to venv dir."
+        mv "${project_root_dir_abs}/build" "${path_to_wheel_root}" || {
+            echo_error "Failed to move build dir to env dir."
             build_summary_status="${failed}"
-            single_run_status=1
+            build_single_run_status=1
             exit_code=1
         }
     fi
-    mv "${project_root_dir_abs}/src/"*".egg-info" "${active_wheel_build_path}" || {
-        echo_error "Failed to move build dir to venv dir."
+    mv "${project_root_dir_abs}/src/"*".egg-info" "${path_to_wheel_root}/build" || {
+        echo_error "Failed to move build dir to env dir."
         build_summary_status="${failed}"
-        single_run_status=1
+        build_single_run_status=1
         exit_code=1
     }
     echo -e "cleanup completed"
 
     # Deactivate virtual env silently
-    deactivate || {
-        echo_error "Failed to deactivate '${venv_name}' '${active_venv_pyversion_fullname}' venv."
-        build_summary_status="${failed}"
-        single_run_status=1
-        exit_code=1
-    }
+    export PATH="${OLD_PATH}"
 
-    if [[ "${single_run_status}" -eq 0 ]]; then
+    if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
-        echo -e "\n\n${bold_green}${green_check_mark} '${venv_name}' '${active_venv_pyversion_fullname}' venv build complete & Ready for use!${end}"
+        echo
+        echo -e "${bold_green}${green_check_mark} 'Python${python_full_version}' env build complete & Ready for use!${end}"
         echo
     else
         # Build failed!
-        echo -e "\n\n${bold_red}${stop_sign} '${venv_name}' '${active_venv_pyversion_fullname}' venv build failed!${end}"
+        echo
+        echo -e "${bold_red}${stop_sign} 'Python${python_full_version}' env build failed!${end}"
         echo
     fi
 }
@@ -892,13 +959,13 @@ function activate_brazil_env() {
 
     # Adding brazil python runtime to path
     OLD_PATH="${PATH}"
-    PATH="${brazil_bin_dir}:${PATH}"
+    export PATH="${brazil_bin_dir}:${PATH}"
 
     # Display Project info
     echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
     echo "${project_root_dir_abs}"
     # Display env info
-    echo -e "\n${bold_green}${green_check_mark} Virtual environment activated:${end}"
+    echo -e "\n${bold_green}${green_check_mark} Environment activated:${end}"
     echo -e "brazil env: $(realpath -- ${brazil_bin_dir}/..)"
     echo -e "OS Version: $(uname)"
     echo -e "Kernel Version: $(uname -r)"
@@ -907,26 +974,21 @@ function activate_brazil_env() {
 }
 
 function activate_venv_env() {
-    local active_venv_pyversion_fullname="CPython${python_full_version_in_use}"
-    local path_to_venv_root="${project_root_dir_abs}/${venv_name}/env/${platform_identifier}/CPython/${python_full_version_in_use}"
-
-    if [[ ! -e "${path_to_venv_root}/bin/activate" ]]; then
-        echo_error "Cannot find the requested venv: \`${venv_name}/${active_venv_pyversion_fullname}\` to activate!\n venv: ${path_to_venv_root}"
+    if [[ ! -e "${path_to_env_root}/bin/python3" ]]; then
+        echo_error "Cannot find the requested env: \`Python${python_full_version}\`"
     fi
 
-    # Activate venv
-    . "${path_to_venv_root}/bin/activate" || {
-        echo_error "Failed to activate '${venv_name}' '${active_venv_pyversion_fullname}' venv."
-        return
-    }
+    # Adding runtime bin to path
+    OLD_PATH="${PATH}"
+    export PATH="${path_to_runtime_root}/bin:${path_to_env_root}/bin:${OLD_PATH}"
 
     # Display Project info
     echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
     echo "${project_root_dir_abs}"
     echo
     # Display env info
-    echo -e "${bold_green}${green_check_mark} Virtual environment activated:${end}"
-    echo -e "venv: ${VIRTUAL_ENV}"
+    echo -e "${bold_green}${green_check_mark} Environment activated:${end}"
+    echo -e "env: $(command -v python3)"
     echo -e "OS Version: $(uname)"
     echo -e "Kernel Version: $(uname -r)"
     echo -e "running: $(python3 --version)"
@@ -934,17 +996,14 @@ function activate_venv_env() {
 }
 
 function deactivate_brazil_env() {
-    PATH="${OLD_PATH}"
-    echo -e "Virtual environment deactivated!"
+    export PATH="${OLD_PATH}"
+    echo -e "Environment deactivated!"
     echo
 }
 
 function deactivate_venv_env() {
-    deactivate || {
-        echo_error "Failed to deactivate venv."
-        return
-    }
-    echo -e "Virtual environment deactivated!"
+    export PATH="${OLD_PATH}"
+    echo -e "Environment deactivated!"
     echo
 }
 
@@ -958,7 +1017,6 @@ function clean_common() {
         rm -rf "${dir}" || {
             echo_error "Failed to clean '${dir}'."
             clean_summary_status="${failed}"
-            single_run_status=1
             exit_code=1
         }
         echo
@@ -974,7 +1032,6 @@ function clean_common() {
         find "${project_root_dir_abs}" -type d -name "${dir}" -print -exec rm -rf {} + || {
             echo_error "Failed to clean '${dir}'."
             clean_summary_status="${failed}"
-            single_run_status=1
             exit_code=1
         }
         echo
@@ -989,7 +1046,6 @@ function clean_common() {
         find "${project_root_dir_abs}" -type f -name "${file}" -print -exec rm -rf {} + || {
             echo_error "Failed to clean '${file}'."
             clean_summary_status="${failed}"
-            single_run_status=1
             exit_code=1
         }
         echo
@@ -1010,13 +1066,11 @@ function clean_brazil_env() {
 }
 
 function clean_venv_env() {
-    local single_run_status=0
-
     echo -e "Cleaning up..."
     echo
 
     local dirs_to_clean=(
-        "${project_root_dir_abs}/${venv_name}"
+        "${project_root_dir_abs}/${build_env_dir_name}"
     )
     for dir in "${dirs_to_clean[@]}"; do
         echo -e "Cleaning '${blue}$(basename ${dir})${end}'"
@@ -1024,7 +1078,6 @@ function clean_venv_env() {
         rm -rf "${dir}" || {
             echo_error "Failed to clean '${dir}'."
             clean_summary_status="${failed}"
-            single_run_status=1
             exit_code=1
         }
         echo
@@ -1032,13 +1085,13 @@ function clean_venv_env() {
 
     clean_common
 
-    if [[ "${single_run_status}" -eq 0 ]]; then
+    if [[ "${clean_summary_status}" == "${failed}" ]]; then
         echo
-        echo -e "Virtual environment '${venv_name}' cleaned!"
+        echo -e "${bold_red}${stop_sign} Environment '${build_env_dir_name}' clean failed!${end}"
         echo
     else
         echo
-        echo -e "${bold_red}${stop_sign} Virtual environment '${venv_name}' clean failed!${end}"
+        echo -e "Environment '${build_env_dir_name}' cleaned!"
         echo
     fi
 }
@@ -1077,8 +1130,8 @@ function dispatch_tools() {
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             echo_title "Building brazil"
             build_brazil_env
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
-            echo_title "Building venv"
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
+            echo_title "Building env"
             build_venv_env
         fi
 
@@ -1097,8 +1150,8 @@ function dispatch_tools() {
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             echo_title "Cleaning brazil"
             clean_brazil_env
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
-            echo_title "Cleaning venv"
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
+            echo_title "Cleaning env"
             clean_venv_env
         fi
 
@@ -1111,7 +1164,7 @@ function dispatch_tools() {
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         echo_title "Project info"
         activate_brazil_env
-    elif [[ "${build_system_in_use}" == "venv" ]]; then
+    elif [[ "${build_system_in_use}" == "icarus" ]]; then
         echo_title "Project info"
         activate_venv_env
     fi
@@ -1122,7 +1175,7 @@ function dispatch_tools() {
         echo_title "Running iSort"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_isort
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_isort
         fi
 
@@ -1136,7 +1189,7 @@ function dispatch_tools() {
         echo_title "Running Black"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_black
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_black
         fi
 
@@ -1150,7 +1203,7 @@ function dispatch_tools() {
         echo_title "Running Flake8"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_flake8
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_flake8
         fi
 
@@ -1164,7 +1217,7 @@ function dispatch_tools() {
         echo_title "Running mypy"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_mypy
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_mypy
         fi
 
@@ -1178,7 +1231,7 @@ function dispatch_tools() {
         echo_title "Running shfmt (bash formatter)"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_shfmt
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_shfmt
         fi
 
@@ -1192,7 +1245,7 @@ function dispatch_tools() {
         echo_title "Running eol-norm (convert CR and CRLF to LF)"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_eolnorm
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_eolnorm
         fi
 
@@ -1206,7 +1259,7 @@ function dispatch_tools() {
         echo_title "Replacing non-breaking-space (NBSP) characters"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_char_replacement
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_char_replacement
         fi
 
@@ -1220,7 +1273,7 @@ function dispatch_tools() {
         echo_title "Running trailing-whitespaces"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_trailingwhitespaces
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_trailingwhitespaces
         fi
 
@@ -1234,7 +1287,7 @@ function dispatch_tools() {
         echo_title "Running eof-newline"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_eofnewline
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_eofnewline
         fi
 
@@ -1248,7 +1301,7 @@ function dispatch_tools() {
         echo_title "Running gitleaks"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_gitleaks
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_gitleaks
         fi
 
@@ -1262,7 +1315,7 @@ function dispatch_tools() {
         echo_title "Running pytest"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_brazil_pytest
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_venv_pytest
         fi
 
@@ -1276,7 +1329,7 @@ function dispatch_tools() {
         echo_title "Generating documentation"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             run_brazil_documentation
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             run_venv_documentation
         fi
 
@@ -1289,7 +1342,7 @@ function dispatch_tools() {
 
         if [[ "${build_system_in_use}" == "brazil" ]]; then
             exec_brazil
-        elif [[ "${build_system_in_use}" == "venv" ]]; then
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
             exec_venv
         fi
 
@@ -1298,10 +1351,10 @@ function dispatch_tools() {
     fi
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
-        echo_title "Deactivating virtual environment"
+        echo_title "Deactivating Environment"
         deactivate_brazil_env
-    elif [[ "${build_system_in_use}" == "venv" ]]; then
-        echo_title "Deactivating virtual environment"
+    elif [[ "${build_system_in_use}" == "icarus" ]]; then
+        echo_title "Deactivating Environment"
         deactivate_venv_env
     fi
 }
@@ -1311,20 +1364,17 @@ function dispatch_hooks() {
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         dispatch_tools
-    elif [[ "${build_system_in_use}" == "venv" ]]; then
+    elif [[ "${build_system_in_use}" == "icarus" ]]; then
         if [[ "${clean}" == "Y" ]]; then
-            python_version_in_use="${python_version_default}"
-            python_full_version_in_use=$(python${python_version_in_use} -c "import sys; print(sys.version.split()[0])")
+            set_python_constants "${python_default_version}:${python_default_full_version}"
             dispatch_tools
         elif [[ "${exec}" == "Y" ]]; then
-            python_version_in_use="${python_version_default}"
-            python_full_version_in_use=$(python${python_version_in_use} -c "import sys; print(sys.version.split()[0])")
+            set_python_constants "${python_default_version}:${python_default_full_version}"
             dispatch_tools
         else
-            for py_v in "${python_versions[@]}"; do
-                echo_title "Running tools for: Python${py_v}" "header"
-                python_version_in_use="${py_v}"
-                python_full_version_in_use=$(python${python_version_in_use} -c "import sys; print(sys.version.split()[0])")
+            for python_version_composite in "${python_versions[@]}"; do
+                set_python_constants "${python_version_composite}"
+                echo_title "Running tools for: Python${python_version}" "header"
                 dispatch_tools
             done
         fi

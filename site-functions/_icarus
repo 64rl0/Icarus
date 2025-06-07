@@ -113,6 +113,7 @@ _icarus() {
             completions+=(
                 'create:initiate a new package in the current folder'
                 'build:create/re-create the project runtime environment'
+                'build-runtime:build the interpreter runtime'
                 'clean:clean the project runtime environment'
                 'format:run the formatting tools'
                 'test:run the automated test suite'
@@ -136,6 +137,7 @@ _icarus() {
                 '--test:run the automated test suite'
                 '--release:run the full “release” pipeline'
                 '--exec:command to run inside the runtime environment'
+                '--build-runtime:build the interpreter runtime'
                 '--help:show help message'
                 '-h:show help message'
             )

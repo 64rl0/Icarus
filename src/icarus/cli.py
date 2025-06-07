@@ -505,6 +505,14 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_test.set_defaults(test='--test')
 
+    builder_sub.add_parser(
+        name='build-runtime',
+        help='build the interpreter runtime',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+
     builder_exec = builder_sub.add_parser(
         name='exec',
         help='run a command inside the runtime environment',

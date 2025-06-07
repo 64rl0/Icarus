@@ -87,8 +87,13 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         'format': args.format,
         'test': args.test,
     }
+    singleton_args = {
+        'dotfile-update',
+        'create',
+        'build-runtime',
+    }
 
-    if args.builder_command == 'dotfiles-update':
+    if args.builder_command == 'dotfiles-update' and not any(builder_args.values()):
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'provision_handler' / 'dotfiles_update.sh'
@@ -98,7 +103,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command == 'create':
+    elif args.builder_command == 'create' and not any(builder_args.values()):
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'create.sh'
@@ -108,7 +113,17 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command in {'build', 'clean', 'release', 'format', 'test', 'exec', None}:
+    elif args.builder_command == 'build-runtime' and not any(builder_args.values()):
+        module_logger.debug(f"Running {args.builder_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'build_runtime.sh'
+        script_args = [utils.platform_id()]
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
+    elif any(builder_args.values()) and args.builder_command not in singleton_args:
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'

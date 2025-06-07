@@ -99,3 +99,10 @@ function echo_time() {
 
     echo -e "[$(date '+%Y-%m-%d %T %Z')] ${message}"
 }
+
+function echo_need_sudo() {
+    echo -e "We need to briefly run as root (through sudo) to execute some commands."
+    echo -e "If prompted, please enter your user password."
+    sudo -v
+    echo
+}
