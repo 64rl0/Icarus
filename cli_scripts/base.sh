@@ -71,7 +71,14 @@ declare -r package="\xF0\x9F\x93\xA6"
 declare -r network_world="\xF0\x9F\x8C\x90"
 
 # Sourcing existing bashrc to export current PATH
-source "${HOME}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+. "${HOME}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+if [[ -n "${SUDO_USER}" ]]; then
+    if [[ $(uname -s) == "Darwin" ]]; then
+        . "Users/${SUDO_USER}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+    elif [[ $(uname -s) == "Linux" ]]; then
+        . "/home/${SUDO_USER}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+    fi
+fi
 
 # CLI variables
 declare -r cli_name='icarus'

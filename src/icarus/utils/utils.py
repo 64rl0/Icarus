@@ -163,7 +163,9 @@ def _sanitize(raw: str) -> str:
     Keep only letters, digits, dot, dash.
     """
 
-    sanitized = re.sub(r"[^A-Za-z0-9.-]", "-", raw)
+    raw_replaced = raw.casefold().replace(' ', '-').replace('"', '').replace("'", '')
+
+    sanitized = re.sub(r"[^A-Za-z0-9.-]", "-", raw_replaced)
 
     return sanitized
 
@@ -178,9 +180,12 @@ def _linux_flavour() -> str:
     try:
         with open("/etc/os-release", encoding="utf-8") as fh:
             data = dict(line.strip().split("=", 1) for line in fh if "=" in line)
+
         distro = data.get("ID", "linux")
         version = data.get("VERSION_ID", "0")
+
         return f"{distro}{version}"
+
     except Exception:
         return "linux0"
 
@@ -192,17 +197,22 @@ def platform_id() -> str:
     :return:
     """
 
-    arch = platform.machine().lower()
+    arch = platform.machine()
 
     if sys.platform.startswith("linux"):
         os_part = _linux_flavour()
+
     elif sys.platform == "darwin":
         major = platform.mac_ver()[0] or "0"
         os_part = f"macos{major}"
+
     elif os.name == "nt":
         release = platform.win32_ver()[0] or "0"
         os_part = f"win{release}"
-    else:
-        os_part = sys.platform.replace(" ", "-")
 
-    return _sanitize(f"{os_part}-{arch}".casefold())
+    else:
+        os_part = sys.platform
+
+    sanitized_platform_id = _sanitize(f"{os_part}-{arch}")
+
+    return sanitized_platform_id

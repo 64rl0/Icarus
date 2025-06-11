@@ -70,16 +70,17 @@ function set_constants() {
     # Libffi version
     libffi_version=$(echo "${version_string}" | cut -d ':' -f 10)
 
-    # OSSp uuid version
-    ossp_uuid_version=$(echo "${version_string}" | cut -d ':' -f 11)
+    # Libnsl version
+    libnsl_version=$(echo "${version_string}" | cut -d ':' -f 11)
 
     # Find max available cores
     if [[ $(uname -s) == "Darwin" ]]; then
-        # macOS
         ncpu="$(sysctl -n hw.ncpu)" || ncpu=4
-    else
-        # Linux
+    elif [[ $(uname -s) == "Linux" ]]; then
         ncpu="$(grep -c ^processor /proc/cpuinfo)" || ncpu=4
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
     fi
 
     python_builds="/tmp/builds_python"
@@ -91,6 +92,7 @@ function set_constants() {
     path_to_runtime_root="${python_build_root}/runtime/${platform_identifier}"
     path_to_python_home="${path_to_runtime_root}/CPython/${python_full_version}"
     path_to_sysroot="${path_to_python_home}/sysroot"
+    path_to_linux_dependencies_root="${path_to_python_home}/linux-tmp-dependencies"
     path_to_local="${path_to_python_home}/local"
 
     # Optimize space while cleaning the python build and remove additional dirs
@@ -125,6 +127,10 @@ function prepare_local() {
             exit_code=1
         }
     done
+
+    # Make lib64 → lib symlink
+    ln -sf "lib" "${path_to_local}/lib64"
+
     echo -e "done!"
     echo
 }
@@ -134,18 +140,50 @@ function prepare_sysroot_macos() {
         echo_error "Failed to copy 'sysroot'."
         exit_code=1
     }
-
-    export SDKROOT="${path_to_sysroot}"
 }
 
 function prepare_sysroot_linux() {
-    # TODO: implement this
-    echo_error "Not implemented yet!" "errexit"
+    rm -rf "${path_to_sysroot}" || {
+        echo_error "Failed to remove '${path_to_sysroot}'."
+        exit_code=1
+    }
+
+    mkdir -p "${path_to_sysroot}" || {
+        echo_error "Failed to create '${path_to_sysroot}'."
+        exit_code=1
+    }
+
+    sudo rpm --root="${path_to_sysroot}" --initdb || {
+        echo_error "Failed to create creates the empty RPM database."
+        exit_code=1
+    }
+
+    echo -e "Redirecting output to '${path_to_log_root}/prepare_sysroot_linux.log'"
+    sudo yum --releasever=latest \
+        --installroot="${path_to_sysroot}" \
+        --setopt=install_weak_deps=False \
+        --setopt=tsflags=nodocs \
+        -y install \
+        glibc \
+        glibc-headers \
+        glibc-devel \
+        bash \
+        coreutils \
+        which \
+        sed \
+        tar \
+        gzip \
+        gcc \
+        make >"${path_to_log_root}/prepare_sysroot_linux.log" 2>&1 || {
+        echo_error "Failed to installroot."
+        exit_code=1
+    }
 }
 
 function prepare_sysroot() {
     echo_time
     echo -e "${bold_green}${sparkles} Cleaning env for fresh build${end}"
+
     rm -rf "${path_to_python_home}" || {
         echo_error "Failed to remove env '${path_to_python_home}'."
         exit_code=1
@@ -155,18 +193,59 @@ function prepare_sysroot() {
 
     echo_time
     echo -e "${bold_green}${sparkles} Creating sysroot tree${end}"
+
     if [[ $(uname -s) == "Darwin" ]]; then
-        # macOS
         prepare_sysroot_macos
-    else
-        # Linux
+    elif [[ $(uname -s) == "Linux" ]]; then
         prepare_sysroot_linux
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
     fi
+
     echo -e "done!"
     echo
 }
 
+function echo_envs() {
+    echo_time
+    echo -e "${bold_green}${sparkles} System env now set to${end}"
+
+    local -a cpp
+    read -r -a cpp <<<"${CPPFLAGS}"
+
+    local -a ld
+    read -r -a ld <<<"${LDFLAGS}"
+
+    echo -e "CPPFLAGS:"
+    for cppflag in "${cpp[@]}"; do
+        echo -e "--| ${cppflag}"
+    done
+    echo -e "LDFLAGS:"
+    for ldflag in "${ld[@]}"; do
+        echo -e "--| ${ldflag}"
+    done
+    echo -e "SDKROOT:"
+    echo -e "--| ${SDKROOT}"
+    echo -e "LD_LIBRARY_PATH:"
+    echo -e "--| ${LD_LIBRARY_PATH}"
+    echo -e "PKG_CONFIG_SYSROOT_DIR:"
+    echo -e "--| ${PKG_CONFIG_SYSROOT_DIR}"
+    echo -e "PKG_CONFIG_PATH:"
+    echo -e "--| ${PKG_CONFIG_PATH}"
+    echo -e "LIBRARY_PATH:"
+    echo -e "--| ${LIBRARY_PATH}"
+    echo -e "C_INCLUDE_PATH:"
+    echo -e "--| ${C_INCLUDE_PATH}"
+    echo -e "LIBS:"
+    echo -e "--| ${LIBS}"
+
+    echo
+}
+
 function build_generic() {
+    local compression configure_options
+
     local display_name="${1}"                                                               # PostgreSQL${postgres_version}
     local package_dir_name="${2}"                                                           # PostgreSQL
     local package_download_filename="${3}"                                                  # postgresql-${postgres_version}.tar.gz
@@ -175,13 +254,9 @@ function build_generic() {
     local package_url="${6}"                                                                # XXX${postgres_version}/postgresql-${postgres_version}.tar.gz
     IFS=':' read -r -a configure_options <<<"$(echo "${7}" | sed -e 's/[[:space:]]*:/:/g')" # separate them by :
 
-    # Create log directory
-    mkdir -p "${path_to_log_root}" || {
-        echo_error "Failed to create '${path_to_log_root}'."
-        exit_code=1
-    }
+    echo_envs
 
-    # Create fresh Local env space
+    # Create fresh package_dir_name env space
     echo_time
     echo -e "${bold_green}${sparkles} Preparing '${display_name}'${end}"
     rm -rf "${path_to_tmpwork_root:?}/${package_dir_name:?}" || {
@@ -220,7 +295,11 @@ function build_generic() {
         echo_error "Failed to change directory to '${path_to_cache_root}/${package_dir_name}'."
         exit_code=1
     }
-    tar -xzf "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" || {
+    compression="$(file "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')" || {
+        echo_error "Failed to detect '${package_download_filename}' compression type."
+        exit_code=1
+    }
+    tar -x --"${compression}" -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" || {
         echo_error "Failed to unpack '${package_download_filename}'."
         exit_code=1
     }
@@ -278,13 +357,12 @@ function build_generic() {
 
 function build_tcltk() {
     if [[ $(uname -s) == "Darwin" ]]; then
-        # macOS
-        declare -g tcltk_libs_flags="-framework Tcl -framework Tk"
         local os="macosx"
-    else
-        # Linux
+    elif [[ $(uname -s) == "Linux" ]]; then
         local os="unix"
-        declare -g tcltk_libs_flags=""
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
     fi
 
     build_generic \
@@ -486,7 +564,6 @@ function build_openssl() {
             "https://github.com/openssl/openssl/releases/download/OpenSSL_${openssl_version_under}/openssl-${openssl_version}.tar.gz" \
             "shared \
             :--prefix=${path_to_local}"
-
     elif [[ "${openssl_version}" == "3."* ]]; then
         build_generic \
             "OpenSSL${openssl_version}" \
@@ -497,7 +574,6 @@ function build_openssl() {
             "https://github.com/openssl/openssl/releases/download/openssl-${openssl_version}/openssl-${openssl_version}.tar.gz" \
             "shared \
             :--prefix=${path_to_local}"
-
     else
         echo_error "Unsupported OpenSSL version: ${openssl_version}"
     fi
@@ -576,47 +652,196 @@ function build_sqlite3() {
         :--enable-shared"
 }
 
-function build_ossp_uuid() {
+function build_libnsl() {
     build_generic \
-        "Ossp_uuid${ossp_uuid_version}" \
-        "Ossp_uuid" \
-        "ossp-uuid_${ossp_uuid_version}.orig.tar.gz" \
-        "uuid-${ossp_uuid_version}" \
-        "uuid-${ossp_uuid_version}" \
-        "https://ftp.debian.org/debian/pool/main/o/ossp-uuid/ossp-uuid_${ossp_uuid_version}.orig.tar.gz" \
+        "Libnsl${libnsl_version}" \
+        "Libnsl" \
+        "libnsl-${libnsl_version}.tar.xz" \
+        "libnsl-${libnsl_version}" \
+        "libnsl-${libnsl_version}" \
+        "https://github.com/thkukuk/libnsl/releases/download/v${libnsl_version}/libnsl-${libnsl_version}.tar.xz" \
         "--prefix=${path_to_local} \
-        :--enable-shared"
+        :--enable-shared \
+        :LIBS=-ltirpc"
+}
+
+function build_linux_base_dependencies() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Installing Linux dependencies${end}"
+
+    rm -rf "${path_to_linux_dependencies_root}" || {
+        echo_error "Failed to remove '${path_to_linux_dependencies_root}'."
+        exit_code=1
+    }
+
+    mkdir -p "${path_to_linux_dependencies_root}" || {
+        echo_error "Failed to create '${path_to_linux_dependencies_root}'."
+        exit_code=1
+    }
+
+    sudo rpm --root="${path_to_linux_dependencies_root}" --initdb || {
+        echo_error "Failed to create creates the empty RPM database."
+        exit_code=1
+    }
+
+    echo -e "Redirecting output to '${path_to_log_root}/build_linux_base_dependencies.log'"
+    sudo yum --installroot="${path_to_linux_dependencies_root}" \
+        --releasever=latest \
+        --setopt=install_weak_deps=False \
+        --setopt=tsflags=nodocs \
+        -y install \
+        zlib-devel \
+        bzip2-devel \
+        xz-devel \
+        readline \
+        readline-devel \
+        ncurses \
+        ncurses-devel \
+        gdbm \
+        gdbm-devel \
+        libffi \
+        libffi-devel \
+        libtirpc-devel \
+        libuuid \
+        libuuid-devel \
+        libXext-devel \
+        libXrender-devel \
+        libXrandr-devel \
+        libXi-devel \
+        libXft-devel \
+        libX11 \
+        libX11-devel \
+        libxcb \
+        libxcb-devel \
+        libXau \
+        libXau-devel \
+        libXdmcp \
+        libXdmcp-devel >"${path_to_log_root}/build_linux_base_dependencies.log" 2>&1 || {
+        echo_error "Failed to installroot."
+        exit_code=1
+    }
+
+    local -a libs=(
+        "X11"
+        "girepository"
+        "glib"
+        "libX11"
+        "libXau"
+        "libXdmcp"
+        "libXext"
+        "libXft"
+        "libXi"
+        "libXrandr"
+        "libXrender"
+        "libbrotli"
+        "libbz2"
+        "libcurse"
+        "libffi"
+        "libfontconfig"
+        "libform"
+        "libfreetype"
+        "libgdbm"
+        "libglib"
+        "libgobject"
+        "libgraphite2"
+        "libharfbuzz"
+        "libicu"
+        "liblzma"
+        "libncurse"
+        "libpanel"
+        "libpixman"
+        "libpng"
+        "libreadline"
+        "libtinfo"
+        "libtirpc"
+        "libuuid"
+        "libxcb"
+        "libxml2"
+        "libz"
+        "libzstd"
+    )
+
+    # Copy only required dependencies to local dir
+    rsync -aHAXE "${path_to_linux_dependencies_root}/usr/include/" "${path_to_local}/include/" || {
+        echo_error "Failed to copy '${path_to_linux_dependencies_root}/usr/include/'."
+        exit_code=1
+    }
+    for lib in "${libs[@]}"; do
+        rsync -aHAXE "${path_to_linux_dependencies_root}/usr/lib64/${lib}"* "${path_to_local}/lib/" || {
+            echo_error "Failed to copy '${path_to_linux_dependencies_root}/usr/lib64/${lib}'."
+            exit_code=1
+        }
+    done
+
+    # Clean tmp dir
+    rm -rf "${path_to_linux_dependencies_root}" || {
+        echo_error "Failed to remove '${path_to_linux_dependencies_root}'."
+        exit_code=1
+    }
+
+    echo -e "done!"
+    echo
+
+    # Fix rpath to the deps copied in from yum/dnf
+    fix_runtime_paths
 }
 
 function build_python_runtime() {
-    local prefix ldflags_rpath
+    local prefix
 
-    # C compiler and Linker options for python dependencies
-    export CPPFLAGS="--sysroot=${path_to_sysroot} -I${path_to_local}/include"
-    export LDFLAGS="-L${path_to_local}/lib"
-
-    # C compiler and Linker rpath option for Python
     if [[ $(uname) == "Darwin" ]]; then
-        # macOS
-        ldflags_rpath="-Wl,-rpath,@loader_path/../"
+        # macOS C compiler and Linker options for python dependencies
+        export SDKROOT="${path_to_sysroot}"
+
+        export CPPFLAGS="--sysroot=${path_to_sysroot} \
+                         -I${path_to_local}/include \
+                         -I${path_to_sysroot}/usr/include"
+
+        export LDFLAGS="--sysroot=${path_to_sysroot} \
+                        -L${path_to_local}/lib \
+                        -L${path_to_sysroot}/usr/lib"
+
+        # Be paranoid and strip the system include/library hints
+        unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
+    elif [[ $(uname -s) == "Linux" ]]; then
+        # Linux C compiler and Linker options for python dependencies
+        export LD_LIBRARY_PATH="${path_to_local}/lib"
+
+        export CPPFLAGS="--sysroot=${path_to_sysroot} \
+                         -I${path_to_local}/include \
+                         -I${path_to_local}/include/tirpc \
+                         -I${path_to_sysroot}/usr/include"
+
+        export LDFLAGS="--sysroot=${path_to_sysroot} \
+                        -L${path_to_local}/lib \
+                        -L${path_to_sysroot}/usr/lib \
+                        -L${path_to_sysroot}/usr/lib64 \
+                        -Wl,-rpath,${path_to_local}/lib \
+                        -Wl,-rpath-link,${path_to_local}/lib"
+
+        # Be paranoid and strip the system include/library hints
+        unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
     else
-        # Linux
-        ldflags_rpath="-Wl,-rpath,\$ORIGIN/../local/lib"
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
     fi
 
     if [[ "${python_full_version}" == "3.13."* ]]; then
-        # Install Python Dependencies
         if [[ $(uname) == "Darwin" ]]; then
-            # macOS
             build_tcltk
             build_openssl
             build_readline
             build_gdbm
             build_xz
             build_sqlite3
-        else
-            # Linux
+        elif [[ $(uname -s) == "Linux" ]]; then
+            build_linux_base_dependencies
+            build_tcltk
+            build_openssl
             build_sqlite3
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
         fi
 
         prefix="--prefix=${path_to_python_home} \
@@ -626,24 +851,24 @@ function build_python_runtime() {
                :--with-openssl=${path_to_local} \
                :--with-openssl-rpath=no \
                :--enable-loadable-sqlite-extensions"
-
-        # C compiler and Linker options for Python
-        export CPPFLAGS="--sysroot=${path_to_sysroot} -I${path_to_local}/include"
-        export LDFLAGS="-L${path_to_local}/lib ${ldflags_rpath}"
 
     elif [[ "${python_full_version}" == "3.12."* ]]; then
-        # Install Python Dependencies
         if [[ $(uname) == "Darwin" ]]; then
-            # macOS
             build_tcltk
             build_openssl
             build_readline
             build_gdbm
             build_xz
             build_sqlite3
-        else
-            # Linux
+        elif [[ $(uname -s) == "Linux" ]]; then
+            build_linux_base_dependencies
+            build_tcltk
+            build_openssl
             build_sqlite3
+            build_libnsl
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
         fi
 
         prefix="--prefix=${path_to_python_home} \
@@ -653,15 +878,9 @@ function build_python_runtime() {
                :--with-openssl=${path_to_local} \
                :--with-openssl-rpath=no \
                :--enable-loadable-sqlite-extensions"
-
-        # C compiler and Linker options for Python
-        export CPPFLAGS="--sysroot=${path_to_sysroot} -I${path_to_local}/include"
-        export LDFLAGS="-L${path_to_local}/lib ${ldflags_rpath}"
 
     elif [[ "${python_full_version}" == "3.11."* ]]; then
-        # Install Python Dependencies
         if [[ $(uname) == "Darwin" ]]; then
-            # macOS
             build_tcltk
             build_openssl
             build_libffi
@@ -670,9 +889,15 @@ function build_python_runtime() {
             build_gdbm
             build_xz
             build_sqlite3
-        else
-            # Linux
+        elif [[ $(uname -s) == "Linux" ]]; then
+            build_linux_base_dependencies
+            build_tcltk
+            build_openssl
             build_sqlite3
+            build_libnsl
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
         fi
 
         prefix="--prefix=${path_to_python_home} \
@@ -682,15 +907,9 @@ function build_python_runtime() {
                :--with-openssl=${path_to_local} \
                :--with-openssl-rpath=no \
                :--enable-loadable-sqlite-extensions"
-
-        # C compiler and Linker options for Python
-        export CPPFLAGS="--sysroot=${path_to_sysroot} -I${path_to_local}/include"
-        export LDFLAGS="-L${path_to_local}/lib ${ldflags_rpath}"
 
     elif [[ "${python_full_version}" == "3.10."* ]]; then
-        # Install Python Dependencies
         if [[ $(uname) == "Darwin" ]]; then
-            # macOS
             build_tcltk
             build_openssl
             build_libffi
@@ -699,10 +918,15 @@ function build_python_runtime() {
             build_gdbm
             build_xz
             build_sqlite3
-            build_ossp_uuid
-        else
-            # Linux
+        elif [[ $(uname -s) == "Linux" ]]; then
+            build_linux_base_dependencies
+            build_tcltk
+            build_openssl
             build_sqlite3
+            build_libnsl
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
         fi
 
         prefix="--prefix=${path_to_python_home} \
@@ -712,15 +936,9 @@ function build_python_runtime() {
                :--with-openssl=${path_to_local} \
                :--with-openssl-rpath=no \
                :--enable-loadable-sqlite-extensions"
-
-        # C compiler and Linker options for Python
-        export CPPFLAGS="--sysroot=${path_to_sysroot} -I${path_to_local}/include -I${path_to_sysroot}/usr/include"
-        export LDFLAGS="-L${path_to_local}/lib -L${path_to_sysroot}/usr/lib ${ldflags_rpath}"
 
     elif [[ "${python_full_version}" == "3.9."* ]]; then
-        # Install Python Dependencies
         if [[ $(uname) == "Darwin" ]]; then
-            # macOS
             build_tcltk
             build_openssl
             build_libffi
@@ -729,10 +947,15 @@ function build_python_runtime() {
             build_gdbm
             build_xz
             build_sqlite3
-            build_ossp_uuid
-        else
-            # Linux
+        elif [[ $(uname -s) == "Linux" ]]; then
+            build_linux_base_dependencies
+            build_tcltk
+            build_openssl
             build_sqlite3
+            build_libnsl
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
         fi
 
         prefix="--prefix=${path_to_python_home} \
@@ -742,18 +965,60 @@ function build_python_runtime() {
                :--with-openssl=${path_to_local} \
                :--with-openssl-rpath=no \
                :--enable-loadable-sqlite-extensions"
-
-        # C compiler and Linker options for Python
-        export CPPFLAGS="--sysroot=${path_to_sysroot} -I${path_to_local}/include -I${path_to_sysroot}/usr/include"
-        export LDFLAGS="-L${path_to_local}/lib -L${path_to_sysroot}/usr/lib ${ldflags_rpath}"
 
     else
         echo_error "Unsupported Python version: ${python_full_version}"
     fi
 
-    # Options for third-party dependencies
-    export TCLTK_CFLAGS="-I${path_to_local}/include"
-    export TCLTK_LIBS="-L${path_to_local}/lib -ltclstub${tcltk_version} -ltkstub${tcltk_version} ${tcltk_libs_flags}"
+    if [[ $(uname) == "Darwin" ]]; then
+        # macOS C compiler and Linker options for Python
+        export SDKROOT="${path_to_sysroot}"
+
+        export CPPFLAGS="--sysroot=${path_to_sysroot} \
+                         -I${path_to_local}/include \
+                         -I${path_to_sysroot}/usr/include"
+
+        export LDFLAGS="--sysroot=${path_to_sysroot} \
+                        -L${path_to_local}/lib \
+                        -L${path_to_sysroot}/usr/lib \
+                        -Wl,-rpath,@loader_path/../"
+
+        # Be paranoid and strip the system include/library hints
+        unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
+
+        # Options for Python third-party dependencies
+        export TCLTK_CFLAGS="-I${path_to_local}/include"
+        export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
+        export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
+        export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
+    elif [[ $(uname -s) == "Linux" ]]; then
+        # Linux C compiler and Linker options for Python
+        export LD_LIBRARY_PATH="${path_to_local}/lib"
+
+        export CPPFLAGS="--sysroot=${path_to_sysroot} \
+                         -I${path_to_local}/include \
+                         -I${path_to_local}/include/tirpc \
+                         -I${path_to_sysroot}/usr/include"
+
+        export LDFLAGS="--sysroot=${path_to_sysroot} \
+                        -L${path_to_local}/lib \
+                        -L${path_to_sysroot}/usr/lib \
+                        -L${path_to_sysroot}/usr/lib64 \
+                        -Wl,-rpath,${path_to_local}/lib \
+                        -Wl,-rpath,${path_to_python_home}/lib"
+
+        # Be paranoid and strip the system include/library hints
+        unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
+
+        # Options for Python third-party dependencies
+        export TCLTK_CFLAGS="-I${path_to_local}/include"
+        export TCLTK_LIBS="-L${path_to_local}/lib -ltcl${tcltk_version} -ltclstub${tcltk_version} -ltk${tcltk_version} -ltkstub${tcltk_version}"
+        export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
+        export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
+    fi
 
     build_generic \
         "CPython${python_full_version}" \
@@ -800,10 +1065,20 @@ function clean_build() {
         exit_code=1
     }
 
+    rm -rf "${path_to_local}/include/"* || {
+        echo_error "Failed to remove '${path_to_local}/include'."
+        exit_code=1
+    }
+    rm -rf "${path_to_local}/include/".* || {
+        echo_error "Failed to remove '${path_to_local}/include'."
+        exit_code=1
+    }
+
     local dirs_to_clean=(
         ".mypy_cache"
         ".pytest_cache"
         "__pycache__"
+        "pkgconfig"
     )
     for dir in "${dirs_to_clean[@]}"; do
         find "${path_to_python_home}" -type d -name "${dir}" -print -exec rm -rf {} + || {
@@ -816,6 +1091,7 @@ function clean_build() {
         ".DS_Store"
         "Thumbs.db"
         "*.pyc"
+        "*.pc"
     )
     for file in "${files_to_clean[@]}"; do
         find "${path_to_python_home}" -type f -name "${file}" -print -exec rm -rf {} + || {
@@ -907,33 +1183,25 @@ function fix_runtime_paths_linux() {
         exit_code=1
     fi
 
-    local new_path='$ORIGIN/../local/lib'
+    local new_path='$ORIGIN:$ORIGIN/..:$ORIGIN/../..:$ORIGIN/../../..:$ORIGIN/../../../..:$ORIGIN/../../../../..:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib:$ORIGIN/../local/lib:$ORIGIN/../../local/lib:$ORIGIN/../../../local/lib:$ORIGIN/../../../../local/lib:$ORIGIN/../../../../../local/lib'
 
-    # Make all .so files look for libraries in $ORIGIN/../local/lib
+    # Make all .so files look for libraries in new_path
     find "${path_to_python_home}" \
         \( -path "${path_to_python_home}/sysroot" -prune \) -o \
         \( \( -type f -o -type l \) \
-        \( -perm -111 -o -name '*.so' \) \
         -print0 \
         \) \
-        | while IFS= read -r -d '' so; do
-            if file "${so}" | grep -q 'ELF'; then
-                patchelf --set-rpath "${new_path}" "${so}"
+        | while IFS= read -r -d '' fh; do
+            if file "${fh}" | grep -q ' ELF'; then
+                if file "${fh}" | grep -q 'relocatable'; then
+                    continue
+                fi
+                patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
+                    echo_error "Failed to patch '${fh}'."
+                    exit_code=1
+                }
             fi
         done
-
-    # Add RPATH to all ELF executables in bin/ if missing
-    for exe in "${path_to_python_home}/bin/"*; do
-        # only operate on ELF executables, not scripts
-        if file "${exe}" | grep -q 'ELF'; then
-            # check if ${new_path} is already in its RPATH
-            if ! patchelf --print-rpath "${exe}" | grep -qF "${new_path}"; then
-                local current
-                current=$(patchelf --print-rpath "${exe}")
-                patchelf --set-rpath "${current:+${current}:}${new_path}" "${exe}"
-            fi
-        fi
-    done
 }
 
 function fix_runtime_paths() {
@@ -942,13 +1210,9 @@ function fix_runtime_paths() {
     local extension lib fw
 
     if [[ $(uname -s) == "Darwin" ]]; then
-        # macOS
         fix_runtime_paths_macos
-
     elif [[ $(uname -s) == "Linux" ]]; then
-        # Linux
         fix_runtime_paths_linux
-
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
@@ -958,10 +1222,13 @@ function fix_runtime_paths() {
     echo
 }
 
-function check_loadable_refs() {
-    echo_time
-    echo -e "${bold_green}${sparkles} Checking loadable Mach-O / ELF object${end}"
+function echo_lib_ref() {
+    local file="${1}"
+    local lib="${2}"
+    echo -e "'${file}' links to lib '${lib}'"
+}
 
+function check_loadable_refs_macos() {
     local file lib
     local forbidden_paths=("/Library/Developer/CommandLineTools")
 
@@ -974,16 +1241,11 @@ function check_loadable_refs() {
         -print0 \
         | while IFS= read -r -d '' file; do
             # Skip the header line from otool -L, grab only the referenced install names
-            if [[ $(uname -s) == "Darwin" ]]; then
-                # macOS
-                otool -L "${file}" | tail -n +2 | awk '{print $1}'
-            else
-                # Linux
-                ldd -v "${file}" | awk '/=>/ {print $3}'
-            fi \
+            otool -L "${file}" | tail -n +2 | awk '{print $1}' \
                 | while read -r lib; do
                     case "${lib}" in
                     @*)
+                        # TODO: delete this echo
                         echo -e "${lib}"
                         # relative reference – OK
                         ;;
@@ -991,14 +1253,17 @@ function check_loadable_refs() {
                         # system lib – OK
                         ;;
                     "${path_to_sysroot}"/*)
-                        echo -e "'${file}' links to '${lib}'"
+                        # this is one of our local dir lib pointing at the sysroot - NOT OK
+                        echo -e "Match case macOS_01"
+                        echo_lib_ref "${file}" "${lib}"
                         exit_code=1
                         ;;
                     *)
-                        # any extra “forbidden” prefixes passed on the command line
+                        # any extra “forbidden” prefixes
                         for p in "${forbidden_paths[@]}"; do
                             if [[ "${lib}" == "${p}"* ]]; then
-                                echo -e "'${file}' links to '${lib}'"
+                                echo -e "Match case macOS_02"
+                                echo_lib_ref "${file}" "${lib}"
                                 exit_code=1
                             fi
                         done
@@ -1007,12 +1272,115 @@ function check_loadable_refs() {
                             continue
                         fi
                         # Not sure what this is so let's log it
-                        echo -e "'${file}' links to '${lib}'"
+                        echo -e "Match case macOS_03"
+                        echo_lib_ref "${file}" "${lib}"
                         exit_code=1
                         ;;
                     esac
                 done
         done
+}
+
+function check_loadable_refs_linux() {
+    local file lib rpath
+    local forbidden_paths=()
+
+    find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
+        | while IFS= read -r -d '' file; do
+            if file "${file}" | grep -q ' ELF'; then
+                if file "${file}" | grep -q '32-bit'; then
+                    echo -e "skipping-a-32-bit"
+                elif file "${file}" | grep -q 'relocatable'; then
+                    echo -e "skipping-a-relocatable"
+                elif file "${file}" | grep -q '(embedded)'; then
+                    echo -e "skipping-a-(embedded)"
+                else
+                    ldd -v "${file}" | awk '/=>/ {print $3}'
+                fi
+            fi \
+                | while read -r lib; do
+                    case "${lib}" in
+                    /lib/libc* | /lib/libm* | /lib/libc* | /lib/ld-linux* | /lib/libpthread* | /lib/libdl* | /lib/libm* | /lib/libresolv* | /lib/libkeyutils* | /lib/libkrb5* | /lib/libgssapi_krb5* | /lib/libk5crypto* | /lib/libkrb5support* | /lib/libcom_err* | /lib/libselinux* | /lib/libpcre2* | /lib/libstdc++* | /lib/libgcc_s*)
+                        # Core lib “system” libraries we can assume exist on the host machine
+                        ;;
+                    /lib64/libc* | /lib64/libm* | /lib64/libc* | /lib64/ld-linux* | /lib64/libpthread* | /lib64/libdl* | /lib64/libm* | /lib64/libresolv* | /lib64/libkeyutils* | /lib64/libkrb5* | /lib64/libgssapi_krb5* | /lib64/libk5crypto* | /lib64/libkrb5support* | /lib64/libcom_err* | /lib64/libselinux* | /lib64/libpcre2* | /lib64/libstdc++* | /lib64/libgcc_s*)
+                        # Core lib64 “system” libraries we can assume exist on the host machine
+                        ;;
+                    "${path_to_python_home}"/lib* | "${path_to_python_home}"/local/lib* | "${path_to_python_home}"/local/bin*)
+                        rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
+                        if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
+                            # this are definitely our relative reference – OK
+                            :
+                        else
+                            # file doesn't have an RPATH or
+                            # file has an hard coded absolute rpath - NOT OK
+                            # however if the file is in the sysroot we will ignore it
+                            if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                                # if the file is in the sysroot itself ignore it as will get deleted
+                                :
+                            else
+                                # absolute rpath pointing at our path_to_python_home/...
+                                echo -e "Match case Linux_01"
+                                echo_lib_ref "${file}" "${lib}"
+                                exit_code=1
+                            fi
+                        fi
+                        ;;
+                    "${path_to_sysroot}"/*)
+                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                            # if the file is in the sysroot itself ignore it as will get deleted
+                            :
+                        else
+                            # this is one of our local dir lib pointing at the sysroot - NOT OK
+                            echo -e "Match case Linux_02"
+                            echo_lib_ref "${file}" "${lib}"
+                            exit_code=1
+                        fi
+                        ;;
+                    *)
+                        # any extra “forbidden” prefixes
+                        for p in "${forbidden_paths[@]}"; do
+                            if [[ "${lib}" == "${p}"* ]]; then
+                                echo -e "Match case Linux_03"
+                                echo_lib_ref "${file}" "${lib}"
+                                exit_code=1
+                            fi
+                        done
+                        if [[ "${lib}" == '=>' ]]; then
+                            # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare “=>”
+                            # when there’s no third field, so skip it
+                            continue
+                        fi
+                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                            # if the file is in the sysroot ignore it as will get deleted
+                            continue
+                        fi
+                        if [[ "${file}" == *".a" ]]; then
+                            # static library – OK
+                            continue
+                        fi
+                        # Not sure what this is so let's log it
+                        echo -e "Match case Linux_04"
+                        echo_lib_ref "${file}" "${lib}"
+                        exit_code=1
+                        ;;
+                    esac
+                done
+        done
+}
+
+function check_loadable_refs() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Checking loadable Mach-O / ELF object${end}"
+
+    if [[ $(uname -s) == "Darwin" ]]; then
+        check_loadable_refs_macos
+    elif [[ $(uname -s) == "Linux" ]]; then
+        check_loadable_refs_linux
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
+    fi
 
     echo -e "done!"
     echo
@@ -1069,7 +1437,6 @@ function fix_python_runtime_bin_dir() {
     }
 
     if [[ $(uname -s) == "Darwin" ]]; then
-        # macOS
         sed -i '' "1s|.*|#!/usr/bin/env python${python_version}|" \
             "${pybin_dir}/pip" \
             "${pybin_dir}/pip3" \
@@ -1077,8 +1444,7 @@ function fix_python_runtime_bin_dir() {
             echo_error "Failed to update shebang line."
             exit_code=1
         }
-    else
-        # Linux
+    elif [[ $(uname -s) == "Linux" ]]; then
         sed -i "1s|.*|#!/usr/bin/env python${python_version}|" \
             "${pybin_dir}/pip" \
             "${pybin_dir}/pip3" \
@@ -1086,6 +1452,9 @@ function fix_python_runtime_bin_dir() {
             echo_error "Failed to update shebang line."
             exit_code=1
         }
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
     fi
 
     echo -e "done!"
@@ -1141,10 +1510,17 @@ PYTEST
 function set_ownership() {
     echo_time
     echo -e "${bold_green}${sparkles} Setting ownership for '${python_builds}'${end}"
-    sudo chown -R "${SUDO_USER}":"staff" "${python_builds}" || {
+
+    local u g
+
+    u="${SUDO_USER}"
+    g="$(groups "${u}" | awk '{print $1}')"
+
+    sudo chown -R "${u}":"${g}" "${python_builds}" || {
         echo_error "Failed to set ownership for '${python_builds}'."
         exit_code=1
     }
+
     echo -e "done!"
     echo
 }
@@ -1197,83 +1573,83 @@ function echo_final_response() {
 function read_build_versions() {
     declare -g -r verv=(
         # PYTHON 3.13
-        #        "3.13.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #        "3.13.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #        "3.13.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #        "3.13.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #        "3.13.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
+        "3.13.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.13.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.13.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.13.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.13.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.12
-        "3.12.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.12.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
+        "3.12.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.12.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.12.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.11
-        "3.11.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.11.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
+        "3.11.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.11.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.11.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.11.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.11.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.10
-        "3.10.18:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.17:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.16:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.15:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.14:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        "3.10.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
+        "3.10.18:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.17:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.16:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.15:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.14:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.10.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.9
-        #"3.9.23:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.22:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.21:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.20:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.19:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.18:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.17:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.16:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.15:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.14:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        #"3.9.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
-        # "3.9.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:1.6.2"
+        "3.9.23:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.22:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.21:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.20:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.19:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.18:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.17:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.16:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.15:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.14:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.9.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
     )
 }
 
@@ -1294,16 +1670,23 @@ function main() {
         prepare_local
 
         build_python_runtime
-        if [[ ! "${python_full_version}" == "3.10."* && ! "${python_full_version}" == "3.9."* ]]; then
+        if [[ $(uname -s) == "Darwin" ]]; then
+            if [[ ! "${python_full_version}" == "3.10."* && ! "${python_full_version}" == "3.9."* ]]; then
+                check_python_build_logs
+            fi
+        elif [[ $(uname -s) == "Linux" ]]; then
             check_python_build_logs
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
         fi
 
         set_ownership
         fix_runtime_paths
         check_loadable_refs
-        check_broken_links
         clean_build
 
+        check_broken_links
         fix_python_runtime_bin_dir
         check_python_runtime
         make_tar
