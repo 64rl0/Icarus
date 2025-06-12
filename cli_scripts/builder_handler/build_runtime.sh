@@ -32,6 +32,10 @@ function validate_prerequisites() {
     if [[ -z "${SUDO_USER}" ]]; then
         echo_error "This script must be run with sudo not as root." "errexit"
     fi
+
+    if [[ -z "${GH_TOKEN}" ]]; then
+        echo_error "GH_TOKEN environment variable is not set." "errexit"
+    fi
 }
 
 function set_constants() {
@@ -1242,10 +1246,14 @@ function fix_runtime_paths_linux() {
         \) \
         | while IFS= read -r -d '' fh; do
             if file "${fh}" | grep -q ' ELF'; then
+                if file "${fh}" | grep -q 'relocatable'; then
+                    echo -e "skipping file-is-relocatable '${fh}'"
+                    continue
+                fi
                 dynamic_section=$(readelf -d "${fh}")
                 if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                   echo -e "there-is-no-dynamic-section-in-this-file '${fh}'"
-                   continue
+                    echo -e "skipping there-is-no-dynamic-section-in-this-file '${fh}'"
+                    continue
                 else
                     patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
                         echo_error "Failed to patch '${fh}'."
@@ -1300,8 +1308,6 @@ function check_loadable_refs_macos() {
                 | while read -r lib; do
                     case "${lib}" in
                     @*)
-                        # TODO: delete this echo
-                        echo -e "${lib}"
                         # relative reference – OK
                         ;;
                     /System/* | /usr/lib/*)
@@ -1337,34 +1343,57 @@ function check_loadable_refs_macos() {
 }
 
 function check_loadable_refs_linux() {
-    local file lib rpath ldd_failed
+    local file lib rpath ldd_failed response
     local forbidden_paths=()
 
     find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
         | while IFS= read -r -d '' file; do
             if file "${file}" | grep -q ' ELF'; then
-                dynamic_section=$(readelf -d "${file}")
+                response=""
+                dynamic_section=$(readelf -d "${file}" || :)
                 if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                   echo -e "there-is-no-dynamic-section-in-this-file"
+                   response="there-is-no-dynamic-section-in-this-file"
                 else
+                    ldd_failed=0
                     ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
-                    if [[ "${ldd_failed}" -ne 1 ]]; then
-                        ldd -v "${file}" | awk '/=>/ {print $3}'
+                    if [[ "${ldd_failed}" -eq 0 ]]; then
+                        response=$(ldd -v "${file}" | awk '/=>/ {print $3}')
                     else
-                        echo "failed-to-run-ldd-on-file."
+                        response="failed-to-run-ldd-on-file."
                         exit_code=1
                     fi
                 fi
-            fi \
+            else
+                # Short-circuit non-ELF files right away
+                continue
+            fi
+            # everything echo inside the if/else gets lost unless it’s the last thing before the
+            # back-slashed pipe so we use the response variable for this purpose
+            echo -e "${response}" \
                 | while read -r lib; do
                     case "${lib}" in
-                    /lib/libc* | /lib/libm* | /lib/libc* | /lib/ld-linux* | /lib/libpthread* | /lib/libdl* | /lib/libm* | /lib/libresolv* | /lib/libkeyutils* | /lib/libkrb5* | /lib/libgssapi_krb5* | /lib/libk5crypto* | /lib/libkrb5support* | /lib/libcom_err* | /lib/libselinux* | /lib/libstdc++* | /lib/libgcc_s* | /lib/librt* | /lib/libutil* )
-                        # Core lib “system” libraries we can assume exist on the host machine
+                    /lib/ld-linux* | /lib64/ld-linux* |\
+                    /lib/libc* | /lib64/libc* |\
+                    /lib/libcom_err* | /lib64/libcom_err* |\
+                    /lib/libdl* | /lib64/libdl* |\
+                    /lib/libgcc_s* | /lib64/libgcc_s* |\
+                    /lib/libgssapi_krb5* | /lib64/libgssapi_krb5* |\
+                    /lib/libk5crypto* | /lib64/libk5crypto* |\
+                    /lib/libkeyutils* | /lib64/libkeyutils* |\
+                    /lib/libkrb5* | /lib64/libkrb5* |\
+                    /lib/libkrb5support* | /lib64/libkrb5support* |\
+                    /lib/libm* | /lib64/libm* |\
+                    /lib/libpthread* | /lib64/libpthread* |\
+                    /lib/libresolv* | /lib64/libresolv* |\
+                    /lib/librt* | /lib64/librt* |\
+                    /lib/libselinux* | /lib64/libselinux* |\
+                    /lib/libstdc++* | /lib64/libstdc++* |\
+                    /lib/libutil* | /lib64/libutil* )
+                        # Core “system” libraries we can assume exist on the host machine
                         ;;
-                    /lib64/libc* | /lib64/libm* | /lib64/libc* | /lib64/ld-linux* | /lib64/libpthread* | /lib64/libdl* | /lib64/libm* | /lib64/libresolv* | /lib64/libkeyutils* | /lib64/libkrb5* | /lib64/libgssapi_krb5* | /lib64/libk5crypto* | /lib64/libkrb5support* | /lib64/libcom_err* | /lib64/libselinux* | /lib64/libstdc++* | /lib64/libgcc_s* | /lib64/librt* | /lib64/libutil* )
-                        # Core lib64 “system” libraries we can assume exist on the host machine
-                        ;;
-                    "${path_to_python_home}"/lib* | "${path_to_python_home}"/local/lib* | "${path_to_python_home}"/local/bin*)
+                    "${path_to_python_home}"/lib* | \
+                    "${path_to_python_home}"/local/bin* | \
+                    "${path_to_python_home}"/local/lib* )
                         rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
                         if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
                             # this are definitely our relative reference – OK
@@ -1404,6 +1433,10 @@ function check_loadable_refs_linux() {
                                 exit_code=1
                             fi
                         done
+                        if [[ -z "${lib}" ]]; then
+                            # response has not been set here above so it's ''
+                            continue
+                        fi
                         if [[ "${lib}" == '=>' ]]; then
                             # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare “=>”
                             # when there’s no third field, so skip it
