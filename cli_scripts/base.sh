@@ -101,6 +101,23 @@ function echo_error() {
     fi
 }
 
+function echo_warning() {
+    local message="${1}"
+    local errexit="${2}"
+
+    echo
+    echo -e "${bold_black}${bg_yellow} WARNING! ${end}"
+    echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+    echo -e " ${message}"
+    echo
+
+    if [[ "${errexit}" == "errexit" ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 function echo_time() {
     local message="${1}"
 

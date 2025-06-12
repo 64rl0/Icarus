@@ -768,15 +768,19 @@ function build_linux_base_dependencies() {
     }
     for lib in "${libs[@]}"; do
         rsync -aHAXE "${path_to_linux_dependencies_root}/usr/lib64/${lib}"* "${path_to_local}/lib/" || {
-            echo_error "Failed to copy '${path_to_linux_dependencies_root}/usr/lib64/${lib}'."
-            exit_code=1
+            echo_warning "Failed to copy '${path_to_linux_dependencies_root}/usr/lib64/${lib}'."
         }
     done
 
     # This only seems to be needed on AL2
     if [[ "${platform_identifier}" == *'amzn2-'* ]]; then
         # Fix some broken links that could cause lib not found later on
+        #TODO: fix this hard coded version
         ln -s -f "libreadline.so.6" "${path_to_local}/lib/libreadline.so" || {
+            echo_error "Failed to fix broken links."
+            exit_code=1
+        }
+        ln -s -f "libnsl.so.1" "${path_to_local}/lib/libnsl.so" || {
             echo_error "Failed to fix broken links."
             exit_code=1
         }
@@ -844,11 +848,17 @@ function build_python_runtime() {
             build_xz
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            build_linux_base_dependencies
-            build_tcltk
-            build_openssl
-            build_sqlite3
-            build_libnsl
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
         else
             echo_error "Unsupported platform: $(uname -s)"
             exit_code=1
@@ -1310,10 +1320,10 @@ function check_loadable_refs_linux() {
             fi \
                 | while read -r lib; do
                     case "${lib}" in
-                    /lib/libc* | /lib/libm* | /lib/libc* | /lib/ld-linux* | /lib/libpthread* | /lib/libdl* | /lib/libm* | /lib/libresolv* | /lib/libkeyutils* | /lib/libkrb5* | /lib/libgssapi_krb5* | /lib/libk5crypto* | /lib/libkrb5support* | /lib/libcom_err* | /lib/libselinux* | /lib/libpcre2* | /lib/libstdc++* | /lib/libgcc_s*)
+                    /lib/libc* | /lib/libm* | /lib/libc* | /lib/ld-linux* | /lib/libpthread* | /lib/libdl* | /lib/libm* | /lib/libresolv* | /lib/libkeyutils* | /lib/libkrb5* | /lib/libgssapi_krb5* | /lib/libk5crypto* | /lib/libkrb5support* | /lib/libcom_err* | /lib/libselinux* | /lib/libstdc++* | /lib/libgcc_s* | /lib/librt* | /lib/libutil* )
                         # Core lib “system” libraries we can assume exist on the host machine
                         ;;
-                    /lib64/libc* | /lib64/libm* | /lib64/libc* | /lib64/ld-linux* | /lib64/libpthread* | /lib64/libdl* | /lib64/libm* | /lib64/libresolv* | /lib64/libkeyutils* | /lib64/libkrb5* | /lib64/libgssapi_krb5* | /lib64/libk5crypto* | /lib64/libkrb5support* | /lib64/libcom_err* | /lib64/libselinux* | /lib64/libpcre2* | /lib64/libstdc++* | /lib64/libgcc_s*)
+                    /lib64/libc* | /lib64/libm* | /lib64/libc* | /lib64/ld-linux* | /lib64/libpthread* | /lib64/libdl* | /lib64/libm* | /lib64/libresolv* | /lib64/libkeyutils* | /lib64/libkrb5* | /lib64/libgssapi_krb5* | /lib64/libk5crypto* | /lib64/libkrb5support* | /lib64/libcom_err* | /lib64/libselinux* | /lib64/libstdc++* | /lib64/libgcc_s* | /lib64/librt* | /lib64/libutil* )
                         # Core lib64 “system” libraries we can assume exist on the host machine
                         ;;
                     "${path_to_python_home}"/lib* | "${path_to_python_home}"/local/lib* | "${path_to_python_home}"/local/bin*)
