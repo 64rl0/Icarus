@@ -1242,13 +1242,16 @@ function fix_runtime_paths_linux() {
         \) \
         | while IFS= read -r -d '' fh; do
             if file "${fh}" | grep -q ' ELF'; then
-                if file "${fh}" | grep -q 'relocatable'; then
-                    continue
+                dynamic_section=$(readelf -d "${fh}")
+                if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
+                   echo -e "there-is-no-dynamic-section-in-this-file '${fh}'"
+                   continue
+                else
+                    patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
+                        echo_error "Failed to patch '${fh}'."
+                        exit_code=1
+                    }
                 fi
-                patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
-                    echo_error "Failed to patch '${fh}'."
-                    exit_code=1
-                }
             fi
         done
 }
