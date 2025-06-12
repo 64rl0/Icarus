@@ -1247,6 +1247,7 @@ function fix_runtime_paths_linux() {
                    echo -e "there-is-no-dynamic-section-in-this-file '${fh}'"
                    continue
                 else
+                    echo "${fh}"
                     patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
                         echo_error "Failed to patch '${fh}'."
                         exit_code=1
