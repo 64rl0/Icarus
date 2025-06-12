@@ -703,6 +703,7 @@ function build_linux_base_dependencies() {
         gobject-introspection-devel \
         pixman-devel \
         pcre-devel \
+        pcre2-devel \
         libicu-devel \
         harfbuzz-devel \
         libXext-devel \
