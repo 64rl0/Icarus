@@ -733,6 +733,7 @@ function build_linux_base_dependencies() {
         "libbrotli"
         "libbz2"
         "libcurse"
+        "libexpat"
         "libffi"
         "libfontconfig"
         "libform"
@@ -745,6 +746,7 @@ function build_linux_base_dependencies() {
         "libicu"
         "liblzma"
         "libncurse"
+        "libnsl"
         "libpanel"
         "libpcre"
         "libpixman"
@@ -771,11 +773,14 @@ function build_linux_base_dependencies() {
         }
     done
 
-    # Fix some broken links that could cause lib not found later on
-    ln -s -f "libreadline.so."*.* "${path_to_local}/lib/libreadline.so" || {
-        echo_error "Failed to fix broken links."
-        exit_code=1
-    }
+    # This only seems to be needed on AL2
+    if [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+        # Fix some broken links that could cause lib not found later on
+        ln -s -f "libreadline.so.6" "${path_to_local}/lib/libreadline.so" || {
+            echo_error "Failed to fix broken links."
+            exit_code=1
+        }
+    fi
 
     # Clean tmp dir
     rm -rf "${path_to_linux_dependencies_root}" || {
@@ -843,6 +848,7 @@ function build_python_runtime() {
             build_tcltk
             build_openssl
             build_sqlite3
+            build_libnsl
         else
             echo_error "Unsupported platform: $(uname -s)"
             exit_code=1
