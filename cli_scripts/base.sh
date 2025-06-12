@@ -74,8 +74,10 @@ declare -r network_world="\xF0\x9F\x8C\x90"
 . "${HOME}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
 if [[ -n "${SUDO_USER}" ]]; then
     if [[ $(uname -s) == "Darwin" ]]; then
-        . "Users/${SUDO_USER}/.bash/config/bash.conf" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
+        . "/Users/${SUDO_USER}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+        . "/Users/${SUDO_USER}/.bash/config/bash.conf" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
     elif [[ $(uname -s) == "Linux" ]]; then
+        . "/home/${SUDO_USER}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
         . "/home/${SUDO_USER}/.bash/config/bash.conf" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
     fi
 fi

@@ -881,11 +881,18 @@ function build_python_runtime() {
             build_xz
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            build_linux_base_dependencies
-            build_tcltk
-            build_openssl
-            build_sqlite3
-            build_libnsl
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
         else
             echo_error "Unsupported platform: $(uname -s)"
             exit_code=1
@@ -910,11 +917,18 @@ function build_python_runtime() {
             build_xz
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            build_linux_base_dependencies
-            build_tcltk
-            build_openssl
-            build_sqlite3
-            build_libnsl
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
         else
             echo_error "Unsupported platform: $(uname -s)"
             exit_code=1
@@ -939,11 +953,18 @@ function build_python_runtime() {
             build_xz
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            build_linux_base_dependencies
-            build_tcltk
-            build_openssl
-            build_sqlite3
-            build_libnsl
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
         else
             echo_error "Unsupported platform: $(uname -s)"
             exit_code=1
@@ -968,11 +989,18 @@ function build_python_runtime() {
             build_xz
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            build_linux_base_dependencies
-            build_tcltk
-            build_openssl
-            build_sqlite3
-            build_libnsl
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
         else
             echo_error "Unsupported platform: $(uname -s)"
             exit_code=1
