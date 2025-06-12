@@ -1247,7 +1247,6 @@ function fix_runtime_paths_linux() {
                    echo -e "there-is-no-dynamic-section-in-this-file '${fh}'"
                    continue
                 else
-                    echo "${fh}"
                     patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
                         echo_error "Failed to patch '${fh}'."
                         exit_code=1
@@ -1265,7 +1264,7 @@ function fix_runtime_paths() {
     if [[ $(uname -s) == "Darwin" ]]; then
         fix_runtime_paths_macos
     elif [[ $(uname -s) == "Linux" ]]; then
-        fix_runtime_paths_linux
+        fix_runtime_paths_linux || fix_runtime_paths_linux
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
