@@ -669,6 +669,19 @@ function build_libnsl() {
         :LIBS=-ltirpc"
 }
 
+function build_uuid_macos() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Installing 'Uuid'${end}"
+
+    rsync -a "${path_to_sysroot}/usr/include/uuid" "${path_to_local}/include/" || {
+        echo_error "Failed to copy '${path_to_sysroot}/usr/include/uuid'."
+        exit_code=1
+    }
+
+    echo -e "done!"
+    echo
+}
+
 function build_linux_base_dependencies() {
     echo_time
     echo -e "${bold_green}${sparkles} Installing Linux dependencies${end}"
@@ -851,6 +864,7 @@ function build_python_runtime() {
             build_readline
             build_gdbm
             build_xz
+            build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
@@ -884,6 +898,7 @@ function build_python_runtime() {
             build_readline
             build_gdbm
             build_xz
+            build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
@@ -920,6 +935,7 @@ function build_python_runtime() {
             build_readline
             build_gdbm
             build_xz
+            build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
@@ -956,6 +972,7 @@ function build_python_runtime() {
             build_readline
             build_gdbm
             build_xz
+            build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
@@ -992,6 +1009,7 @@ function build_python_runtime() {
             build_readline
             build_gdbm
             build_xz
+            build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
@@ -1043,7 +1061,7 @@ function build_python_runtime() {
         export TCLTK_CFLAGS="-I${path_to_local}/include"
         export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
         export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
-        export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
+        export LIBUUID_LIBS=""
     elif [[ $(uname -s) == "Linux" ]]; then
         # Linux C compiler and Linker options for Python
         export LD_LIBRARY_PATH="${path_to_local}/lib"
@@ -1247,12 +1265,14 @@ function fix_runtime_paths_linux() {
         | while IFS= read -r -d '' fh; do
             if file "${fh}" | grep -q ' ELF'; then
                 if file "${fh}" | grep -q 'relocatable'; then
-                    echo -e "skipping file-is-relocatable '${fh}'"
+                    # Disabling debugging log
+                    # echo -e "skipping file-is-relocatable '${fh}'"
                     continue
                 fi
                 dynamic_section=$(readelf -d "${fh}")
                 if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                    echo -e "skipping there-is-no-dynamic-section-in-this-file '${fh}'"
+                    # Disabling debugging log
+                    # echo -e "skipping there-is-no-dynamic-section-in-this-file '${fh}'"
                     continue
                 else
                     patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
@@ -1274,7 +1294,10 @@ function fix_runtime_paths() {
     elif [[ $(uname -s) == "Linux" ]]; then
         fix_runtime_paths_linux || {
             echo_warning "Segmentation fault (core dumped). retrying..."
-            fix_runtime_paths_linux
+            fix_runtime_paths_linux || {
+                echo_error "Failed to fix runtime paths."
+                exit_code=1
+            }
         }
     else
         echo_error "Unsupported platform: $(uname -s)"
@@ -1310,7 +1333,8 @@ function check_loadable_refs_macos() {
                     @*)
                         # relative reference – OK
                         ;;
-                    /System/* | /usr/lib/*)
+                    /System/* | \
+                        /usr/lib/*)
                         # system lib – OK
                         ;;
                     "${path_to_sysroot}"/*)
@@ -1343,14 +1367,14 @@ function check_loadable_refs_macos() {
 }
 
 function check_loadable_refs_linux() {
-    local file lib rpath ldd_failed response
+    local file lib rpath dynamic_section ldd_failed response
     local forbidden_paths=()
 
     find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
         | while IFS= read -r -d '' file; do
             if file "${file}" | grep -q ' ELF'; then
                 response=""
-                dynamic_section=$(readelf -d "${file}" || :)
+                dynamic_section=$(readelf -d "${file}")
                 if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
                     response="there-is-no-dynamic-section-in-this-file"
                 else
@@ -1671,7 +1695,6 @@ function read_build_versions() {
         # "3.13.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.12
-        # "3.12.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.12.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.12.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.12.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
