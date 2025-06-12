@@ -1264,7 +1264,10 @@ function fix_runtime_paths() {
     if [[ $(uname -s) == "Darwin" ]]; then
         fix_runtime_paths_macos
     elif [[ $(uname -s) == "Linux" ]]; then
-        fix_runtime_paths_linux || fix_runtime_paths_linux
+        fix_runtime_paths_linux || {
+            echo_warning "Segmentation fault (core dumped). retrying..."
+            fix_runtime_paths_linux
+        }
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
