@@ -691,31 +691,27 @@ function build_linux_base_dependencies() {
         --setopt=tsflags=nodocs \
         -y install \
         zlib-devel \
+        libzstd-devel \
         bzip2-devel \
         xz-devel \
-        readline \
         readline-devel \
-        ncurses \
         ncurses-devel \
-        gdbm \
         gdbm-devel \
-        libffi \
         libffi-devel \
         libtirpc-devel \
-        libuuid \
         libuuid-devel \
+        gobject-introspection-devel \
+        pixman-devel \
+        libicu-devel \
+        harfbuzz-devel \
         libXext-devel \
         libXrender-devel \
         libXrandr-devel \
         libXi-devel \
         libXft-devel \
-        libX11 \
         libX11-devel \
-        libxcb \
         libxcb-devel \
-        libXau \
         libXau-devel \
-        libXdmcp \
         libXdmcp-devel >"${path_to_log_root}/build_linux_base_dependencies.log" 2>&1 || {
         echo_error "Failed to installroot."
         exit_code=1
@@ -836,6 +832,7 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
+            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -862,6 +859,7 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
+            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -891,6 +889,7 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
+            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -920,6 +919,7 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
+            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -949,6 +949,7 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
+            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -991,6 +992,8 @@ function build_python_runtime() {
         export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
         export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
         export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
+        export LIBREADLINE_CFLAGS="-I${path_to_local}/include/readline"
+        export LIBREADLINE_LIBS="-L${path_to_local}/lib -lreadline"
     elif [[ $(uname -s) == "Linux" ]]; then
         # Linux C compiler and Linker options for Python
         export LD_LIBRARY_PATH="${path_to_local}/lib"
@@ -1015,6 +1018,8 @@ function build_python_runtime() {
         export TCLTK_LIBS="-L${path_to_local}/lib -ltcl${tcltk_version} -ltclstub${tcltk_version} -ltk${tcltk_version} -ltkstub${tcltk_version}"
         export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
         export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
+        export LIBREADLINE_CFLAGS="-I${path_to_local}/include/readline"
+        export LIBREADLINE_LIBS="-L${path_to_local}/lib -lreadline"
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
@@ -1295,7 +1300,10 @@ function check_loadable_refs_linux() {
                 elif file "${file}" | grep -q '(embedded)'; then
                     echo -e "skipping-a-(embedded)"
                 else
-                    ldd -v "${file}" | awk '/=>/ {print $3}'
+                    ldd -v "${file}" | awk '/=>/ {print $3}' || {
+                        echo "Failed to run ldd on '${file}'."
+                        exit_code=1
+                    }
                 fi
             fi \
                 | while read -r lib; do
