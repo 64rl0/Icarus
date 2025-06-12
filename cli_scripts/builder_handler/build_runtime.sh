@@ -1352,7 +1352,7 @@ function check_loadable_refs_linux() {
                 response=""
                 dynamic_section=$(readelf -d "${file}" || :)
                 if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                   response="there-is-no-dynamic-section-in-this-file"
+                    response="there-is-no-dynamic-section-in-this-file"
                 else
                     ldd_failed=0
                     ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
@@ -1372,28 +1372,28 @@ function check_loadable_refs_linux() {
             echo -e "${response}" \
                 | while read -r lib; do
                     case "${lib}" in
-                    /lib/ld-linux* | /lib64/ld-linux* |\
-                    /lib/libc* | /lib64/libc* |\
-                    /lib/libcom_err* | /lib64/libcom_err* |\
-                    /lib/libdl* | /lib64/libdl* |\
-                    /lib/libgcc_s* | /lib64/libgcc_s* |\
-                    /lib/libgssapi_krb5* | /lib64/libgssapi_krb5* |\
-                    /lib/libk5crypto* | /lib64/libk5crypto* |\
-                    /lib/libkeyutils* | /lib64/libkeyutils* |\
-                    /lib/libkrb5* | /lib64/libkrb5* |\
-                    /lib/libkrb5support* | /lib64/libkrb5support* |\
-                    /lib/libm* | /lib64/libm* |\
-                    /lib/libpthread* | /lib64/libpthread* |\
-                    /lib/libresolv* | /lib64/libresolv* |\
-                    /lib/librt* | /lib64/librt* |\
-                    /lib/libselinux* | /lib64/libselinux* |\
-                    /lib/libstdc++* | /lib64/libstdc++* |\
-                    /lib/libutil* | /lib64/libutil* )
+                    /lib/ld-linux* | /lib64/ld-linux* | \
+                        /lib/libc* | /lib64/libc* | \
+                        /lib/libcom_err* | /lib64/libcom_err* | \
+                        /lib/libdl* | /lib64/libdl* | \
+                        /lib/libgcc_s* | /lib64/libgcc_s* | \
+                        /lib/libgssapi_krb5* | /lib64/libgssapi_krb5* | \
+                        /lib/libk5crypto* | /lib64/libk5crypto* | \
+                        /lib/libkeyutils* | /lib64/libkeyutils* | \
+                        /lib/libkrb5* | /lib64/libkrb5* | \
+                        /lib/libkrb5support* | /lib64/libkrb5support* | \
+                        /lib/libm* | /lib64/libm* | \
+                        /lib/libpthread* | /lib64/libpthread* | \
+                        /lib/libresolv* | /lib64/libresolv* | \
+                        /lib/librt* | /lib64/librt* | \
+                        /lib/libselinux* | /lib64/libselinux* | \
+                        /lib/libstdc++* | /lib64/libstdc++* | \
+                        /lib/libutil* | /lib64/libutil*)
                         # Core “system” libraries we can assume exist on the host machine
                         ;;
                     "${path_to_python_home}"/lib* | \
-                    "${path_to_python_home}"/local/bin* | \
-                    "${path_to_python_home}"/local/lib* )
+                        "${path_to_python_home}"/local/bin* | \
+                        "${path_to_python_home}"/local/lib*)
                         rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
                         if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
                             # this are definitely our relative reference – OK
