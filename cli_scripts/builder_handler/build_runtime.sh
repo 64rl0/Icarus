@@ -702,6 +702,7 @@ function build_linux_base_dependencies() {
         libuuid-devel \
         gobject-introspection-devel \
         pixman-devel \
+        pcre-devel \
         libicu-devel \
         harfbuzz-devel \
         libXext-devel \
@@ -745,6 +746,7 @@ function build_linux_base_dependencies() {
         "liblzma"
         "libncurse"
         "libpanel"
+        "libpcre"
         "libpixman"
         "libpng"
         "libreadline"
@@ -768,6 +770,12 @@ function build_linux_base_dependencies() {
             exit_code=1
         }
     done
+
+    # Fix some broken links that could cause lib not found later on
+    ln -s -f "libreadline.so."*.* "${path_to_local}/lib/libreadline.so" || {
+        echo_error "Failed to fix broken links."
+        exit_code=1
+    }
 
     # Clean tmp dir
     rm -rf "${path_to_linux_dependencies_root}" || {
@@ -832,7 +840,6 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
-            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -859,7 +866,6 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
-            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -889,7 +895,6 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
-            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -919,7 +924,6 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
-            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -949,7 +953,6 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             build_linux_base_dependencies
-            build_readline
             build_tcltk
             build_openssl
             build_sqlite3
@@ -992,8 +995,6 @@ function build_python_runtime() {
         export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
         export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
         export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
-        export LIBREADLINE_CFLAGS="-I${path_to_local}/include/readline"
-        export LIBREADLINE_LIBS="-L${path_to_local}/lib -lreadline"
     elif [[ $(uname -s) == "Linux" ]]; then
         # Linux C compiler and Linker options for Python
         export LD_LIBRARY_PATH="${path_to_local}/lib"
@@ -1018,8 +1019,6 @@ function build_python_runtime() {
         export TCLTK_LIBS="-L${path_to_local}/lib -ltcl${tcltk_version} -ltclstub${tcltk_version} -ltk${tcltk_version} -ltkstub${tcltk_version}"
         export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
         export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
-        export LIBREADLINE_CFLAGS="-I${path_to_local}/include/readline"
-        export LIBREADLINE_LIBS="-L${path_to_local}/lib -lreadline"
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
@@ -1070,12 +1069,12 @@ function clean_build() {
         exit_code=1
     }
 
-    rm -rf "${path_to_local}/include/"* || {
+    rm -rf "${path_to_local}/include/" || {
         echo_error "Failed to remove '${path_to_local}/include'."
         exit_code=1
     }
-    rm -rf "${path_to_local}/include/".* || {
-        echo_error "Failed to remove '${path_to_local}/include'."
+    mkdir -p "${path_to_local}/include/" || {
+        echo_error "Failed to create '${path_to_local}/include/'."
         exit_code=1
     }
 
@@ -1293,15 +1292,12 @@ function check_loadable_refs_linux() {
     find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
         | while IFS= read -r -d '' file; do
             if file "${file}" | grep -q ' ELF'; then
-                if file "${file}" | grep -q '32-bit'; then
-                    echo -e "skipping-a-32-bit"
-                elif file "${file}" | grep -q 'relocatable'; then
-                    echo -e "skipping-a-relocatable"
-                elif file "${file}" | grep -q '(embedded)'; then
-                    echo -e "skipping-a-(embedded)"
+                dynamic_section=$(readelf -d "${file}")
+                if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
+                   echo -e "there-is-no-dynamic-section-in-this-file"
                 else
                     ldd -v "${file}" | awk '/=>/ {print $3}' || {
-                        echo "Failed to run ldd on '${file}'."
+                        echo "failed-to-run-ldd-on-file."
                         exit_code=1
                     }
                 fi
@@ -1587,7 +1583,7 @@ function read_build_versions() {
         # "3.13.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.12
-        "3.12.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.12.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.12.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.12.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.12.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
@@ -1600,7 +1596,7 @@ function read_build_versions() {
         #  "3.12.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.12.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.11
-        "3.11.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.11.13:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.11.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.11.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.11.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
@@ -1615,7 +1611,7 @@ function read_build_versions() {
         #  "3.11.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.11.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.10
-        "3.10.18:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.10.18:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.10.17:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.10.16:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.10.15:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
@@ -1635,7 +1631,7 @@ function read_build_versions() {
         #  "3.10.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.10.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.9
-        "3.9.23:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.9.23:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.9.22:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.9.21:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.9.20:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
