@@ -1337,7 +1337,7 @@ function check_loadable_refs_macos() {
 }
 
 function check_loadable_refs_linux() {
-    local file lib rpath
+    local file lib rpath ldd_failed
     local forbidden_paths=()
 
     find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
@@ -1347,10 +1347,13 @@ function check_loadable_refs_linux() {
                 if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
                    echo -e "there-is-no-dynamic-section-in-this-file"
                 else
-                    ldd -v "${file}" | awk '/=>/ {print $3}' || {
+                    ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
+                    if [[ "${ldd_failed}" -ne 1 ]]; then
+                        ldd -v "${file}" | awk '/=>/ {print $3}'
+                    else
                         echo "failed-to-run-ldd-on-file."
                         exit_code=1
-                    }
+                    fi
                 fi
             fi \
                 | while read -r lib; do
