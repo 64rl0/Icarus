@@ -1949,7 +1949,7 @@ function main() {
     echo -e "${bold_green}${sparkles} Launching build jobs${end}"
     for version_string in "${verv[@]}"; do
         set_constants "${@}"
-        sudo rm -rf "${python_build_root:?}/${python_full_version:?}"
+        rm -rf "${python_build_root:?}/${python_full_version:?}"
         mkdir -p "${path_to_log_root}"
         build_version_background "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
         echo -e "Building Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
