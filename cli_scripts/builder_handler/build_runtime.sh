@@ -1037,6 +1037,80 @@ function build_python_runtime() {
                :--with-openssl-rpath=no \
                :--enable-loadable-sqlite-extensions"
 
+    elif [[ "${python_full_version}" == "3.8."* ]]; then
+        if [[ $(uname) == "Darwin" ]]; then
+            build_tcltk
+            build_openssl
+            build_libffi
+            build_ncurses
+            build_readline
+            build_gdbm
+            build_xz
+            build_uuid_macos
+            build_sqlite3
+        elif [[ $(uname -s) == "Linux" ]]; then
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
+        fi
+
+        prefix="--prefix=${path_to_python_home} \
+               :--enable-optimizations \
+               :--with-lto \
+               :--with-computed-gotos \
+               :--with-openssl=${path_to_local} \
+               :--with-openssl-rpath=no \
+               :--enable-loadable-sqlite-extensions"
+
+    elif [[ "${python_full_version}" == "3.7."* ]]; then
+        if [[ $(uname) == "Darwin" ]]; then
+            build_tcltk
+            build_openssl
+            build_libffi
+            build_ncurses
+            build_readline
+            build_gdbm
+            build_xz
+            build_uuid_macos
+            build_sqlite3
+        elif [[ $(uname -s) == "Linux" ]]; then
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
+        fi
+
+        prefix="--prefix=${path_to_python_home} \
+               :--enable-optimizations \
+               :--with-lto \
+               :--with-computed-gotos \
+               :--with-openssl=${path_to_local} \
+               :--with-openssl-rpath=no \
+               :--enable-loadable-sqlite-extensions"
+
     else
         echo_error "Unsupported Python version: ${python_full_version}"
     fi
