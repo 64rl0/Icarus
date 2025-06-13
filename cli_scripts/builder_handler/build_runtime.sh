@@ -1135,9 +1135,6 @@ function build_python_runtime() {
         # Options for Python third-party dependencies
         export TCLTK_CFLAGS="-I${path_to_local}/include"
         export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
-        # TODO: delete me
-#        export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
-#        export LIBUUID_LIBS=""
     elif [[ $(uname -s) == "Linux" ]]; then
         # Linux C compiler and Linker options for Python
         export LD_LIBRARY_PATH="${path_to_local}/lib"
@@ -1161,9 +1158,6 @@ function build_python_runtime() {
         # Options for Python third-party dependencies
         export TCLTK_CFLAGS="-I${path_to_local}/include"
         export TCLTK_LIBS="-L${path_to_local}/lib -ltcl${tcltk_version} -ltclstub${tcltk_version} -ltk${tcltk_version} -ltkstub${tcltk_version}"
-        # TODO: delete me
-#        export LIBUUID_CFLAGS="-I${path_to_local}/include/uuid"
-#        export LIBUUID_LIBS="-L${path_to_local}/lib -luuid"
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
