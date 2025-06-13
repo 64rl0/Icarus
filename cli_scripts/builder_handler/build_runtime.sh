@@ -36,6 +36,10 @@ function validate_prerequisites() {
     if [[ -z "${GH_TOKEN}" ]]; then
         echo_error "GH_TOKEN environment variable is not set." "errexit"
     fi
+
+    if [[ -z "${verv}" ]]; then
+        echo_error "There isn't any selected version of Python to build!" "errexit"
+    fi
 }
 
 function set_constants() {
@@ -1937,8 +1941,8 @@ function build_version_background() {
 function main() {
     local spinner jobs_running
 
-    validate_prerequisites
     read_build_versions
+    validate_prerequisites
 
     echo
     echo_time
