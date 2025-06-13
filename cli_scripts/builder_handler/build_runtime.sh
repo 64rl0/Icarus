@@ -1393,7 +1393,7 @@ function check_loadable_refs_linux() {
             fi
             # everything echo inside the if/else gets lost unless it’s the last thing before the
             # back-slashed pipe so we use the response variable for this purpose
-            echo -e "${response}" \
+            printf '%s\n' "${response}" \
                 | while read -r lib; do
                     case "${lib}" in
                     /lib/ld-linux* | /lib64/ld-linux* | \
