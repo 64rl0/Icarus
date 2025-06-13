@@ -1939,7 +1939,7 @@ function build_version_background() {
 }
 
 function main() {
-    local spinner jobs_running
+    local spinner
 
     read_build_versions
     validate_prerequisites
@@ -1959,7 +1959,7 @@ function main() {
 
     # Spinner while waiting for jobs to finish
     spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    while [ "${jobs_running}" -gt 0 ]; do
+    while [ "$(jobs -r | wc -l)" -gt 0 ]; do
         for ((i=0; i<${#spinner}; i++)); do
             printf "\rWaiting for builds to complete... %s" "${spinner:$i:1}"
             sleep 0.1
