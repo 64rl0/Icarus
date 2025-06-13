@@ -90,10 +90,11 @@ function set_constants() {
     python_builds="/tmp/builds_python"
 
     python_build_root="${python_builds}/build-workspace"
-    path_to_log_root="${python_build_root}/log"
     path_to_cache_root="${python_build_root}/cache"
-    path_to_tmpwork_root="${python_build_root}/tmp/${platform_identifier}"
-    path_to_runtime_root="${python_build_root}/runtime/${platform_identifier}"
+    path_to_log_root="${python_build_root}/${python_full_version}/log"
+    path_to_log_build_master_file="${path_to_log_root}/_build_${python_full_version}.log"
+    path_to_tmpwork_root="${python_build_root}/${python_full_version}/tmp/${platform_identifier}"
+    path_to_runtime_root="${python_build_root}/${python_full_version}/runtime/${platform_identifier}"
     path_to_python_home="${path_to_runtime_root}/CPython/${python_full_version}"
     path_to_sysroot="${path_to_python_home}/sysroot"
     path_to_linux_dependencies_root="${path_to_python_home}/linux-tmp-dependencies"
@@ -294,21 +295,23 @@ function build_generic() {
         echo -e "done!"
     fi
 
-    # Unpack Generic and move to work dir
-    cd "${path_to_cache_root}/${package_dir_name}" || {
-        echo_error "Failed to change directory to '${path_to_cache_root}/${package_dir_name}'."
+    # Making a copy of the tar into the tmp workspace
+    rsync -a "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" "${path_to_tmpwork_root}/${package_dir_name}/" || {
+        echo_error "Failed to copy '${package_download_filename}' across to tmp workspace."
         exit_code=1
     }
-    compression="$(file "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')" || {
+
+    # Unpack Generic
+    cd "${path_to_tmpwork_root}/${package_dir_name}" || {
+        echo_error "Failed to change directory to '${path_to_tmpwork_root}/${package_dir_name}'."
+        exit_code=1
+    }
+    compression="$(file "${path_to_tmpwork_root}/${package_dir_name}/${package_download_filename}" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')" || {
         echo_error "Failed to detect '${package_download_filename}' compression type."
         exit_code=1
     }
-    tar -x --"${compression}" -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" || {
+    tar -x --"${compression}" -f "${path_to_tmpwork_root}/${package_dir_name}/${package_download_filename}" || {
         echo_error "Failed to unpack '${package_download_filename}'."
-        exit_code=1
-    }
-    mv "${unpacked_dir_name}" "${path_to_tmpwork_root}/${package_dir_name}" || {
-        echo_error "Failed to move '${display_name}' to work space."
         exit_code=1
     }
 
@@ -1738,8 +1741,8 @@ function push_gh_release() {
     echo
 }
 
-function update_final_response() {
-    local ex_co_colored
+function echo_response() {
+    local response col
 
     if [[ "${exit_code}" -eq 0 ]]; then
         col="${bold_green}"
@@ -1747,7 +1750,10 @@ function update_final_response() {
         col="${bold_red}"
     fi
 
-    final_response+="${python_pkg_name} -> ${col}Completed with exit code: ${exit_code}${end}\n"
+    response="${python_pkg_name} -> ${col}Completed with exit code: ${exit_code}${end}\n"
+
+    # This must be the last line of the log file
+    printf '%s' "${response}"
 }
 
 function echo_final_response() {
@@ -1883,51 +1889,94 @@ function read_build_versions() {
     )
 }
 
-function main() {
+function build_version_background() {
+    local version_string
+    version_string="${1}"
+    shift  # Removes $1
+
     validate_prerequisites
 
-    read_build_versions
-    local final_response=""
+    set_constants "${@}"
 
+    local title="Building Python ${python_full_version} runtime"
+    echo -e "\n${bold_black}${bg_white}${left_pad} ${title} ${right_pad}${end}\n"
+
+    prepare_workspace
+    prepare_sysroot
+    prepare_local
+
+    build_python_runtime
+    if [[ $(uname -s) == "Darwin" ]]; then
+        if [[ ! "${python_full_version}" == "3.10."* && ! "${python_full_version}" == "3.9."* ]]; then
+            check_python_build_logs
+        fi
+    elif [[ $(uname -s) == "Linux" ]]; then
+        check_python_build_logs
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
+    fi
+
+    set_ownership
+    fix_runtime_paths
+    check_loadable_refs
+    clean_build
+
+    check_broken_links
+    fix_python_runtime_bin_dir
+    check_python_runtime
+    make_tar
+
+    if [[ "${exit_code}" -eq 0 ]]; then
+        push_gh_release
+    fi
+
+    echo_response
+}
+
+function main() {
+    local spinner jobs_running
+
+    validate_prerequisites
+    read_build_versions
+
+    echo
+    echo_time
+    echo -e "${bold_green}${sparkles} Launching build jobs${end}"
     for version_string in "${verv[@]}"; do
         set_constants "${@}"
-
-        local title="Building Python ${python_full_version} runtime"
-        echo -e "\n${bold_black}${bg_white}${left_pad} ${title} ${right_pad}${end}\n"
-
-        prepare_workspace
-        prepare_sysroot
-        prepare_local
-
-        build_python_runtime
-        if [[ $(uname -s) == "Darwin" ]]; then
-            if [[ ! "${python_full_version}" == "3.10."* && ! "${python_full_version}" == "3.9."* ]]; then
-                check_python_build_logs
-            fi
-        elif [[ $(uname -s) == "Linux" ]]; then
-            check_python_build_logs
-        else
-            echo_error "Unsupported platform: $(uname -s)"
-            exit_code=1
-        fi
-
-        set_ownership
-        fix_runtime_paths
-        check_loadable_refs
-        clean_build
-
-        check_broken_links
-        fix_python_runtime_bin_dir
-        check_python_runtime
-        make_tar
-
-        if [[ "${exit_code}" -eq 0 ]]; then
-            push_gh_release
-        fi
-
-        update_final_response
-        echo_final_response
+        rm -rf "${python_build_root:?}/${python_full_version:?}"
+        mkdir -p "${path_to_log_root}"
+        build_version_background "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
+        echo -e "Building Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
+        sleep 1
     done
+    echo
+
+    # Spinner while waiting for jobs to finish
+    spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    while [ "${jobs_running}" -gt 0 ]; do
+        for ((i=0; i<${#spinner}; i++)); do
+            printf "\rWaiting for builds to complete... %s" "${spinner:$i:1}"
+            sleep 0.1
+        done
+    done
+    echo
+    echo -e "done!"
+    echo
+
+    # Redundant as the while loop above is guaranteed to finish
+    # before the next line is executed but precocious
+    wait
+
+    # Collect all responses
+    final_response=""
+    for version_string in "${verv[@]}"; do
+        set_constants "${@}"
+        final_response+="$(tail -n 1 "${path_to_log_build_master_file}")"
+    done
+
+    echo_final_response
 
     return "${exit_code}"
 }
