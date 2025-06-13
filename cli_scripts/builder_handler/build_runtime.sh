@@ -1907,7 +1907,7 @@ function build_version_background() {
 
     build_python_runtime
     if [[ $(uname -s) == "Darwin" ]]; then
-        if [[ ! "${python_full_version}" == "3.10."* && ! "${python_full_version}" == "3.9."* ]]; then
+        if [[ ! "${python_full_version}" =~ ^3\.(10|9|8|7)\. ]]; then
             check_python_build_logs
         fi
     elif [[ $(uname -s) == "Linux" ]]; then
