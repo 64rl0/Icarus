@@ -1825,8 +1825,8 @@ function read_build_versions() {
         #  "3.10.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.10.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.9
-        # "3.9.23:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.9.22:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+         "3.9.23:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+         "3.9.22:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.9.21:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.9.20:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.9.19:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
@@ -1939,7 +1939,7 @@ function build_version_background() {
 }
 
 function main() {
-    local spinner
+    local spinner pids
 
     read_build_versions
     validate_prerequisites
@@ -1947,16 +1947,21 @@ function main() {
     echo
     echo_time
     echo -e "${bold_green}${sparkles} Launching build jobs${end}"
+    pids="Emergency brake!\n  sudo kill -9 "
     for version_string in "${verv[@]}"; do
         set_constants "${@}"
         rm -rf "${python_build_root:?}/${python_full_version:?}"
         sleep 2
         mkdir -p "${path_to_log_root}"
         build_version_background "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
+        pids+="${!} "
         echo -e "Building Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
         sleep 1
     done
     echo
+
+    # Emergency command
+    echo -e "${bold_red}${stop_sign}${pids}${end}\n"
 
     # Spinner while waiting for jobs to finish
     spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
