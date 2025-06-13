@@ -1950,6 +1950,7 @@ function main() {
     for version_string in "${verv[@]}"; do
         set_constants "${@}"
         rm -rf "${python_build_root:?}/${python_full_version:?}"
+        sleep 2
         mkdir -p "${path_to_log_root}"
         build_version_background "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
         echo -e "Building Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
@@ -1961,7 +1962,7 @@ function main() {
     spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     while [ "$(jobs -r | wc -l)" -gt 0 ]; do
         for ((i=0; i<${#spinner}; i++)); do
-            printf "\rWaiting for builds to complete... %s" "${spinner:$i:1}"
+            printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
             sleep 0.1
         done
     done
