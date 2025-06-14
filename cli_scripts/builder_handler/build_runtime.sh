@@ -2015,10 +2015,6 @@ function main() {
     echo
     echo -e "done!"
 
-    # Redundant as the while loop above is guaranteed to finish
-    # before the next line is executed but precocious
-    wait
-
     # Collect all responses
     final_response=""
     for version_string in "${verv[@]}"; do
