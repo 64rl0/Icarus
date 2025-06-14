@@ -1986,7 +1986,7 @@ function main() {
     echo
     echo_time
     echo -e "${bold_green}${sparkles} Launching build jobs${end}"
-    pids="Emergency brake!\n  sudo kill -9 "
+    pids="sudo kill -9 "
     for version_string in "${verv[@]}"; do
         set_constants "${@}"
         rm -rf "${python_version_build_root:?}"
