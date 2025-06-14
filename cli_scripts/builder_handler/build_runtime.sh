@@ -1978,7 +1978,7 @@ function main() {
     local spinner max_parallel pids
 
     spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    max_parallel=2
+    max_parallel=10
 
     read_build_versions
     validate_prerequisites
