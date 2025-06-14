@@ -94,11 +94,12 @@ function set_constants() {
     python_builds="/tmp/builds_python"
 
     python_build_root="${python_builds}/build-workspace"
+    python_version_build_root="${python_build_root}/${python_full_version}"
     path_to_cache_root="${python_build_root}/cache"
-    path_to_log_root="${python_build_root}/${python_full_version}/log"
-    path_to_log_build_master_file="${path_to_log_root}/_build_${python_full_version}.log"
-    path_to_tmpwork_root="${python_build_root}/${python_full_version}/tmp/${platform_identifier}"
-    path_to_runtime_root="${python_build_root}/${python_full_version}/runtime/${platform_identifier}"
+    path_to_log_root="${python_version_build_root}/log"
+    path_to_log_build_master_file="${python_version_build_root}/_build_${python_full_version}.log"
+    path_to_tmpwork_root="${python_version_build_root}/tmp/${platform_identifier}"
+    path_to_runtime_root="${python_version_build_root}/runtime/${platform_identifier}"
     path_to_python_home="${path_to_runtime_root}/CPython/${python_full_version}"
     path_to_sysroot="${path_to_python_home}/sysroot"
     path_to_linux_dependencies_root="${path_to_python_home}/linux-tmp-dependencies"
@@ -253,15 +254,20 @@ function echo_envs() {
 }
 
 function build_generic() {
-    local compression configure_options
+    local display_name package_dir_name package_download_filename unpacked_dir_name package_make_path package_url
+    local configure_options retries max_retries compression
 
-    local display_name="${1}"                                                               # PostgreSQL${postgres_version}
-    local package_dir_name="${2}"                                                           # PostgreSQL
-    local package_download_filename="${3}"                                                  # postgresql-${postgres_version}.tar.gz
-    local unpacked_dir_name="${4}"                                                          # postgresql-${postgres_version}
-    local package_make_path="${5}"                                                          # postgresql-${postgres_version}/unix
-    local package_url="${6}"                                                                # XXX${postgres_version}/postgresql-${postgres_version}.tar.gz
+    display_name="${1}"                                                                     # PostgreSQL${postgres_version}
+    package_dir_name="${2}"                                                                 # PostgreSQL
+    package_download_filename="${3}"                                                        # postgresql-${postgres_version}.tar.gz
+    unpacked_dir_name="${4}"                                                                # postgresql-${postgres_version}
+    package_make_path="${5}"                                                                # postgresql-${postgres_version}/unix
+    package_url="${6}"                                                                      # XXX${postgres_version}/postgresql-${postgres_version}.tar.gz
     IFS=':' read -r -a configure_options <<<"$(echo "${7}" | sed -e 's/[[:space:]]*:/:/g')" # separate them by :
+
+    # 30 min -> 2 sec sleep * 900 secs
+    retries=0
+    max_retries=900
 
     echo_envs
 
@@ -283,21 +289,51 @@ function build_generic() {
     }
     echo -e "done!"
 
-    # Downloading Generic into cache space if not there already
-    if [[ ! -e "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" ]]; then
-        echo
-        echo_time
-        echo -e "${bold_green}${sparkles} Downloading '${display_name}'${end}"
-        curl -L "${package_url}" -o "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" || {
-            echo_error "Failed to download '${display_name}'."
-            exit_code=1
-        }
-    else
-        echo
-        echo_time
-        echo -e "${bold_green}${sparkles} Using cached '${display_name}'${end}"
-        echo -e "done!"
-    fi
+    # Download Generic or use cached one
+    while true; do
+        if [[ -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" ]]; then
+            # File exists, assume download complete
+            echo
+            echo_time
+            echo -e "${bold_green}${sparkles} Using cached '${display_name}'${end}"
+            echo -e "done!"
+            break
+        # mkdir is atomic—only one process will succeed.
+        elif mkdir "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" 2>/dev/null; then
+            # Successfully acquired lock; perform the download
+            echo
+            echo_time
+            echo -e "${bold_green}${sparkles} Downloading '${display_name}'${end}"
+            # Cleanup / Remove partial download just in case was left there
+            rm -rf "${path_to_cache_root:?}/${package_dir_name:?}/${package_download_filename:?}" || {
+                echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}'."
+                }
+            # Download
+            curl -L "${package_url}" -o "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" || {
+                echo_error "Failed to download '${display_name}'."
+                # Remove partial download
+                rm -rf "${path_to_cache_root:?}/${package_dir_name:?}/${package_download_filename:?}" || {
+                    echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}'."
+                    }
+                }
+            # Always release the lock before breaking the loop
+            rm -rf "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" || {
+                echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock'."
+                }
+            break
+        else
+            # Someone else is downloading; wait for them to finish
+            (( retries = retries + 1 ))
+            if (( retries >= max_retries )); then
+                # Always release the lock before breaking the loop
+                rm -rf "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" || {
+                    echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock'."
+                    }
+                break
+            fi
+            sleep 2
+        fi
+    done
 
     # Making a copy of the tar into the tmp workspace
     rsync -a "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" "${path_to_tmpwork_root}/${package_dir_name}/" || {
@@ -1703,15 +1739,15 @@ PYTEST
 
 function set_ownership() {
     echo_time
-    echo -e "${bold_green}${sparkles} Setting ownership for '${python_builds}'${end}"
+    echo -e "${bold_green}${sparkles} Setting ownership for '${python_version_build_root}'${end}"
 
     local u g
 
     u="${SUDO_USER}"
     g="$(groups "${u}" | awk '{print $1}')"
 
-    sudo chown -R "${u}":"${g}" "${python_builds}" || {
-        echo_error "Failed to set ownership for '${python_builds}'."
+    sudo chown -R "${u}":"${g}" "${python_version_build_root}" || {
+        echo_error "Failed to set ownership for '${python_version_build_root}'."
         exit_code=1
     }
 
@@ -1872,24 +1908,24 @@ function read_build_versions() {
         #  "3.8.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         #  "3.8.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.7
-        # "3.7.17:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.16:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.15:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.14:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.13:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.12:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.11:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        # "3.7.10:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.9:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.8:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.7:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.6:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.5:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.4:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.3:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.2:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.1:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
-        #  "3.7.0:1.1.1w:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.17:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.16:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.15:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.14:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.13:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.12:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.11:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.7.10:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.9:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.8:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.7:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.6:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.5:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.4:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.3:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.2:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.1:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        #  "3.7.0:1.1.1m:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
     )
 }
 
@@ -1950,7 +1986,7 @@ function main() {
     pids="Emergency brake!\n  sudo kill -9 "
     for version_string in "${verv[@]}"; do
         set_constants "${@}"
-        rm -rf "${python_build_root:?}/${python_full_version:?}"
+        rm -rf "${python_version_build_root:?}"
         sleep 2
         mkdir -p "${path_to_log_root}"
         build_version_background "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
