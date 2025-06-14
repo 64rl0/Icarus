@@ -1975,7 +1975,10 @@ function build_version_background() {
 }
 
 function main() {
-    local spinner pids
+    local spinner max_parallel pids
+
+    spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    max_parallel=2
 
     read_build_versions
     validate_prerequisites
@@ -1991,25 +1994,19 @@ function main() {
         mkdir -p "${path_to_log_root}"
         build_version_background "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
         pids+="${!} "
-        echo -e "Building Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
+        echo -e "${pids}" > "${python_build_root}/emergency-cmd"
+        echo -e "\rBuilding Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
         sleep 1
-    done
-    echo
-
-    # Emergency command
-    echo -e "${bold_red}${stop_sign}${pids}${end}\n"
-
-    # Spinner while waiting for jobs to finish
-    spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    while [ "$(jobs -r | wc -l)" -gt 0 ]; do
-        for ((i=0; i<${#spinner}; i++)); do
-            printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
-            sleep 0.1
+        # Wait if we hit the max num of concurrent job we can run
+        while [ "$(jobs -r | wc -l)" -ge "${max_parallel}" ]; do
+            for ((i=0; i<${#spinner}; i++)); do
+                printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
+                sleep 0.1
+            done
         done
     done
     echo
     echo -e "done!"
-    echo
 
     # Redundant as the while loop above is guaranteed to finish
     # before the next line is executed but precocious
