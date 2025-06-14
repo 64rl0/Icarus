@@ -1978,7 +1978,7 @@ function main() {
     local spinner max_parallel pids
 
     spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    max_parallel=10
+    max_parallel=1
 
     read_build_versions
     validate_prerequisites
@@ -1998,11 +1998,18 @@ function main() {
         echo -e "\rBuilding Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
         sleep 1
         # Wait if we hit the max num of concurrent job we can run
-        while [ "$(jobs -r | wc -l)" -ge "${max_parallel}" ]; do
+        while [[ "$(jobs -r | wc -l)" -ge "${max_parallel}" ]]; do
             for ((i=0; i<${#spinner}; i++)); do
                 printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
                 sleep 0.1
             done
+        done
+    done
+    # Wait for all background jobs to complete
+    while [[ "$(jobs -r | wc -l)" -gt 0 ]]; do
+        for ((i=0; i<${#spinner}; i++)); do
+            printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
+            sleep 0.1
         done
     done
     echo
