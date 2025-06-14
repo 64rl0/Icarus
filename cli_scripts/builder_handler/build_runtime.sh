@@ -2014,6 +2014,7 @@ function main() {
     done
     echo
     echo -e "done!"
+    echo
 
     # Redundant as the while loop above is guaranteed to finish
     # before the next line is executed but precocious
