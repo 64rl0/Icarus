@@ -1804,6 +1804,33 @@ function echo_final_response() {
 }
 
 function read_build_versions() {
+    # macos15.5
+    # - 3.13 all version
+    # - 3.12 all version
+    # - 3.11 all version
+    # - 3.10 all version
+    # - 3.9 up to and including 3.9.1
+    # - 3.8 up to and including 3.8.10
+    # - 3.7 NOT SUPPORTED
+
+    # AL2023
+    # - 3.13 all version
+    # - 3.12 all version
+    # - 3.11 all version
+    # - 3.10 all version
+    # - 3.9 all version
+    # - 3.8 all version
+    # - 3.7 up to and including 3.7.6
+
+    # AL2
+    # - 3.13 all version
+    # - 3.12 all version
+    # - 3.11 all version
+    # - 3.10 all version
+    # - 3.9 all version
+    # - 3.8 all version
+    # - 3.7 up to and including 3.7.1
+
     declare -g -r verv=(
         # PYTHON 3.13
         # "3.13.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
@@ -1947,7 +1974,7 @@ function build_version() {
 
     build_python_runtime
     if [[ $(uname -s) == "Darwin" ]]; then
-        if [[ ! "${python_full_version}" =~ ^3\.(10|9|8|7)\. ]]; then
+        if [[ ! "${python_full_version}" =~ ^3\.(10|9|8)\. ]]; then
             check_python_build_logs
         fi
     elif [[ $(uname -s) == "Linux" ]]; then
@@ -1977,10 +2004,10 @@ function build_version() {
 }
 
 function main() {
-    local spinner max_parallel pids
+    local max_parallel spinner pids
 
-    spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     max_parallel=1
+    spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 
     read_build_versions
     validate_prerequisites
