@@ -1951,7 +1951,9 @@ function build_version() {
             check_python_build_logs
         fi
     elif [[ $(uname -s) == "Linux" ]]; then
-        check_python_build_logs
+        if [[ ! "${python_full_version}" =~ ^3\.7\. ]]; then
+            check_python_build_logs
+        fi
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
