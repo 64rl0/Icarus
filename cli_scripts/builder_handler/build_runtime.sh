@@ -97,7 +97,7 @@ function set_constants() {
     python_version_build_root="${python_build_root}/${python_full_version}"
     path_to_cache_root="${python_build_root}/cache"
     path_to_log_root="${python_version_build_root}/log"
-    path_to_log_build_master_file="${python_version_build_root}/_build_${python_full_version}.log"
+    path_to_log_build_master_file="${python_version_build_root}/build_${python_full_version}.log"
     path_to_tmpwork_root="${python_version_build_root}/tmp/${platform_identifier}"
     path_to_runtime_root="${python_version_build_root}/runtime/${platform_identifier}"
     path_to_python_home="${path_to_runtime_root}/CPython/${python_full_version}"
@@ -2006,7 +2006,36 @@ function main() {
         done
     done
     # Wait for all background jobs to complete
+    rm -rf "${python_build_root}/debug.log" || :
     while [[ "$(jobs -r | wc -l)" -gt 0 ]]; do
+        {
+            echo_time
+            echo -e '============================================================='
+            echo -e 'DEBUG LOG'
+            echo -e '============================================================='
+            echo -e 'whoami'
+            whoami
+            echo -e '============================================================='
+            echo -e 'free -th'
+            free -th
+            echo -e '============================================================='
+            echo -e 'df -h'
+            df -h
+            echo -e '============================================================='
+            echo -e 'df -ih'
+            df -ih
+            echo -e '============================================================='
+            echo -e 'sudo ps -ef | grep build_runtime'
+            ps -ef | grep [b]uild_runtime
+            echo -e '============================================================='
+            echo -e 'jobs'
+            jobs
+            echo -e '============================================================='
+            echo -e 'jobs | wc -l'
+            jobs | wc -l
+            echo -e '============================================================='
+            echo -e '\n\n\n'
+        } >> "${python_build_root}/debug.log"
         for ((i=0; i<${#spinner}; i++)); do
             printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
             sleep 0.1
