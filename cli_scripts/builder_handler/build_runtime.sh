@@ -2009,6 +2009,7 @@ function main() {
     rm -rf "${python_build_root}/debug.log" || :
     while [[ "$(jobs -r | wc -l)" -gt 0 ]]; do
         {
+            echo -e '\n\n\n'
             echo_time
             echo -e '============================================================='
             echo -e 'DEBUG LOG'
@@ -2034,7 +2035,6 @@ function main() {
             echo -e 'jobs | wc -l'
             jobs | wc -l
             echo -e '============================================================='
-            echo -e '\n\n\n'
         } >> "${python_build_root}/debug.log"
         for ((i=0; i<${#spinner}; i++)); do
             printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
