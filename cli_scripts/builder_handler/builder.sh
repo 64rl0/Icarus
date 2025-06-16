@@ -336,6 +336,7 @@ function set_python_constants() {
 
     python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
     python_pkg_full_name="${python_pkg_name}.tar.gz"
+    python_pkg_download_url="https://github.com/64rl0/PythonRuntime/releases/download/${python_pkg_name}/${python_pkg_full_name}"
 }
 
 ####################################################################################################
@@ -753,7 +754,6 @@ function build_brazil_env() {
 }
 
 function install_python_runtime() {
-    local download_url="https://github.com/64rl0/PythonRuntime/releases/download/${python_pkg_name}/${python_pkg_full_name}"
     local dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
     local root_tree=(
         "${path_to_cache_root}/CPython"
@@ -777,13 +777,14 @@ function install_python_runtime() {
     echo -e "${bold_green}${sparkles} Downloading & Installing 'Python${python_full_version}'${end}"
     echo -e "This can take a while"
     if [[ ! -e "${dest_tar}" ]]; then
-        curl -L "${download_url}" -o "${dest_tar}" || {
+        curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
             echo_error "Failed to download '${python_pkg_name}'."
             build_summary_status="${failed}"
             build_single_run_status=1
             exit_code=1
         }
     fi
+    # Clean any partial or old dir left there before unpacking
     rm -rf "${path_to_cache_root}/CPython/${python_full_version}" || {
         echo_error "Failed to remove '${path_to_cache_root}/CPython/${python_full_version}'."
         build_summary_status="${failed}"
@@ -796,6 +797,7 @@ function install_python_runtime() {
         build_single_run_status=1
         exit_code=1
     }
+    # Clean any partial or old dir left there before moving to runtime root
     rm -rf "${path_to_runtime_root}/CPython/${python_full_version}" || {
         echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}'."
         build_summary_status="${failed}"

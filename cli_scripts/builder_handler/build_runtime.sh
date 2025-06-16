@@ -307,28 +307,28 @@ function build_generic() {
             # Cleanup / Remove partial download just in case was left there
             rm -rf "${path_to_cache_root:?}/${package_dir_name:?}/${package_download_filename:?}" || {
                 echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}'."
-                }
+            }
             # Download
             curl -L "${package_url}" -o "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" || {
                 echo_error "Failed to download '${display_name}'."
                 # Remove partial download
                 rm -rf "${path_to_cache_root:?}/${package_dir_name:?}/${package_download_filename:?}" || {
                     echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}'."
-                    }
                 }
+            }
             # Always release the lock before breaking the loop
             rm -rf "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" || {
                 echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock'."
-                }
+            }
             break
         else
             # Someone else is downloading; wait for them to finish
-            (( retries = retries + 1 ))
-            if (( retries >= max_retries )); then
+            ((retries = retries + 1))
+            if ((retries >= max_retries)); then
                 # Always release the lock before breaking the loop
                 rm -rf "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" || {
                     echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock'."
-                    }
+                }
                 break
             fi
             sleep 2
@@ -1959,7 +1959,7 @@ function read_build_versions() {
 function build_version() {
     local version_string
     version_string="${1}"
-    shift  # Removes $1
+    shift # Removes $1
 
     validate_prerequisites
 
@@ -2023,12 +2023,12 @@ function main() {
         mkdir -p "${path_to_log_root}"
         build_version "${version_string}" "${@}" >"${path_to_log_build_master_file}" 2>&1 &
         pids+="${!} "
-        echo -e "${pids}" > "${python_build_root}/emergency-cmd"
+        echo -e "${pids}" >"${python_build_root}/emergency-cmd"
         echo -e "\rBuilding Python ${python_full_version}, follow the log on: ${path_to_log_build_master_file}"
         sleep 1
         # Wait if we hit the max num of concurrent job we can run
         while [[ "$(jobs -r | wc -l)" -ge "${max_parallel}" ]]; do
-            for ((i=0; i<${#spinner}; i++)); do
+            for ((i = 0; i < ${#spinner}; i++)); do
                 printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
                 sleep 0.1
             done
@@ -2064,8 +2064,8 @@ function main() {
             echo -e 'jobs | wc -l'
             jobs | wc -l
             echo -e '============================================================='
-        } >> "${python_build_root}/debug.log"
-        for ((i=0; i<${#spinner}; i++)); do
+        } >>"${python_build_root}/debug.log"
+        for ((i = 0; i < ${#spinner}; i++)); do
             printf "\rWaiting for builds to complete... %s" "${bold_white}${spinner:$i:1}${end}"
             sleep 0.1
         done
