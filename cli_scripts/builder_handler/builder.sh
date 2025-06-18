@@ -783,6 +783,7 @@ function install_python_runtime() {
             build_single_run_status=1
             exit_code=1
         }
+        echo
     fi
     # Clean any partial or old dir left there before unpacking
     rm -rf "${path_to_cache_root}/CPython/${python_full_version}" || {
