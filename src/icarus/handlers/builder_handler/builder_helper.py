@@ -681,12 +681,7 @@ def normalize_and_set_python_version(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                 'python_version_default_for_brazil'
             ]
 
-        python_versions = []
-        for v in ib_arg_mmp['python_versions_for_brazil']:
-            if len(v.split('.')) == 2:
-                python_versions.append(':'.join([v, get_latest_python_version(v)]))
-            elif len(v.split('.')) == 3:
-                python_versions.append(':'.join(['.'.join(v.split('.')[:2]), v]))
+        python_versions_to_normalize = ib_arg_mmp['python_versions_for_brazil']
 
     elif ib_arg_mmp['build_system_in_use'] == 'icarus':
         if len(ib_arg_mmp['python_version_default_for_icarus'].split('.')) == 2:
@@ -702,14 +697,14 @@ def normalize_and_set_python_version(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                 'python_version_default_for_icarus'
             ]
 
-        python_versions = []
-        for v in ib_arg_mmp['python_versions_for_icarus']:
-            if len(v.split('.')) == 2:
-                python_versions.append(':'.join([v, get_latest_python_version(v)]))
-            elif len(v.split('.')) == 3:
-                python_versions.append(':'.join(['.'.join(v.split('.')[:2]), v]))
+        python_versions_to_normalize = ib_arg_mmp['python_versions_for_icarus']
 
-    ib_arg_mmp['python_versions'] = python_versions
+    ib_arg_mmp['python_versions'] = []
+    for v in python_versions_to_normalize:
+        if len(v.split('.')) == 2:
+            ib_arg_mmp['python_versions'].append(':'.join([v, get_latest_python_version(v)]))
+        elif len(v.split('.')) == 3:
+            ib_arg_mmp['python_versions'].append(':'.join(['.'.join(v.split('.')[:2]), v]))
 
     return ib_arg_mmp
 

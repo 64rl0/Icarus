@@ -117,7 +117,12 @@ function echo_summary() {
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
         eval execution_time='$'"${hook}_execution_time"
-        execution_time="$(printf "%.3f" "${execution_time}")s"
+        if (($(echo "${execution_time} > 60" | bc))); then
+            execution_time="$(echo "${execution_time} / 60" | bc -l)"
+            execution_time="$(printf "%.3f" "${execution_time}")m"
+        else
+            execution_time="$(printf "%.3f" "${execution_time}")s"
+        fi
         printf "%-30s | %-6s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
@@ -820,9 +825,7 @@ function install_python_runtime() {
 function build_venv_env() {
     build_single_run_status=0
 
-    # Adding runtime bin to path
-    OLD_PATH="${PATH}"
-    export PATH="${path_to_runtime_root}/bin:${path_to_env_root}/bin:${OLD_PATH}"
+    activate_venv_env_core
 
     # Build python runtime
     install_python_runtime
@@ -849,7 +852,7 @@ function build_venv_env() {
 
     # Install pip and update
     echo -e "${bold_green}${sparkles} Updating pip...${end}"
-    pip install --upgrade pip setuptools wheel || {
+    "python${python_version}" -m pip install --upgrade pip setuptools wheel || {
         echo_error "Failed to update pip."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -860,7 +863,7 @@ function build_venv_env() {
     echo
     echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
     for requirements_path in "${requirements_paths[@]}"; do
-        pip install -I -r "${project_root_dir_abs}/${requirements_path}" || {
+        "python${python_version}" -m pip install -I -r "${project_root_dir_abs}/${requirements_path}" || {
             echo_error "Failed to install requirements ${requirements_path} 'Python${python_full_version}' env."
             build_summary_status="${failed}"
             build_single_run_status=1
@@ -876,7 +879,7 @@ function build_venv_env() {
     # Building local package
     echo
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
-    python3 -m build --wheel --outdir "${path_to_wheel_root}/dist" "${project_root_dir_abs}" || {
+    "python${python_version}" -m build --wheel --outdir "${path_to_wheel_root}/dist" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -894,7 +897,7 @@ function build_venv_env() {
     # Install local package into env (as last so it will override the same name)
     echo
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
-    pip install -I "${path_to_wheel_root}/dist/"*.whl || {
+    "python${python_version}" -m pip install -I "${path_to_wheel_root}/dist/"*.whl || {
         echo_error "Failed to install '${project_root_dir_abs}' into 'Python${python_full_version}' env."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -939,8 +942,7 @@ function build_venv_env() {
     }
     echo -e "cleanup completed"
 
-    # Deactivate virtual env silently
-    export PATH="${OLD_PATH}"
+    deactivate_venv_env_core
 
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
@@ -955,47 +957,58 @@ function build_venv_env() {
     fi
 }
 
+function echo_env_info() {
+    local bin_dir="${1}"
+
+    # Display Project info
+    echo -e "${bold_green}${hammer_and_wrench}  Project Root:${end}"
+    echo "${project_root_dir_abs}"
+    echo
+
+    # Display env info
+    echo -e "${bold_green}${green_check_mark} Environment activated:${end}"
+    echo -e "Runtime Env: ${bin_dir}"
+    echo -e "Platform ID: ${platform_identifier}"
+    echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
+    echo
+}
+
 function activate_brazil_env() {
+    local brazil_bin_dir
+
     # Use brazil runtime farm to activate brazil runtime env
-    local brazil_bin_dir="$(brazil-path testrun.runtimefarm 2>/dev/null)/python${python_version_default_for_brazil}/bin"
+    brazil_bin_dir="$(brazil-path testrun.runtimefarm 2>/dev/null)/python${python_version_default_for_brazil}/bin"
     brazil-build
 
     # Adding brazil python runtime to path
     OLD_PATH="${PATH}"
     export PATH="${brazil_bin_dir}:${PATH}"
 
-    # Display Project info
-    echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
-    echo "${project_root_dir_abs}"
-    # Display env info
-    echo -e "\n${bold_green}${green_check_mark} Environment activated:${end}"
-    echo -e "brazil env: $(realpath -- ${brazil_bin_dir}/..)"
-    echo -e "OS Version: $(uname)"
-    echo -e "Kernel Version: $(uname -r)"
-    echo -e "running: $(python3 --version)"
-    echo
+    # Display Env info
+    echo_env_info "${brazil_bin_dir}"
 }
 
-function activate_venv_env() {
-    if [[ ! -e "${path_to_env_root}/bin/python3" ]]; then
-        echo_error "Cannot find the requested env: \`Python${python_full_version}\`"
-    fi
+function activate_venv_env_core() {
+    # we need to keep this activate core separated from any echo message as it's being
+    # used in the build function too
 
     # Adding runtime bin to path
     OLD_PATH="${PATH}"
     export PATH="${path_to_runtime_root}/bin:${path_to_env_root}/bin:${OLD_PATH}"
+}
 
-    # Display Project info
-    echo -e "${bold_green}${hammer_and_wrench} Project Root:${end}"
-    echo "${project_root_dir_abs}"
-    echo
-    # Display env info
-    echo -e "${bold_green}${green_check_mark} Environment activated:${end}"
-    echo -e "env: $(command -v python3)"
-    echo -e "OS Version: $(uname)"
-    echo -e "Kernel Version: $(uname -r)"
-    echo -e "running: $(python3 --version)"
-    echo
+function activate_venv_env() {
+    local bin_dir
+
+    if [[ ! -e "${path_to_env_root}/bin/python${python_version}" ]]; then
+        echo_error "Cannot find the requested env: \`Python${python_full_version}\`"
+    fi
+
+    activate_venv_env_core
+
+    # Display Env info
+    bin_dir="$(command -v "python${python_version}")"
+    echo_env_info "${bin_dir}"
 }
 
 function deactivate_brazil_env() {
@@ -1004,8 +1017,14 @@ function deactivate_brazil_env() {
     echo
 }
 
-function deactivate_venv_env() {
+function deactivate_venv_env_core() {
+    # we need to keep this deactivate core separated from any echo message as it's being
+    # used in the build function too
     export PATH="${OLD_PATH}"
+}
+
+function deactivate_venv_env() {
+    deactivate_venv_env_core
     echo -e "Environment deactivated!"
     echo
 }
@@ -1165,10 +1184,10 @@ function dispatch_tools() {
 
     # Tools that are run as composite
     if [[ "${build_system_in_use}" == "brazil" ]]; then
-        echo_title "Project info"
+        echo_title "Project & Env info"
         activate_brazil_env
     elif [[ "${build_system_in_use}" == "icarus" ]]; then
-        echo_title "Project info"
+        echo_title "Project & Env info"
         activate_venv_env
     fi
 
