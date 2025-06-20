@@ -947,12 +947,12 @@ function build_venv_env() {
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
         echo
-        echo -e "${bold_green}${green_check_mark} 'Python${python_full_version}' env build complete & Ready for use!${end}"
+        echo -e "${bold_green}${green_check_mark} 'Python${python_full_version}' build complete & Ready for use!${end}"
         echo
     else
         # Build failed!
         echo
-        echo -e "${bold_red}${stop_sign} 'Python${python_full_version}' env build failed!${end}"
+        echo -e "${bold_red}${stop_sign} 'Python${python_full_version}' build failed!${end}"
         echo
     fi
 }
@@ -961,12 +961,12 @@ function echo_env_info() {
     local bin_dir="${1}"
 
     # Display Project info
-    echo -e "${bold_green}${hammer_and_wrench}  Project Root:${end}"
+    echo -e "${bold_green}${green_circle} Project Root:${end}"
     echo "${project_root_dir_abs}"
     echo
 
     # Display env info
-    echo -e "${bold_green}${green_check_mark} Environment activated:${end}"
+    echo -e "${bold_green}${green_circle} Runtime Environment:${end}"
     echo -e "Runtime Env: ${bin_dir}"
     echo -e "Platform ID: ${platform_identifier}"
     echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
