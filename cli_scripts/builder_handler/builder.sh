@@ -1088,14 +1088,11 @@ function clean_brazil_env() {
 }
 
 function clean_venv_env() {
-    echo -e "Cleaning up..."
-    echo
-
     local dirs_to_clean=(
         "${project_root_dir_abs}/${build_env_dir_name}"
     )
     for dir in "${dirs_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}$(basename ${dir})${end}'"
+        echo -e "Cleaning '${blue}$(basename "${dir}")${end}'"
         echo -e "${dir}"
         rm -rf "${dir}" || {
             echo_error "Failed to clean '${dir}'."
@@ -1108,12 +1105,10 @@ function clean_venv_env() {
     clean_common
 
     if [[ "${clean_summary_status}" == "${failed}" ]]; then
-        echo
-        echo -e "${bold_red}${stop_sign} Environment '${build_env_dir_name}' clean failed!${end}"
+        echo -e "${bold_red}${stop_sign} Environment cleanup failed!${end}"
         echo
     else
-        echo
-        echo -e "Environment '${build_env_dir_name}' cleaned!"
+        echo -e "${bold_green}${broom} Environment cleanup completed!${end}"
         echo
     fi
 }
