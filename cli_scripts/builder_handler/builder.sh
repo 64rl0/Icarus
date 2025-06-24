@@ -81,11 +81,6 @@ function echo_title() {
 
 function echo_running_hooks() {
     echo_title "Running Info"
-
-    echo -e "${cli_name} builder is running using"
-    echo -e "$("${this_icarus_abs_filepath}" --version)"
-    echo
-
     echo -e "Collected and preparing to run ${running_hooks_count} hook(s)."
     for hook in "${running_hooks_name[@]}"; do
         echo -e "--| ${blue}${hook}${end}"
@@ -94,29 +89,35 @@ function echo_running_hooks() {
 }
 
 function echo_summary() {
-    local execution_time=""
-    local execution_time_total=0
-    local execution_time_partial=""
-    local tool=""
-    local tet=""
-    local python_versions_pretty=""
+    local execution_time execution_time_total execution_time_partial tool total_execution_time python_versions_pretty
+    execution_time=""
+    execution_time_total=0
+    execution_time_partial=""
+    tool=""
+    total_execution_time=""
+    python_versions_pretty=""
 
     for python_version_composite in "${python_versions[@]}"; do
         python_versions_pretty+="Python$(echo "${python_version_composite}" | cut -d ':' -f 2) "
     done
 
-    local runtime="${bold_blue}Runtime:${end} \
+    echo_title "Icarus Builder Summary"
+
+    echo -e "${bold_blue}${cli_name} builder:${end}"
+    echo -e "$("${this_icarus_abs_filepath}" --version)"
+    echo
+
+    echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
+    echo
+
+    echo -e "${bold_blue}Runtime:${end} \
         \n--| Package ${bold_green}${package_name_pascal_case}${end} \
         \n--| ${project_root_dir_abs} \
         \n--| Interpreters enabled ${bold_green}${python_versions_pretty}${end} \
         \n--| Interpreter default ${bold_green}Python${python_default_version}${end}"
-
-    echo_title "Icarus Builder Build Summary"
-    echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
-    echo
-    echo -e "${runtime}"
     echo
 
+    echo -e "${bold_blue}Execution metrics overview:${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
@@ -144,10 +145,9 @@ function echo_summary() {
     else
         execution_time_total="$(printf "%.3f" "${execution_time_total}")s"
     fi
-    tet="$(printf '%s' "total-execution-time ..................................." | cut -c1-39)"
-    printf "%-30s | %-7s\n" "${tet}" "${execution_time_total}"
+    total_execution_time="$(printf '%s' "total-execution-time ..................................." | cut -c1-39)"
+    printf "%-30s | %-7s\n" "${total_execution_time}" "${execution_time_total}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-
     echo
 }
 
