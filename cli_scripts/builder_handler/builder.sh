@@ -12,6 +12,8 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 cli_scripts_dir_abs="$(realpath -- "${script_dir_abs}/../")"
 declare -r cli_scripts_dir_abs
+this_icarus_abs_filepath="$(realpath -- "${script_dir_abs}/../../bin/icarus")"
+declare -r this_icarus_abs_filepath
 this_script_abs_filepath="$(realpath -- "${BASH_SOURCE[0]}")"
 declare -r this_script_abs_filepath
 cli_script_base="${cli_scripts_dir_abs}/base.sh"
@@ -37,7 +39,7 @@ function validate_command() {
 function validate_prerequisites() {
     # Validate we are not running the prod script on this dev env to prevent special formatting
     # of this script
-    if [[ "${PWD}" =~ _Projects\/Icarus && ! "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
+    if [[ "${PWD}" =~ _Projects\/Icarus && ! "${this_icarus_abs_filepath}" =~ _Projects\/Icarus\/ ]]; then
         echo_error "You are not supposed to run production ${cli_name} in the ${cli_name} development environment" "errexit"
     fi
 
@@ -79,6 +81,11 @@ function echo_title() {
 
 function echo_running_hooks() {
     echo_title "Running Info"
+
+    echo -e "${cli_name} builder is running using"
+    echo -e "$("${this_icarus_abs_filepath}" --version)"
+    echo
+
     echo -e "Collected and preparing to run ${running_hooks_count} hook(s)."
     for hook in "${running_hooks_name[@]}"; do
         echo -e "--| ${blue}${hook}${end}"
@@ -780,7 +787,6 @@ function install_python_runtime() {
     done
 
     echo -e "${bold_green}${sparkles} Downloading & Installing 'Python${python_full_version}'${end}"
-    echo -e "This can take a while"
     if [[ ! -e "${dest_tar}" ]]; then
         curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
             echo_error "Failed to download '${python_pkg_name}'."

@@ -69,8 +69,11 @@ def cli_version() -> None:
         text=True,
         capture_output=True,
     ).stdout.replace('\n', '')
-    python_version = sys.version.split()[0]
+    python_version = sys.version
 
-    version = f'icarus-cli: {icarus_version}\nicarus-hash: {icarus_build}\npython: {python_version}'
+    version = (
+        f'icarus-cli: {icarus_version}\nicarus-hash: {icarus_build}\npython:'
+        f' {python_version}\nplatform: {utils.platform_id()}'
+    )
 
     print(version, flush=True)
