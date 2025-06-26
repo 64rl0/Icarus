@@ -149,6 +149,7 @@ _icarus() {
                 'encrypt-volume:encrypt an APFS volume'
                 'mount-volume:mount the specified volume at the specified mount point'
                 'mount-at-startup:install a LaunchDaemon to mount the volume at System Startup'
+                'icarus-update-daemon:install the icarus auto-update daemon (LaunchAgent)'
                 '--help:show help message'
                 '-h:show help message'
             )
@@ -322,6 +323,12 @@ _icarus() {
                 completions+=(
                     '-n:REQUIRED name of the volume to mount'
                     '-p:REQUIRED mount point for the volume'
+                    '--help:show help message'
+                    '-h:show help message'
+                )
+                ;;
+            icarus-update-daemon)
+                completions+=(
                     '--help:show help message'
                     '-h:show help message'
                 )

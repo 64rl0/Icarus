@@ -115,6 +115,16 @@ def handle_macos_command(args: argparse.Namespace) -> int:
 
         return return_code
 
+    elif args.macos_command == 'icarus-update-daemon':
+        module_logger.debug(f"Running {args.macos_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'macos_handler' / 'update_icarus_daemon.sh'
+        script_args = None
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
     else:
         module_logger.debug(f"Running {args.macos_command=}")
         raise utils.IcarusParserException('the following arguments are required: <subcommand>')

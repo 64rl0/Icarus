@@ -596,6 +596,14 @@ def initialize_parser() -> argparse.ArgumentParser:
         '-p', required=True, metavar='MOUNT', help='mount point for the volume'
     )
 
+    macos_sub.add_parser(
+        name=f'{config.CLI_NAME}-update-daemon',
+        help=f'install the {config.CLI_NAME} auto-update daemon (LaunchAgent)',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+
     # ==================
     # Unison subcommands
     # ==================

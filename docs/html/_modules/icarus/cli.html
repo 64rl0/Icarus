@@ -631,6 +631,14 @@
         <span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;MOUNT&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;mount point for the volume&#39;</span>
     <span class="p">)</span>
 
+    <span class="n">macos_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_NAME</span><span class="si">}</span><span class="s1">-update-daemon&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;install the </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_NAME</span><span class="si">}</span><span class="s1"> auto-update daemon (LaunchAgent)&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="c1"># ==================</span>
     <span class="c1"># Unison subcommands</span>
     <span class="c1"># ==================</span>
