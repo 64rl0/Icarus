@@ -66,9 +66,13 @@ icarus_update_install_launchd() {
     </dict>
 </plist>
 EOF
-
     echo -e "launchd icarus daily update demon configuration was successfully written to"
     echo -e "${daemon_fullpath}"
+    echo
+
+    echo -e "Loading launchd icarus daily update demon configuration"
+    launchctl unload "${daemon_fullpath}"
+    launchctl load "${daemon_fullpath}"
 }
 
 icarus_update_install_launchd "$@"
