@@ -137,7 +137,6 @@ _icarus() {
                 '--test:run the automated test suite'
                 '--release:run the full “release” pipeline'
                 '--exec:command to run inside the runtime environment'
-                '--build-runtime:build the interpreter runtime'
                 '--help:show help message'
                 '-h:show help message'
             )
@@ -245,6 +244,12 @@ _icarus() {
                 completions+=(
                     '-n:REQUIRED the package name in PascalCase'
                     '-l:REQUIRED the package name language'
+                    '--help:show help message'
+                    '-h:show help message'
+                )
+                ;;
+            build-runtime)
+                completions+=(
                     '--help:show help message'
                     '-h:show help message'
                 )
