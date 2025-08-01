@@ -203,7 +203,7 @@ def platform_id() -> str:
         os_part = _linux_flavour()
 
     elif sys.platform == "darwin":
-        major = platform.mac_ver()[0] or "0"
+        major = platform.mac_ver()[0].split('.')[0] or "0"
         os_part = f"macos{major}"
 
     elif os.name == "nt":

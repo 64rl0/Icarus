@@ -66,7 +66,7 @@ platform_id() {
     Darwin*)
         # On macOS, use sw_vers to get the product version (e.g. “13.4.1”)
         local version
-        version=$(sw_vers -productVersion 2>/dev/null || echo "")
+        version=$(sw_vers -productVersion 2>/dev/null | cut -d '.' -f1 || echo "")
         [[ -z "$version" ]] && version="0"
         os_part="macos${version}"
         ;;
