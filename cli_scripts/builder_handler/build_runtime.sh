@@ -1804,7 +1804,7 @@ function echo_final_response() {
 }
 
 function read_build_versions() {
-    # macos15.5
+    # macos15
     # - 3.13 all version
     # - 3.12 all version
     # - 3.11 all version
@@ -2006,7 +2006,16 @@ function build_version() {
 function main() {
     local max_parallel spinner pids
 
-    max_parallel=1
+    # Due to TK build this needs to run as 1 on macos
+    # On linux hosts can be upped to 100
+    if [[ $(uname -s) == "Darwin" ]]; then
+        max_parallel=1
+    elif [[ $(uname -s) == "Linux" ]]; then
+        max_parallel=100
+    else
+        echo_error "Unsupported platform: $(uname -s)"
+        exit_code=1
+    fi
     spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 
     read_build_versions
