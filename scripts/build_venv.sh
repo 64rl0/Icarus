@@ -92,6 +92,7 @@ echo -e "\n\n${bold_green}${sparkles} Downloading Python Runtime...${end}"
 mkdir -p "${project_root_dir_abs}/${venv_name}/env"
 curl -L "${download_url}" -o "${project_root_dir_abs}/${venv_name}/env/cpython.tar.gz"
 tar -xzf "${project_root_dir_abs}/${venv_name}/env/cpython.tar.gz" -C "${project_root_dir_abs}/${venv_name}/env"
+rm -rf "${project_root_dir_abs}/${venv_name}/env/icarus-runtime"
 mv "${project_root_dir_abs}/${venv_name}/env/${python_full_version_for_venv}" "${project_root_dir_abs}/${venv_name}/env/icarus-runtime"
 rm -rf "${project_root_dir_abs}/${venv_name}/env/cpython.tar.gz"
 

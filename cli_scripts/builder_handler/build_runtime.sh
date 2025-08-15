@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #   __|    \    _ \  |      _ \   __| __ __| __ __|
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
@@ -900,7 +902,41 @@ function build_python_runtime() {
         exit_code=1
     fi
 
-    if [[ "${python_full_version}" == "3.13."* ]]; then
+    if [[ "${python_full_version}" == "3.14."* ]]; then
+        if [[ $(uname) == "Darwin" ]]; then
+            build_tcltk
+            build_openssl
+            build_readline
+            build_gdbm
+            build_xz
+            build_uuid_macos
+            build_sqlite3
+        elif [[ $(uname -s) == "Linux" ]]; then
+            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            fi
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
+        fi
+
+        prefix="--prefix=${path_to_python_home} \
+               :--enable-optimizations \
+               :--with-lto \
+               :--with-computed-gotos \
+               :--with-openssl=${path_to_local} \
+               :--with-openssl-rpath=no \
+               :--enable-loadable-sqlite-extensions"
+
+    elif [[ "${python_full_version}" == "3.13."* ]]; then
         if [[ $(uname) == "Darwin" ]]; then
             build_tcltk
             build_openssl
@@ -1805,6 +1841,7 @@ function echo_final_response() {
 
 function read_build_versions() {
     # macos15
+    # - 3.14 all version
     # - 3.13 all version
     # - 3.12 all version
     # - 3.11 all version
@@ -1814,6 +1851,7 @@ function read_build_versions() {
     # - 3.7 NOT SUPPORTED
 
     # AL2023
+    # - 3.14 all version
     # - 3.13 all version
     # - 3.12 all version
     # - 3.11 all version
@@ -1823,6 +1861,7 @@ function read_build_versions() {
     # - 3.7 up to and including 3.7.6
 
     # AL2
+    # - 3.14 all version
     # - 3.13 all version
     # - 3.12 all version
     # - 3.11 all version
@@ -1832,7 +1871,11 @@ function read_build_versions() {
     # - 3.7 up to and including 3.7.1
 
     declare -g -r verv=(
+        # PYTHON 3.14
+        # "3.14.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # PYTHON 3.13
+        "3.13.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        "3.13.6:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.5:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.4:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
