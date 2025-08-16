@@ -42,6 +42,10 @@ function validate_prerequisites() {
     if [[ -z "${verv}" ]]; then
         echo_error "There isn't any selected version of Python to build!" "errexit"
     fi
+
+    if ! command -v gh >/dev/null 2>&1; then
+        echo_error "GitHub CLI (gh) is not installed or not in PATH." "errexit"
+    fi
 }
 
 function set_constants() {
@@ -148,10 +152,56 @@ function prepare_local() {
 }
 
 function prepare_sysroot_macos() {
-    rsync -aHE "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/" "${path_to_sysroot}/" || {
+    local version
+
+    # We want to build the interpreter with the same version of the current macos running this
+    # script, so if the skd for the same version of this macos is not available we stop
+    version=$(sw_vers -productVersion 2>/dev/null | cut -d '.' -f1 || echo "error-finding-macos-version")
+    sdk_path="/Library/Developer/CommandLineTools/SDKs/MacOSX${version}.sdk/"
+
+    if [[ ! -d "${sdk_path}" ]]; then
+        echo_error "MacOS SDK not found for version '${version}' on this machine"
+        exit_code=1
+    fi
+
+    rsync -aHE "${sdk_path}" "${path_to_sysroot}/" || {
         echo_error "Failed to copy 'sysroot'."
         exit_code=1
     }
+}
+
+function prerequisites_for_linux() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Preparing OS${end}"
+
+    echo -e "Redirecting output to '${path_to_log_root}/prepare_os_linux.log'"
+    sudo yum -y update >"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
+        echo_error "Failed to yum update."
+        exit_code=1
+    }
+    sudo yum -y upgrade >>"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
+        echo_error "Failed to yum upgrade."
+        exit_code=1
+    }
+    sudo yum -y install \
+        patchelf \
+        perl \
+        glibc \
+        glibc-headers \
+        glibc-devel \
+        bash \
+        coreutils \
+        which \
+        sed \
+        tar \
+        gzip \
+        gcc \
+        make >>"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
+        echo_error "Failed to yum install prerequisites."
+        exit_code=1
+    }
+    echo -e "done!"
+    echo
 }
 
 function prepare_sysroot_linux() {
@@ -209,6 +259,7 @@ function prepare_sysroot() {
     if [[ $(uname -s) == "Darwin" ]]; then
         prepare_sysroot_macos
     elif [[ $(uname -s) == "Linux" ]]; then
+        prerequisites_for_linux
         prepare_sysroot_linux
     else
         echo_error "Unsupported platform: $(uname -s)"
