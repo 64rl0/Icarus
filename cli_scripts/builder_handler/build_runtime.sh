@@ -171,18 +171,18 @@ function prepare_sysroot_macos() {
 }
 
 function prerequisites_for_linux() {
-    echo_time
-    echo -e "${bold_green}${sparkles} Preparing OS${end}"
-
     echo -e "Redirecting output to '${path_to_log_root}/prepare_os_linux.log'"
+
     sudo yum -y update >"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
         echo_error "Failed to yum update."
         exit_code=1
     }
+
     sudo yum -y upgrade >>"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
         echo_error "Failed to yum upgrade."
         exit_code=1
     }
+
     sudo yum -y install \
         patchelf \
         perl \
@@ -200,8 +200,6 @@ function prerequisites_for_linux() {
         echo_error "Failed to yum install prerequisites."
         exit_code=1
     }
-    echo -e "done!"
-    echo
 }
 
 function prepare_sysroot_linux() {
