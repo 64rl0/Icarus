@@ -46,6 +46,12 @@ function validate_prerequisites() {
     if ! command -v gh >/dev/null 2>&1; then
         echo_error "GitHub CLI (gh) is not installed or not in PATH." "errexit"
     fi
+
+    if [[ $(uname -s) == "Darwin" ]]; then
+        if ! command -v xcrun >/dev/null 2>&1; then
+            echo_error "xcrun is not installed or not in PATH." "errexit"
+        fi
+    fi
 }
 
 function set_constants() {
@@ -1246,16 +1252,12 @@ function build_python_runtime() {
 
     if [[ $(uname) == "Darwin" ]]; then
         # macOS C compiler and Linker options for Python
-        export SDKROOT="${path_to_sysroot}"
+        export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 
-        export CPPFLAGS="--sysroot=${path_to_sysroot} \
-                         -I${path_to_local}/include \
-                         -I${path_to_local}/include/uuid \
-                         -I${path_to_sysroot}/usr/include"
+        export CPPFLAGS="-I${path_to_local}/include \
+                         -I${path_to_local}/include/uuid"
 
-        export LDFLAGS="--sysroot=${path_to_sysroot} \
-                        -L${path_to_local}/lib \
-                        -L${path_to_sysroot}/usr/lib \
+        export LDFLAGS="-L${path_to_local}/lib \
                         -Wl,-rpath,@loader_path/../"
 
         # Be paranoid and strip the system include/library hints
@@ -1705,6 +1707,42 @@ function check_loadable_refs() {
     echo
 }
 
+function check_python_sysconfig() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Checking Python build flags${end}"
+
+    local pybin="${path_to_python_home}/bin/python3"
+
+    NEEDLE="${path_to_sysroot}" "$pybin" - <<'PY' || py_sysconfig_failed=1
+import os, sys, sysconfig
+
+needle = os.environ['NEEDLE']
+
+# Patterns that should not persist in a *final* Python toolchain
+needles = [needle, '--sysroot', '-isysroot', '-Wl,-syslibroot,']
+
+bad = []
+for k, v in (sysconfig.get_config_vars() or {}).items():
+    if isinstance(v, str) and any(n in v for n in needles):
+        bad.append((k, v))
+
+if bad:
+    for k, v in bad:
+        print(f"[LEAK] {k} = {v}")
+    sys.exit(1)
+
+print("OK: no leaked sysroot/-isysroot/-syslibroot in Python build vars")
+PY
+
+    if [[ "${py_sysconfig_failed}" -eq 1 ]]; then
+        echo_error "Python build flags test failed."
+        exit_code=1
+    fi
+
+    echo -e "done!"
+    echo
+}
+
 function check_broken_links() {
     echo_time
     echo -e "${bold_green}${sparkles} Checking for broken links${end}"
@@ -2085,6 +2123,7 @@ function build_version() {
     set_ownership
     fix_runtime_paths
     check_loadable_refs
+    check_python_sysconfig
     clean_build
 
     check_broken_links
