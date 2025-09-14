@@ -192,6 +192,11 @@ function prerequisites_for_linux() {
     sudo yum -y install \
         patchelf \
         perl \
+        binutils \
+        file \
+        rsync \
+        curl \
+        findutils \
         glibc \
         glibc-headers \
         glibc-devel \
@@ -295,10 +300,16 @@ function echo_envs() {
     done
     echo -e "SDKROOT:"
     echo -e "--| ${SDKROOT}"
+    echo -e "PY_SYSROOT:"
+    echo -e "--| ${PY_SYSROOT}"
     echo -e "CC:"
     echo -e "--| ${CC}"
+    echo -e "REAL_CC:"
+    echo -e "--| ${REAL_CC}"
     echo -e "CXX:"
     echo -e "--| ${CXX}"
+    echo -e "REAL_CXX:"
+    echo -e "--| ${REAL_CXX}"
     echo -e "LDSHARED:"
     echo -e "--| ${LDSHARED}"
     echo -e "LD_LIBRARY_PATH:"
@@ -389,10 +400,8 @@ function build_generic() {
             # Someone else is downloading; wait for them to finish
             ((retries = retries + 1))
             if ((retries >= max_retries)); then
-                # Always release the lock before breaking the loop
-                rm -rf "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" || {
-                    echo_error "Failed to remove '${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock'."
-                }
+                echo_error "Timed out waiting for ${package_download_filename} download lock."
+                exit_code=1
                 break
             fi
             sleep 2
@@ -927,6 +936,7 @@ function build_linux_base_dependencies() {
 function build_python_runtime() {
     local prefix
 
+    # Export the below to compile the python dependencies
     if [[ $(uname) == "Darwin" ]]; then
         # macOS C compiler and Linker options for python dependencies
         export SDKROOT="${path_to_sysroot}"
@@ -1256,6 +1266,7 @@ function build_python_runtime() {
         echo_error "Unsupported Python version: ${python_full_version}"
     fi
 
+    # Export the below to compile Cpython
     if [[ $(uname) == "Darwin" ]]; then
         # macOS C compiler and Linker options for Python
         export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
@@ -1300,7 +1311,10 @@ function build_python_runtime() {
                          -I${path_to_local}/include/tirpc \
                          -I${path_to_local}/include/uuid"
 
-        export LDFLAGS="-L${path_to_local}/lib"
+        export LDFLAGS="-L${path_to_local}/lib \
+                        -Wl,-rpath,${path_to_local}/lib \
+                        -Wl,-rpath,${path_to_python_home}/lib \
+                        -Wl,-rpath-link,${path_to_local}/lib"
 
         # Be paranoid and strip the system include/library hints
         unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
@@ -1329,25 +1343,20 @@ function build_python_runtime() {
 function create_compiler_wrapper() {
     # DO NOT declare local CC_WRAPPER and CXX_WRAPPER as
     # they are being used here above!!
-
-    # Make the sysroot available to the wrapper at *runtime*
-    export PY_SYSROOT="${path_to_sysroot}"
-
-    # Expose wrapper paths as globals so the caller can use them
     CC_WRAPPER="${path_to_tmpwork_root}/cc-sysroot"
     CXX_WRAPPER="${path_to_tmpwork_root}/cxx-sysroot"
 
     # C compiler wrapper: inject --sysroot without leaking it into Python's sysconfig
-    cat >"${CC_WRAPPER}" <<'EOF'
+    cat >"${CC_WRAPPER}" <<EOF
 #!/usr/bin/env bash
-exec "${REAL_CC:-gcc}" --sysroot="${PY_SYSROOT}" "$@"
+exec "\${REAL_CC:-gcc}" --sysroot="${path_to_sysroot}" "\$@"
 EOF
     chmod +x "${CC_WRAPPER}"
 
     # C++ compiler wrapper for modules that use C++
-    cat >"${CXX_WRAPPER}" <<'EOF'
+    cat >"${CXX_WRAPPER}" <<EOF
 #!/usr/bin/env bash
-exec "${REAL_CXX:-g++}" --sysroot="${PY_SYSROOT}" "$@"
+exec "\${REAL_CXX:-g++}" --sysroot="${path_to_sysroot}" "\$@"
 EOF
     chmod +x "${CXX_WRAPPER}"
 }
