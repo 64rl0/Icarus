@@ -195,7 +195,6 @@ function prerequisites_for_linux() {
         binutils \
         file \
         rsync \
-        curl \
         findutils \
         glibc \
         glibc-headers \
