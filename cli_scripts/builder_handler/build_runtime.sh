@@ -295,6 +295,12 @@ function echo_envs() {
     done
     echo -e "SDKROOT:"
     echo -e "--| ${SDKROOT}"
+    echo -e "CC:"
+    echo -e "--| ${CC}"
+    echo -e "CXX:"
+    echo -e "--| ${CXX}"
+    echo -e "LDSHARED:"
+    echo -e "--| ${LDSHARED}"
     echo -e "LD_LIBRARY_PATH:"
     echo -e "--| ${LD_LIBRARY_PATH}"
     echo -e "PKG_CONFIG_SYSROOT_DIR:"
@@ -1267,21 +1273,34 @@ function build_python_runtime() {
         export TCLTK_CFLAGS="-I${path_to_local}/include"
         export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
     elif [[ $(uname -s) == "Linux" ]]; then
+        # Inject sysroot *only* via the compiler driver, not via CPPFLAGS/LDFLAGS:
+        # - create_compiler_wrapper writes tiny shims (cc-sysroot / cxx-sysroot)
+        #   that exec the real compiler with:  --sysroot="$PY_SYSROOT"
+        # - We point CC/CXX/LDSHARED at those shims so both compilation and
+        #   shared-object linking see the sysroot.
+        # - We intentionally keep CPPFLAGS/LDFLAGS free of --sysroot to avoid
+        #   leaking absolute paths into Python’s sysconfig/python3-config.
+        # - The wrappers live under ${path_to_tmpwork_root} and aren’t packaged,
+        #   so the final runtime has no dependency on host SDK locations.
+
+        # Create tiny CC/CXX wrappers that add --sysroot only at compile/link time
+        # (so configure/sysconfig never see --sysroot in CPPFLAGS/LDFLAGS)
+        create_compiler_wrapper
+        # build C sources via wrapper
+        export CC="${CC_WRAPPER}"
+        # build any C++ sources via wrapper
+        export CXX="${CXX_WRAPPER}"
+        # link .so via wrapper (gets sysroot too)
+        export LDSHARED="${CC_WRAPPER} -shared"
+
         # Linux C compiler and Linker options for Python
         export LD_LIBRARY_PATH="${path_to_local}/lib"
 
-        export CPPFLAGS="--sysroot=${path_to_sysroot} \
-                         -I${path_to_local}/include \
+        export CPPFLAGS="-I${path_to_local}/include \
                          -I${path_to_local}/include/tirpc \
-                         -I${path_to_local}/include/uuid \
-                         -I${path_to_sysroot}/usr/include"
+                         -I${path_to_local}/include/uuid"
 
-        export LDFLAGS="--sysroot=${path_to_sysroot} \
-                        -L${path_to_local}/lib \
-                        -L${path_to_sysroot}/usr/lib \
-                        -L${path_to_sysroot}/usr/lib64 \
-                        -Wl,-rpath,${path_to_local}/lib \
-                        -Wl,-rpath,${path_to_python_home}/lib"
+        export LDFLAGS="-L${path_to_local}/lib"
 
         # Be paranoid and strip the system include/library hints
         unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
@@ -1305,6 +1324,32 @@ function build_python_runtime() {
         "Python-${python_full_version}" \
         "https://www.python.org/ftp/python/${python_full_version}/Python-${python_full_version}.tgz" \
         "${prefix}"
+}
+
+function create_compiler_wrapper() {
+    # DO NOT declare local CC_WRAPPER and CXX_WRAPPER as
+    # they are being used here above!!
+
+    # Make the sysroot available to the wrapper at *runtime*
+    export PY_SYSROOT="${path_to_sysroot}"
+
+    # Expose wrapper paths as globals so the caller can use them
+    CC_WRAPPER="${path_to_tmpwork_root}/cc-sysroot"
+    CXX_WRAPPER="${path_to_tmpwork_root}/cxx-sysroot"
+
+    # C compiler wrapper: inject --sysroot without leaking it into Python's sysconfig
+    cat >"${CC_WRAPPER}" <<'EOF'
+#!/usr/bin/env bash
+exec "${REAL_CC:-gcc}" --sysroot="${PY_SYSROOT}" "$@"
+EOF
+    chmod +x "${CC_WRAPPER}"
+
+    # C++ compiler wrapper for modules that use C++
+    cat >"${CXX_WRAPPER}" <<'EOF'
+#!/usr/bin/env bash
+exec "${REAL_CXX:-g++}" --sysroot="${PY_SYSROOT}" "$@"
+EOF
+    chmod +x "${CXX_WRAPPER}"
 }
 
 function check_python_build_logs() {
@@ -2146,7 +2191,7 @@ function main() {
     if [[ $(uname -s) == "Darwin" ]]; then
         max_parallel=1
     elif [[ $(uname -s) == "Linux" ]]; then
-        max_parallel=100
+        max_parallel=10
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
