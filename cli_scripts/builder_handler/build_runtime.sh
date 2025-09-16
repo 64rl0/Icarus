@@ -1322,8 +1322,12 @@ function build_python_runtime() {
         export TCLTK_CFLAGS="-I${path_to_local}/include"
         export TCLTK_LIBS="-L${path_to_local}/lib -ltcl${tcltk_version} -ltclstub${tcltk_version} -ltk${tcltk_version} -ltkstub${tcltk_version}"
 
-        # For some unknown reasons this test sometimes fails this workaround seem to work
-        # export PROFILE_TASK='-m test --pgo -x test_generators'
+        # This only seems to be needed on AL2
+        if [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+            # For some unknown reasons this test sometimes fails this workaround seem to work
+            # export PROFILE_TASK='-m test --pgo -x test_generators'
+            :
+        fi
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
