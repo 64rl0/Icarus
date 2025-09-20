@@ -934,7 +934,7 @@ function build_linux_base_dependencies() {
 }
 
 function build_python_runtime() {
-    local prefix
+    local prefix enable_workaround
 
     # Export the below to compile the python dependencies
     if [[ $(uname) == "Darwin" ]]; then
@@ -1325,12 +1325,13 @@ function build_python_runtime() {
 
         # This only seems to be needed on AL2
         # To enable replace false with true
-        if [[ "${platform_identifier}" == *'amzn2-'* ]] && false; then
+        enable_workaround=false
+        if [[ "${platform_identifier}" == *'amzn2-'* ]] && "${enable_workaround}"; then
             # For some unknown reasons this test sometimes fails this workaround seem to work
             local test_generators test_poplib test_ftplib
             test_generators='-x test_generators'
             test_poplib='-x test_poplib'
-            test_ftplib=-'-x test_ftplib'
+            test_ftplib='-x test_ftplib'
             PROFILE_TASK="-m test --pgo ${test_generators} ${test_poplib} ${test_ftplib}"
             export PROFILE_TASK
         fi
