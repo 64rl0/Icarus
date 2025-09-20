@@ -477,6 +477,7 @@ function build_generic() {
 function build_tcltk() {
     if [[ $(uname -s) == "Darwin" ]]; then
         local os="macosx"
+        export NATIVE_TCLSH="/usr/local/bin/tclsh${tcltk_version}"
     elif [[ $(uname -s) == "Linux" ]]; then
         local os="unix"
     else
@@ -1323,10 +1324,15 @@ function build_python_runtime() {
         export TCLTK_LIBS="-L${path_to_local}/lib -ltcl${tcltk_version} -ltclstub${tcltk_version} -ltk${tcltk_version} -ltkstub${tcltk_version}"
 
         # This only seems to be needed on AL2
-        if [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+        # To enable replace false with true
+        if [[ "${platform_identifier}" == *'amzn2-'* ]] && false; then
             # For some unknown reasons this test sometimes fails this workaround seem to work
-            # export PROFILE_TASK='-m test --pgo -x test_generators'
-            :
+            local test_generators test_poplib test_ftplib
+            test_generators='-x test_generators'
+            test_poplib='-x test_poplib'
+            test_ftplib=-'-x test_ftplib'
+            PROFILE_TASK="-m test --pgo ${test_generators} ${test_poplib} ${test_ftplib}"
+            export PROFILE_TASK
         fi
     else
         echo_error "Unsupported platform: $(uname -s)"
@@ -1370,14 +1376,15 @@ function check_python_build_logs() {
 
     grep -E -n \
         -e '[fF]ollowing modules built successfully but were removed because they could not be imported' \
+        -e 'could not be imported' \
         -e '[fF]ailed to build' \
         -e 'to build these optional modules were not found' \
+        -e 'modules were not found' \
         -e '[tT]o find the necessary bits, look in configure' \
         -e '[cC]ould not build the' \
         -e '[pP]ython requires' \
-        -e '[cC]ould not build the' \
         -e 'since importing it failed' \
-        -e '[tT]raceback ' \
+        -e 'Traceback ' \
         -e '[eE]rror 1$' \
         "${path_to_log_root}/Python-${python_full_version}.configure.log" \
         "${path_to_log_root}/Python-${python_full_version}.make.log" \
@@ -1988,6 +1995,15 @@ function echo_final_response() {
 }
 
 function read_build_versions() {
+    # macos26
+    # - 3.14 all version
+    # - 3.13 all version
+    # - 3.12 all version
+    # - 3.11 all version
+    # - 3.10 all version
+    # - 3.9 up to and including 3.9.1
+    # - 3.8 up to and including 3.8.10
+
     # macos15
     # - 3.14 all version
     # - 3.13 all version
@@ -1996,7 +2012,6 @@ function read_build_versions() {
     # - 3.10 all version
     # - 3.9 up to and including 3.9.1
     # - 3.8 up to and including 3.8.10
-    # - 3.7 NOT SUPPORTED
 
     # AL2023
     # - 3.14 all version
