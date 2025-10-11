@@ -867,6 +867,16 @@ function build_venv_env() {
         exit_code=1
     }
 
+    # Install tools required by icarus builder to build and release
+    echo
+    echo -e "${bold_green}${sparkles} Installing builder tools into 'Python${python_full_version}' env...${end}"
+    "python${python_version}" -m pip install -I build twine || {
+        echo_error "Failed to update pip."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+
     # Install requirements
     echo
     echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
