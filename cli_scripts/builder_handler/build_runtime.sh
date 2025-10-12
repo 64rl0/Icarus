@@ -61,37 +61,55 @@ function set_constants() {
 
     # Python version
     python_full_version=$(echo "${version_string}" | cut -d ':' -f 1)
+    declare -g python_full_version
     python_version=$(echo "${python_full_version}" | cut -d '.' -f 1,2)
+    declare -g python_version
 
     # OpenSSL version
     openssl_version=$(echo "${version_string}" | cut -d ':' -f 2)
+    declare -g openssl_version
     openssl_version_under=$(echo "${openssl_version}" | tr '.' '_')
+    declare -g openssl_version_under
 
     # Tcl & TK version
     tcltk_full_version=$(echo "${version_string}" | cut -d ':' -f 3)
+    declare -g tcltk_full_version
     tcltk_version=$(echo "${tcltk_full_version}" | cut -d '.' -f 1,2)
+    declare -g tcltk_version
 
     # Xz version
     xz_version=$(echo "${version_string}" | cut -d ':' -f 4)
+    declare -g xz_version
 
     # Gdbm version
     gdbm_version=$(echo "${version_string}" | cut -d ':' -f 5)
+    declare -g gdbm_version
 
     # SQLite3 version
     sqlite3_version=$(echo "${version_string}" | cut -d ':' -f 6)
+    declare -g sqlite3_version
     sqlite3_full_version=$(echo "${version_string}" | cut -d ':' -f 7)
+    declare -g sqlite3_full_version
 
     # Readline version
     readline_version=$(echo "${version_string}" | cut -d ':' -f 8)
+    declare -g readline_version
 
     # Ncurses version
     ncurses_version=$(echo "${version_string}" | cut -d ':' -f 9)
+    declare -g ncurses_version
 
     # Libffi version
     libffi_version=$(echo "${version_string}" | cut -d ':' -f 10)
+    declare -g libffi_version
 
     # Libnsl version
     libnsl_version=$(echo "${version_string}" | cut -d ':' -f 11)
+    declare -g libnsl_version
+
+    # zstd / Zstandard version
+    zstd_version=$(echo "${version_string}" | cut -d ':' -f 12)
+    declare -g zstd_version
 
     # Find max available cores
     if [[ $(uname -s) == "Darwin" ]]; then
@@ -440,12 +458,16 @@ function build_generic() {
         echo -e "--| ${conf}"
     done
     echo -e "Redirecting output to '${path_to_log_root}/${unpacked_dir_name}.configure.log'"
-    # Only for OpenSSl
-    if [[ "${package_download_filename}" =~ [oO]pen[sS][sS][lL] ]]; then
+    # Only for zstd/Zstandard that uses a plain Makefile, not autotools, so there’s no ./configure
+    if [[ "${package_download_filename}" =~ [zZ]std ]]; then
+        :
+    # Only for OpenSSl that uses ./config to auto-detect platform
+    elif [[ "${package_download_filename}" =~ [oO]pen[sS][sS][lL] ]]; then
         ./config "${configure_options[@]}" >"${path_to_log_root}/${unpacked_dir_name}.configure.log" 2>&1 || {
             echo_error "Failed to configure '${display_name}'."
             exit_code=1
         }
+    # Any other build falls back to ./configure
     else
         ./configure "${configure_options[@]}" >"${path_to_log_root}/${unpacked_dir_name}.configure.log" 2>&1 || {
             echo_error "Failed to configure '${display_name}'."
@@ -747,6 +769,19 @@ function build_xz() {
         :--enable-shared"
 }
 
+function build_zstd() {
+    export PREFIX="${path_to_local}"
+    build_generic \
+        "Zstandard${zstd_version}" \
+        "Zstandard" \
+        "zstd-${zstd_version}.tar.gz" \
+        "zstd-${zstd_version}" \
+        "zstd-${zstd_version}" \
+        "https://github.com/facebook/zstd/releases/download/v${zstd_version}/zstd-${zstd_version}.tar.gz" \
+        ""
+    unset PREFIX
+}
+
 function build_gdbm() {
     build_generic \
         "Gdbm${gdbm_version}" \
@@ -981,6 +1016,7 @@ function build_python_runtime() {
             build_readline
             build_gdbm
             build_xz
+            build_zstd
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
@@ -1327,7 +1363,7 @@ function build_python_runtime() {
         # To enable replace false with true
         enable_workaround=false
         if [[ "${platform_identifier}" == *'amzn2-'* ]] && "${enable_workaround}"; then
-            # For some unknown reasons this test sometimes fails this workaround seem to work
+            # For some unknown reasons this test sometimes fails, this workaround seem to work
             local test_generators test_poplib test_ftplib
             test_generators='-x test_generators'
             test_poplib='-x test_poplib'
@@ -2036,7 +2072,7 @@ function read_build_versions() {
 
     declare -g -r verv=(
         # PYTHON 3.14
-        # "3.14.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
+        # "3.14.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
         # PYTHON 3.13
         # "3.13.8:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.7:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
