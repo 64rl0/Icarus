@@ -135,9 +135,6 @@ function set_constants() {
     path_to_linux_dependencies_root="${path_to_python_home}/linux-tmp-dependencies"
     path_to_local="${path_to_python_home}/local"
 
-    # Optimize space while cleaning the python build and remove additional dirs
-    optimize_space=false
-
     python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
     python_pkg_full_name="${python_pkg_name}.tar.gz"
 }
@@ -1443,6 +1440,7 @@ function clean_build() {
         exit_code=1
     }
 
+    # Ensure include is empty (dev headers not needed at runtime)
     rm -rf "${path_to_local}/include/" || {
         echo_error "Failed to remove '${path_to_local}/include'."
         exit_code=1
@@ -1452,6 +1450,7 @@ function clean_build() {
         exit_code=1
     }
 
+    # Existing cache/file cleanup
     local dirs_to_clean=(
         ".mypy_cache"
         ".pytest_cache"
@@ -1479,10 +1478,57 @@ function clean_build() {
     done
 
     if [[ "${optimize_space}" == true ]]; then
-        rm -rf "${path_to_local:?}/share" || {
-            echo_error "Failed to remove '${path_to_local}/share'."
-            exit_code=1
-        }
+        # Docs/man/info
+        local dirs_to_clean=(
+            "doc"
+            "docs"
+            "man"
+            "info"
+            "gtk-doc"
+        )
+        for dir in "${dirs_to_clean[@]}"; do
+            find "${path_to_local}/share" -mindepth 1 -maxdepth 1 -name "${dir}" -print -exec rm -rf {} + || {
+                echo_warning "Failed to remove some share/* files."
+                exit_code=1
+            }
+        done
+
+        # Static & libtool artifacts — keep only things the loader can use
+        local files_to_clean=(
+            "*.a"
+            "*.la"
+        )
+        for file in "${files_to_clean[@]}"; do
+            find "${path_to_python_home}" -type f -name "${file}" -print -delete || {
+                echo_error "Failed to clean '${file}'."
+                exit_code=1
+            }
+        done
+
+        # TCL/Tk demos (runtime not required)
+        local dirs_to_clean=(
+            "tk*"/demos
+            "tcl*"/demos
+        )
+        for dir in "${dirs_to_clean[@]}"; do
+            find "${path_to_local}/lib" -maxdepth 2 -type d -name "${dir}" -print -exec rm -rf {} + || {
+                echo_warning "Failed to remove TCL/Tk demos."
+                exit_code=1
+            }
+        done
+
+        # Remove CPython test suites to save space
+        # prune lib2to3/tests, tkinter/test, distutils/tests, etc.
+        local dirs_to_clean=(
+            "test"
+            "tests"
+        )
+        for dir in "${dirs_to_clean[@]}"; do
+            find "${path_to_python_home}/lib/python${python_version}" -type d -name "${dir}" -print -exec rm -rf {} + || {
+                echo_warning "Failed to remove CPython test suites."
+                exit_code=1
+            }
+        done
     fi
 
     echo -e "done!"
@@ -1504,6 +1550,7 @@ function make_tar() {
         echo_error "Failed to move '${python_pkg_full_name}'."
         exit_code=1
     }
+    du -h "${python_builds}/${python_pkg_full_name}"
     echo -e "done!"
     echo
 }
@@ -2239,6 +2286,9 @@ function build_version() {
     fix_runtime_paths
     check_loadable_refs
     check_python_sysconfig
+
+    # Optimize space while cleaning the python build and remove additional dirs
+    optimize_space=true
     clean_build
 
     check_broken_links
