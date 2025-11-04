@@ -139,15 +139,31 @@ function set_constants() {
     python_pkg_full_name="${python_pkg_name}.tar.gz"
 }
 
+function clean_workspace() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Cleaning Workspace for fresh build${end}"
+
+    rm -rf "${path_to_python_home}" || {
+        echo_error "Failed to remove '${path_to_python_home}'."
+        exit_code=1
+    }
+
+    echo -e "done!"
+    echo
+
+}
+
 function prepare_workspace() {
     echo_time
     echo -e "${bold_green}${sparkles} Preparing Workspace${end}"
+
     for dir in "${path_to_log_root}" "${path_to_cache_root}" "${path_to_tmpwork_root}" "${path_to_sysroot}" "${path_to_local}"; do
         mkdir -p "${dir}" || {
             echo_error "Failed to create '${dir}'."
             exit_code=1
         }
     done
+
     echo -e "done!"
     echo
 }
@@ -267,16 +283,6 @@ function prepare_sysroot_linux() {
 }
 
 function prepare_sysroot() {
-    echo_time
-    echo -e "${bold_green}${sparkles} Cleaning env for fresh build${end}"
-
-    rm -rf "${path_to_python_home}" || {
-        echo_error "Failed to remove env '${path_to_python_home}'."
-        exit_code=1
-    }
-    echo -e "done!"
-    echo
-
     echo_time
     echo -e "${bold_green}${sparkles} Creating sysroot tree${end}"
 
@@ -1471,7 +1477,7 @@ function clean_build() {
         "*.pc"
     )
     for file in "${files_to_clean[@]}"; do
-        find "${path_to_python_home}" -type f -name "${file}" -print -exec rm -rf {} + || {
+        find "${path_to_python_home}" \( -type f -o -type l \) -name "${file}" -print -exec rm -rf {} + || {
             echo_error "Failed to clean '${file}'."
             exit_code=1
         }
@@ -1499,7 +1505,7 @@ function clean_build() {
             "*.la"
         )
         for file in "${files_to_clean[@]}"; do
-            find "${path_to_python_home}" -type f -name "${file}" -print -delete || {
+            find "${path_to_python_home}" \( -type f -o -type l \) -name "${file}" -print -delete || {
                 echo_error "Failed to clean '${file}'."
                 exit_code=1
             }
@@ -2097,6 +2103,15 @@ function read_build_versions() {
     # - 3.9 up to and including 3.9.1
     # - 3.8 up to and including 3.8.10
 
+    # macos14
+    # - 3.14 all version
+    # - 3.13 all version
+    # - 3.12 all version
+    # - 3.11 all version
+    # - 3.10 all version
+    # - 3.9 up to and including 3.9.1
+    # - 3.8 up to and including 3.8.10
+
     # AL2023
     # - 3.14 all version
     # - 3.13 all version
@@ -2264,6 +2279,7 @@ function build_version() {
     local title="Building Python ${python_full_version} runtime"
     echo -e "\n${bold_black}${bg_white}${left_pad} ${title} ${right_pad}${end}\n"
 
+    clean_workspace
     prepare_workspace
     prepare_sysroot
     prepare_local
