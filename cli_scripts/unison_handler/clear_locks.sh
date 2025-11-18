@@ -52,7 +52,7 @@ parse_args() {
     else
         clear_locks_ssh "${devdsk_id}"
         echo -e "\n"
-        clear_locks_ssh "${devdsk_id}"
+        clear_locks_local_machine
     fi
 }
 

@@ -1132,7 +1132,6 @@ function clean_venv_env() {
 }
 
 function exec_brazil() {
-    echo_title "Running exec"
     echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
     echo
 
@@ -1144,7 +1143,6 @@ function exec_brazil() {
 }
 
 function exec_venv() {
-    echo_title "Running exec"
     echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
     echo
 
@@ -1162,11 +1160,10 @@ function dispatch_tools() {
     if [[ "${build}" == "Y" ]]; then
         start_block=$(date +%s.%N)
 
+        echo_title "Building Env"
         if [[ "${build_system_in_use}" == "brazil" ]]; then
-            echo_title "Building brazil"
             build_brazil_env
         elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            echo_title "Building env"
             build_venv_env
         fi
 
@@ -1182,20 +1179,25 @@ function dispatch_tools() {
     if [[ "${clean}" == "Y" ]]; then
         start_block=$(date +%s.%N)
 
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            echo_title "Cleaning brazil"
-            clean_brazil_env
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            echo_title "Cleaning env"
-            clean_venv_env
+        echo_title "Cleaning Env"
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                clean_brazil_env
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                clean_venv_env
+            fi
         fi
 
         end_block=$(date +%s.%N)
         clean_execution_time=$(echo "${clean_execution_time}" + "${end_block} - ${start_block}" | bc)
+
+        # Clean always runs alone!
         return
     fi
 
-    # Tools that are run as composite
+    # Tools that are run as composite and need build env access
     if [[ "${build_system_in_use}" == "brazil" ]]; then
         echo_title "Project & Env info"
         activate_brazil_env
@@ -1208,10 +1210,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running iSort"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_isort
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_isort
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_isort
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_isort
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1222,10 +1228,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running Black"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_black
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_black
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_black
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_black
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1264,10 +1274,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running shfmt (bash formatter)"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_shfmt
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_shfmt
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_shfmt
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_shfmt
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1278,10 +1292,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running eol-norm (convert CR and CRLF to LF)"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_eolnorm
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_eolnorm
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_eolnorm
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_eolnorm
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1292,10 +1310,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Replacing non-breaking-space (NBSP) characters"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_char_replacement
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_char_replacement
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_char_replacement
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_char_replacement
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1306,10 +1328,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running trailing-whitespaces"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_trailingwhitespaces
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_trailingwhitespaces
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_trailingwhitespaces
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_trailingwhitespaces
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1320,10 +1346,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running eof-newline"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_eofnewline
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_eofnewline
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_eofnewline
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_eofnewline
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1334,10 +1364,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running gitleaks"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_gitleaks
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_gitleaks
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_gitleaks
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_gitleaks
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1362,10 +1396,14 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Generating documentation"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_brazil_documentation
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_venv_documentation
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                run_brazil_documentation
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                run_venv_documentation
+            fi
         fi
 
         end_block=$(date +%s.%N)
@@ -1375,10 +1413,15 @@ function dispatch_tools() {
     if [[ "${exec}" == "Y" ]]; then
         start_block=$(date +%s.%N)
 
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            exec_brazil
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            exec_venv
+        echo_title "Running exec"
+        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        else
+            if [[ "${build_system_in_use}" == "brazil" ]]; then
+                exec_brazil
+            elif [[ "${build_system_in_use}" == "icarus" ]]; then
+                exec_venv
+            fi
         fi
 
         end_block=$(date +%s.%N)

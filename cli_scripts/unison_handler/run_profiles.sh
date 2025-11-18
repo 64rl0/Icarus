@@ -33,7 +33,6 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 unison_terminal_notifier() {
     local profile=$1
     local message=""
-    local end_messages="" # Initialize an empty string to accumulate the [END] lines
     local log_file="${HOME}/.unison/unison_${profile}.log"
     local line=""
 
@@ -46,34 +45,40 @@ unison_terminal_notifier() {
     # Follow the log file and process new lines as they are written
     tail -f -n 1 "${log_file}" | while IFS= read -r line; do
 
-        if [[ ${line:0:5} == "[END]" ]]; then
-            end_messages+="$line                                 " # Add a newline for each [END] line
-            continue                                               # Move to the next iteration without further processing this line
-        fi
-
-        if [[ ${line:0:4} == "Sync" ]]; then
+        if [[ ${line:0:24} == "Synchronization complete" ]]; then
             message=${line:39:$((${#line} - 40))}
-            message="✅ SYNC SUCCESSFUL                                      $message                                 $end_messages"
-            if [[ ${line:0:26} == "Synchronization incomplete" ]]; then
-                message=${line:41:$((${#line} - 42))}
-                message="⚠️ SYNC WARNING                                        $message                                 $end_messages"
+            message="✅ SYNC SUCCESSFUL                                         $message"
 
-            fi
+            # For debugging
             echo "$message"
 
+            # Push notification
             /opt/homebrew/bin/terminal-notifier -message "$message" \
                 -title "UNISON -> ${profile}" \
                 -sound "Default" -group "UNISON-$(date +%s)" \
                 -open "file://${log_file}"
 
-            end_messages="" # Reset end_messages after sending notification to accumulate the [END] lines
+        elif [[ ${line:0:26} == "Synchronization incomplete" ]]; then
+            message=${line:41:$((${#line} - 42))}
+            message="⚠️ SYNC WARNING                                           $message"
 
-        elif [[ ${line:0:11} == "Fatal error" ]]; then
-            message=$line
-            message="🚨 SYNC ALERT                                             $message"
-
+            # For debugging
             echo "$message"
 
+            # Push notification
+            /opt/homebrew/bin/terminal-notifier -message "$message" \
+                -title "UNISON -> ${profile}" \
+                -sound "Default" -group "UNISON-$(date +%s)" \
+                -open "file://${log_file}"
+
+        elif [[ ${line:0:6} == "Error:" || ${line:0:11} == "Fatal error" ]]; then
+            message=$line
+            message="🚨 SYNC ALERT                                              $message"
+
+            # For debugging
+            echo "$message"
+
+            # Push notification
             /opt/homebrew/bin/terminal-notifier -message "$message" \
                 -title "UNISON ERROR -> ${profile}" \
                 -sound "Default" -group "UNISON-$(date +%s)" \
