@@ -36,8 +36,10 @@ unison_terminal_notifier() {
     local log_file="${HOME}/.unison/unison_${profile}.log"
     local line=""
 
-    # Make sure the log file exists, if not create it
+    # Make sure the log file exists, if not create it and add a new empty line
+    # so the tail -f will not read the last line on file
     touch "${log_file}"
+    echo "" >>"${log_file}"
 
     # Run unison with profile
     /opt/homebrew/bin/unison -ui text "$profile" >/dev/null 2>&1 &
@@ -45,7 +47,7 @@ unison_terminal_notifier() {
     # Follow the log file and process new lines as they are written
     tail -f -n 1 "${log_file}" | while IFS= read -r line; do
 
-        if [[ ${line:0:24} == "Synchronization complete" ]]; then
+        if [[ "${line:0:24}" == "Synchronization complete" ]]; then
             message=${line:39:$((${#line} - 40))}
             message="✅ SYNC SUCCESSFUL                                         $message"
 
@@ -58,7 +60,7 @@ unison_terminal_notifier() {
                 -sound "Default" -group "UNISON-$(date +%s)" \
                 -open "file://${log_file}"
 
-        elif [[ ${line:0:26} == "Synchronization incomplete" ]]; then
+        elif [[ "${line:0:26}" == "Synchronization incomplete" ]]; then
             message=${line:41:$((${#line} - 42))}
             message="⚠️ SYNC WARNING                                           $message"
 
@@ -71,7 +73,7 @@ unison_terminal_notifier() {
                 -sound "Default" -group "UNISON-$(date +%s)" \
                 -open "file://${log_file}"
 
-        elif [[ ${line:0:6} == "Error:" || ${line:0:11} == "Fatal error" ]]; then
+        elif [[ "${line:0:6}" == "Error:" || "${line:0:11}" == "Fatal error" ]]; then
             message=$line
             message="🚨 SYNC ALERT                                              $message"
 
