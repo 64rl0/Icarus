@@ -62,9 +62,9 @@ unison_restart() {
     sleep 1
 
     ${this_cli_fullpath} unison clear-locks -i 9
+    echo -e ""
     ${this_cli_fullpath} unison clear-locks -i 10
     echo -e ""
-    sleep 1
 
     ${this_cli_fullpath} unison start-at-startup
     sleep 1
