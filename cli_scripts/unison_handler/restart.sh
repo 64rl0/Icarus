@@ -61,7 +61,8 @@ unison_restart() {
     echo -e ""
     sleep 1
 
-    ${this_cli_fullpath} unison clear-locks
+    ${this_cli_fullpath} unison clear-locks -i 9
+    ${this_cli_fullpath} unison clear-locks -i 10
     echo -e ""
     sleep 1
 

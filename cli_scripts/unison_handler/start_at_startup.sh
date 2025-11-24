@@ -31,6 +31,9 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 unison_install_launchd() {
+    local user_name
+    user_name="$(whoami)"
+
     echo -e "Writing launchd daemon configuration"
 
     cat <<EOF >"${unison_launchd_daemon_path}"
@@ -47,6 +50,8 @@ unison_install_launchd() {
         </dict>
         <key>Label</key>
         <string>com.unison.launchd.agent</string>
+        <key>UserName</key>
+        <string>${user_name}</string>
         <key>RunAtLoad</key>
         <true/>
         <key>KeepAlive</key>
@@ -80,6 +85,8 @@ EOF
         </dict>
         <key>Label</key>
         <string>com.unison.daily_restart.agent</string>
+        <key>UserName</key>
+        <string>${user_name}</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Hour</key>

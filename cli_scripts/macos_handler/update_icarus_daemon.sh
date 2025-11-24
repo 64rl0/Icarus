@@ -28,8 +28,9 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 icarus_update_install_launchd() {
-    local daemon_fullpath
+    local daemon_fullpath user_name
     daemon_fullpath="${HOME}/Library/LaunchAgents/com.icarus.daily_update.agent.plist"
+    user_name="$(whoami)"
 
     echo -e "Writing launchd icarus daily update demon configuration"
 
@@ -47,6 +48,8 @@ icarus_update_install_launchd() {
         </dict>
         <key>Label</key>
         <string>com.icarus.daily_update.agent</string>
+        <key>UserName</key>
+        <string>${user_name}</string>
         <key>StartCalendarInterval</key>
         <dict>
             <key>Hour</key>
