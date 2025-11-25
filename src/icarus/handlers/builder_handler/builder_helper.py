@@ -284,8 +284,6 @@ def process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str
             ib_arg_mmp.update({
                 'isort': 'Y',
                 'black': 'Y',
-                'flake8': 'Y',
-                'mypy': 'Y',
                 'shfmt': 'Y',
                 'eolnorm': 'Y',
                 'whitespaces': 'Y',
