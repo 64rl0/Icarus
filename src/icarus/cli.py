@@ -151,7 +151,7 @@ def initialize_parser() -> argparse.ArgumentParser:
     # Unison
     unison_par = sl_par.add_parser(
         name='unison',
-        help='utilities to manage Unison demon',
+        help='utilities to manage Unison daemon',
         description=(
             'description:\n  The \'icarus unison\' command provides tools for managing Unison'
             ' profiles. Unison is used to synchronize\n  files across devices, and this command'

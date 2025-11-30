@@ -92,15 +92,16 @@ unison_terminal_notifier() {
 
 unison_run_profiles() {
     local -a unison_profiles=(
-        "prof_devdsk9"
-        "prof_devdsk10"
-
         "prof_workplace"
-
         "prof_my_lib_src"
         "prof_my_lib_test"
         "prof_my_lib_playground"
     )
+
+    for identity in "${devdsk_to_sync[@]}"; do
+        # append to the array
+        unison_profiles+=("prof_devdsk${identity}")
+    done
 
     for unison_profile in "${unison_profiles[@]}"; do
         unison_terminal_notifier "${unison_profile}" &

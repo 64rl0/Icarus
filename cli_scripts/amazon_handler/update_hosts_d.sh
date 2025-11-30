@@ -28,7 +28,9 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 update_etc_hosts_daemon() {
-    local hosts_launchd_daemon_path="/Library/LaunchDaemons/com.carlogtt.hosts.daemon.plist"
+    local hosts_launchd_daemon_path hosts_launchd_daemon_label
+    hosts_launchd_daemon_label="com.icarus.hosts.update"
+    hosts_launchd_daemon_path="/Library/LaunchDaemons/com.icarus.hosts.update.plist"
 
     echo -e "We need to briefly run as root (through sudo) to execute some commands."
     echo -e "If prompted, please enter your user password."
@@ -41,17 +43,22 @@ update_etc_hosts_daemon() {
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+
         <key>Label</key>
-        <string>com.carlogtt.hosts.daemon</string>
+        <string>${hosts_launchd_daemon_label}</string>
+
         <key>StartCalendarInterval</key>
         <dict>
             <key>Minute</key>
             <integer>00</integer>
         </dict>
+
         <key>StandardOutPath</key>
-        <string>/tmp/com.carlogtt.hosts.daemon.log</string>
+        <string>/tmp/${hosts_launchd_daemon_label}.log</string>
+
         <key>StandardErrorPath</key>
-        <string>/tmp/com.carlogtt.hosts.daemon.log</string>
+        <string>/tmp/${hosts_launchd_daemon_label}.log</string>
+
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
@@ -59,6 +66,7 @@ update_etc_hosts_daemon() {
             <string>amazon</string>
             <string>update-hosts</string>
         </array>
+
     </dict>
 </plist>
 EOF
@@ -71,8 +79,16 @@ EOF
 
     echo -e "\nLoading launchd daemons configuration"
     echo -e "loading ${hosts_launchd_daemon_path}"
-    sudo launchctl unload "${hosts_launchd_daemon_path}"
-    sudo launchctl load "${hosts_launchd_daemon_path}"
+
+    sudo launchctl disable "system/${hosts_launchd_daemon_label}" || {
+        echo -e "${hosts_launchd_daemon_label} failed to disable"
+    }
+    sudo launchctl bootout "system/${hosts_launchd_daemon_label}" || {
+        echo -e "${hosts_launchd_daemon_label} failed to bootout"
+    }
+    sudo launchctl bootstrap "system" "${hosts_launchd_daemon_path}"
+    sudo launchctl enable "system/${hosts_launchd_daemon_label}"
+
     echo -e "Configuration loaded"
 }
 

@@ -31,16 +31,14 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 unison_install_launchd() {
-    local user_name
-    user_name="$(whoami)"
+    echo -e "Writing launchd agent configuration"
 
-    echo -e "Writing launchd daemon configuration"
-
-    cat <<EOF >"${unison_launchd_daemon_path}"
+    cat <<EOF >"${unison_launchd_path}"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+
         <key>EnvironmentVariables</key>
         <dict>
             <key>PATH</key>
@@ -48,18 +46,28 @@ unison_install_launchd() {
             <key>HOME</key>
             <string>${HOME}</string>
         </dict>
+
+        <key>WorkingDirectory</key>
+        <string>${HOME}</string>
+
+        <key>LimitLoadToSessionType</key>
+        <string>Aqua</string>
+
         <key>Label</key>
-        <string>com.unison.launchd.agent</string>
-        <key>UserName</key>
-        <string>${user_name}</string>
+        <string>${unison_launchd_label}</string>
+
         <key>RunAtLoad</key>
         <true/>
+
         <key>KeepAlive</key>
         <true/>
+
         <key>StandardOutPath</key>
-        <string>/tmp/com.unison.launchd.agent.log</string>
+        <string>/tmp/${unison_launchd_label}.log</string>
+
         <key>StandardErrorPath</key>
-        <string>/tmp/com.unison.launchd.agent.log</string>
+        <string>/tmp/${unison_launchd_label}.log</string>
+
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
@@ -67,15 +75,17 @@ unison_install_launchd() {
             <string>unison</string>
             <string>run-profiles</string>
         </array>
+
     </dict>
 </plist>
 EOF
 
-    cat <<EOF >"${unison_daily_restart_daemon_path}"
+    cat <<EOF >"${unison_daily_restart_path}"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+
         <key>EnvironmentVariables</key>
         <dict>
             <key>PATH</key>
@@ -83,10 +93,16 @@ EOF
             <key>HOME</key>
             <string>${HOME}</string>
         </dict>
+
+        <key>WorkingDirectory</key>
+        <string>${HOME}</string>
+
+        <key>LimitLoadToSessionType</key>
+        <string>Aqua</string>
+
         <key>Label</key>
-        <string>com.unison.daily_restart.agent</string>
-        <key>UserName</key>
-        <string>${user_name}</string>
+        <string>${unison_daily_restart_label}</string>
+
         <key>StartCalendarInterval</key>
         <dict>
             <key>Hour</key>
@@ -94,10 +110,13 @@ EOF
             <key>Minute</key>
             <integer>00</integer>
         </dict>
+
         <key>StandardOutPath</key>
-        <string>/tmp/com.unison.daily_restart.agent.log</string>
+        <string>/tmp/${unison_daily_restart_label}.log</string>
+
         <key>StandardErrorPath</key>
-        <string>/tmp/com.unison.daily_restart.agent.log</string>
+        <string>/tmp/${unison_daily_restart_label}.log</string>
+
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
@@ -105,13 +124,14 @@ EOF
             <string>unison</string>
             <string>restart</string>
         </array>
+
     </dict>
 </plist>
 EOF
 
-    echo -e "launchd daemon configuration was successfully written to"
-    echo -e "${unison_launchd_daemon_path}"
-    echo -e "${unison_daily_restart_daemon_path}\n"
+    echo -e "launchd agents configuration was successfully written to"
+    echo -e "${unison_launchd_path}"
+    echo -e "${unison_daily_restart_path}\n"
 }
 
 unison_install_launchd "$@"

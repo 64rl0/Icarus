@@ -10,5 +10,13 @@
 # AMAZON.COM CONFIDENTIAL
 
 # User defined variables
-declare -r unison_launchd_daemon_path="${HOME}/Library/LaunchAgents/com.unison.launchd.agent.plist"
-declare -r unison_daily_restart_daemon_path="${HOME}/Library/LaunchAgents/com.unison.daily_restart.agent.plist"
+declare -r unison_launchd_label="com.icarus.unison.launchd"
+declare -r unison_launchd_path="${HOME}/Library/LaunchAgents/com.icarus.unison.launchd.plist"
+
+declare -r unison_daily_restart_label="com.icarus.unison.restart.daily"
+declare -r unison_daily_restart_path="${HOME}/Library/LaunchAgents/com.icarus.unison.restart.daily.plist"
+
+declare -r -a devdsk_to_sync=(
+    "9"
+    "10"
+)

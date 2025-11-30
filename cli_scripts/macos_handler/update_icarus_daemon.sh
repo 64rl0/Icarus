@@ -28,17 +28,22 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 icarus_update_install_launchd() {
-    local daemon_fullpath user_name
-    daemon_fullpath="${HOME}/Library/LaunchAgents/com.icarus.daily_update.agent.plist"
-    user_name="$(whoami)"
+    local agent_fullpath agent_label uid
+    agent_label="com.icarus.cli.updater"
+    agent_fullpath="${HOME}/Library/LaunchAgents/com.icarus.cli.updater.plist"
+    uid="$(id -u)"
 
-    echo -e "Writing launchd icarus daily update demon configuration"
+    echo -e "Writing launchd icarus cli updater agent configuration"
 
-    cat <<EOF >"${daemon_fullpath}"
+    # This is specifically set to update at 11:42 to prevent clashed with other
+    # schedules that run on the same time.
+
+    cat <<EOF >"${agent_fullpath}"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+
         <key>EnvironmentVariables</key>
         <dict>
             <key>PATH</key>
@@ -46,36 +51,54 @@ icarus_update_install_launchd() {
             <key>HOME</key>
             <string>${HOME}</string>
         </dict>
+
+        <key>WorkingDirectory</key>
+        <string>${HOME}</string>
+
+        <key>LimitLoadToSessionType</key>
+        <string>Aqua</string>
+
         <key>Label</key>
-        <string>com.icarus.daily_update.agent</string>
-        <key>UserName</key>
-        <string>${user_name}</string>
+        <string>${agent_label}</string>
+
         <key>StartCalendarInterval</key>
         <dict>
             <key>Hour</key>
-            <integer>12</integer>
+            <integer>11</integer>
             <key>Minute</key>
-            <integer>00</integer>
+            <integer>42</integer>
         </dict>
+
         <key>StandardOutPath</key>
-        <string>/tmp/com.icarus.daily_update.agent.log</string>
+        <string>/tmp/${agent_label}.log</string>
+
         <key>StandardErrorPath</key>
-        <string>/tmp/com.icarus.daily_update.agent.log</string>
+        <string>/tmp/${agent_label}.log</string>
+
         <key>ProgramArguments</key>
         <array>
             <string>${this_cli_fullpath}</string>
             <string>--update</string>
         </array>
+
     </dict>
 </plist>
 EOF
-    echo -e "launchd icarus daily update demon configuration was successfully written to"
-    echo -e "${daemon_fullpath}"
+
+    echo -e "launchd icarus cli updater agent configuration was successfully written to"
+    echo -e "${agent_fullpath}"
     echo
 
-    echo -e "Loading launchd icarus daily update demon configuration"
-    launchctl unload "${daemon_fullpath}"
-    launchctl load "${daemon_fullpath}"
+    echo -e "Loading launchd icarus cli updater agent configuration"
+
+    launchctl disable "gui/${uid}/${agent_label}" || {
+        echo -e "${agent_label} failed to disable"
+    }
+    launchctl bootout "gui/${uid}/${agent_label}" || {
+        echo -e "${agent_label} failed to bootout"
+    }
+    launchctl bootstrap "gui/${uid}" "${agent_fullpath}"
+    launchctl enable "gui/${uid}/${agent_label}"
 }
 
 icarus_update_install_launchd "$@"

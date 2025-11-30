@@ -31,6 +31,9 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 unison_restart() {
+    local uid
+    uid="$(id -u)"
+
     # Only print this if NOT called by the terminal for logging purposes
     if [[ ! -t 1 ]]; then
         echo -e "\n\n\n\n\n"
@@ -46,11 +49,11 @@ unison_restart() {
         echo -e "I'm in -> $(pwd)"
         echo
         echo -e "agents are located at:"
-        echo -e "${unison_launchd_daemon_path}"
-        ls -la "${unison_launchd_daemon_path}"
+        echo -e "${unison_launchd_path}"
+        ls -la "${unison_launchd_path}"
         echo
-        echo -e "${unison_daily_restart_daemon_path}"
-        ls -la "${unison_daily_restart_daemon_path}"
+        echo -e "${unison_daily_restart_path}"
+        ls -la "${unison_daily_restart_path}"
         echo
         echo -e "active launchd including unison:"
         launchctl list | grep unison || echo "-none found"
@@ -61,21 +64,23 @@ unison_restart() {
     echo -e ""
     sleep 1
 
-    ${this_cli_fullpath} unison clear-locks -i 9
-    echo -e ""
-    ${this_cli_fullpath} unison clear-locks -i 10
-    echo -e ""
+    for identity in "${devdsk_to_sync[@]}"; do
+        ${this_cli_fullpath} unison clear-locks -i "${identity}"
+        echo -e ""
+    done
 
     ${this_cli_fullpath} unison start-at-startup
     sleep 1
 
-    echo -e "Loading launchd daemons configuration"
+    echo -e "Loading launchd agents configuration"
 
-    echo -e "loading ${unison_launchd_daemon_path}"
-    launchctl load "${unison_launchd_daemon_path}"
+    echo -e "bootstrapping ${unison_launchd_path}"
+    launchctl bootstrap "gui/${uid}" "${unison_launchd_path}"
+    launchctl enable "gui/${uid}/${unison_launchd_label}"
 
-    echo -e "loading ${unison_daily_restart_daemon_path}"
-    launchctl load "${unison_daily_restart_daemon_path}"
+    echo -e "bootstrapping ${unison_daily_restart_path}"
+    launchctl bootstrap "gui/${uid}" "${unison_daily_restart_path}"
+    launchctl enable "gui/${uid}/${unison_daily_restart_label}"
 
     echo -e "Configuration loaded\n"
 

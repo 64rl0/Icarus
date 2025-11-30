@@ -31,24 +31,33 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 unison_stop() {
-    echo -e "Terminating existing launchd daemons configuration"
-    echo -e "unloading ${unison_launchd_daemon_path}"
-    launchctl unload "${unison_launchd_daemon_path}" || {
-        echo -e "${unison_launchd_daemon_path} failed unload"
+    local uid
+    uid="$(id -u)"
+
+    echo -e "Terminating existing launchd agents configuration"
+
+    echo -e "Terminating ${unison_launchd_label}"
+    launchctl disable "gui/${uid}/${unison_launchd_label}" || {
+        echo -e "${unison_launchd_label} failed to disable"
+    }
+    launchctl bootout "gui/${uid}/${unison_launchd_label}" || {
+        echo -e "${unison_launchd_label} failed to bootout"
     }
 
-    # Only stop the daemon if called by terminal because if it is called by the launch agent
+    # Only stop the agent if called by terminal because if it is called by the launch agent
     # this will kill its own process and interrupt the execution.
     if [[ -t 1 ]]; then
-        echo -e "unloading ${unison_daily_restart_daemon_path}"
-        launchctl unload "${unison_daily_restart_daemon_path}" || {
-            echo -e "${unison_daily_restart_daemon_path} failed unload"
+        echo -e "Terminating ${unison_daily_restart_label}"
+        launchctl disable "gui/${uid}/${unison_daily_restart_label}" || {
+            echo -e "${unison_daily_restart_label} failed to disable"
+        }
+        launchctl bootout "gui/${uid}/${unison_daily_restart_label}" || {
+            echo -e "${unison_daily_restart_label} failed to bootout"
         }
     fi
 
-    echo -e "unload completed!"
     sleep 1
-    echo -e "Configuration terminated\n"
+    echo -e "launchd agents bootout completed!\n"
 
     echo -e "${bold}${red}[TERMINATING UNISON]${end}"
     ps aux | grep 'unison -ui' | grep -v grep | awk -v red="${red}" -v end="${end}" '{print "Killing PID: " $2"..." red " >>> " end $11 " " $12 " " $13 " " $14 " " $15 " " $16 " " $17}' || echo -e "No Unison process found."
