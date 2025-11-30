@@ -83,11 +83,18 @@ EOF
     sudo launchctl disable "system/${hosts_launchd_daemon_label}" || {
         echo -e "${hosts_launchd_daemon_label} failed to disable"
     }
+
     sudo launchctl bootout "system/${hosts_launchd_daemon_label}" || {
         echo -e "${hosts_launchd_daemon_label} failed to bootout"
     }
-    sudo launchctl bootstrap "system" "${hosts_launchd_daemon_path}"
-    sudo launchctl enable "system/${hosts_launchd_daemon_label}"
+
+    sudo launchctl enable "system/${hosts_launchd_daemon_label}" || {
+        echo -e "${hosts_launchd_daemon_label} failed to enable"
+    }
+
+    sudo launchctl bootstrap "system" "${hosts_launchd_daemon_path}" || {
+        echo -e "${hosts_launchd_daemon_label} failed to bootstrap"
+    }
 
     echo -e "Configuration loaded"
 }

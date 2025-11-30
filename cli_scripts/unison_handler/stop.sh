@@ -57,7 +57,7 @@ unison_stop() {
     fi
 
     sleep 1
-    echo -e "launchd agents bootout completed!\n"
+    echo -e "launchd agents terminated!\n"
 
     echo -e "${bold}${red}[TERMINATING UNISON]${end}"
     ps aux | grep 'unison -ui' | grep -v grep | awk -v red="${red}" -v end="${end}" '{print "Killing PID: " $2"..." red " >>> " end $11 " " $12 " " $13 " " $14 " " $15 " " $16 " " $17}' || echo -e "No Unison process found."

@@ -75,12 +75,20 @@ unison_restart() {
     echo -e "Loading launchd agents configuration"
 
     echo -e "bootstrapping ${unison_launchd_path}"
-    launchctl bootstrap "gui/${uid}" "${unison_launchd_path}"
-    launchctl enable "gui/${uid}/${unison_launchd_label}"
+    launchctl enable "gui/${uid}/${unison_launchd_label}" || {
+        echo -e "${unison_launchd_label} failed to enable"
+    }
+    launchctl bootstrap "gui/${uid}" "${unison_launchd_path}" || {
+        echo -e "${unison_launchd_label} failed to bootstrap"
+    }
 
     echo -e "bootstrapping ${unison_daily_restart_path}"
-    launchctl bootstrap "gui/${uid}" "${unison_daily_restart_path}"
-    launchctl enable "gui/${uid}/${unison_daily_restart_label}"
+    launchctl enable "gui/${uid}/${unison_daily_restart_label}" || {
+        echo -e "${unison_daily_restart_label} failed to enable"
+    }
+    launchctl bootstrap "gui/${uid}" "${unison_daily_restart_path}" || {
+        echo -e "${unison_daily_restart_label} failed to bootstrap"
+    }
 
     echo -e "Configuration loaded\n"
 

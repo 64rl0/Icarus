@@ -94,11 +94,18 @@ EOF
     launchctl disable "gui/${uid}/${agent_label}" || {
         echo -e "${agent_label} failed to disable"
     }
+
     launchctl bootout "gui/${uid}/${agent_label}" || {
         echo -e "${agent_label} failed to bootout"
     }
-    launchctl bootstrap "gui/${uid}" "${agent_fullpath}"
-    launchctl enable "gui/${uid}/${agent_label}"
+
+    launchctl enable "gui/${uid}/${agent_label}" || {
+        echo -e "${agent_label} failed to enable"
+    }
+
+    launchctl bootstrap "gui/${uid}" "${agent_fullpath}" || {
+        echo -e "${agent_label} failed to bootstrap"
+    }
 }
 
 icarus_update_install_launchd "$@"
