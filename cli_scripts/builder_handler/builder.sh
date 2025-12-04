@@ -1364,14 +1364,10 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running gitleaks"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_gitleaks
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_gitleaks
-            fi
+        if [[ "${build_system_in_use}" == "brazil" ]]; then
+            run_gitleaks
+        elif [[ "${build_system_in_use}" == "icarus" ]]; then
+            run_gitleaks
         fi
 
         end_block=$(date +%s.%N)
