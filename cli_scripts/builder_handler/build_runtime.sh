@@ -386,7 +386,20 @@ function build_generic() {
 
     # Download Generic or use cached one
     while true; do
-        if [[ -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" ]]; then
+        # case 1 - the file is there and there is no lock indicating active downloading.
+        #         - we use the file.
+
+        # case 2 - the file is there and there is a lock.
+        #        - the file is being downloaded.
+
+        # case 3 - the file is not there and there is a lock.
+        #        - the file is being downloaded.
+
+        # case 4 - the file is not there and there is no lock.
+        #        - acquire the lock and download.
+
+        if [[ -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" ||
+            ! -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" ]]; then
             # File exists, assume download complete
             echo
             echo_time
