@@ -398,8 +398,8 @@ function build_generic() {
         # case 4 - the file is not there and there is no lock.
         #        - acquire the lock and download.
 
-        if [[ -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" ||
-            ! -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" ]]; then
+        if [[ -f "${path_to_cache_root}/${package_dir_name}/${package_download_filename}" &&
+            ! -d "${path_to_cache_root}/${package_dir_name}/${package_download_filename}.lock" ]]; then
             # File exists, assume download complete
             echo
             echo_time
