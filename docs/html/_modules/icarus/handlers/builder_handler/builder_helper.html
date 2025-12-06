@@ -733,12 +733,22 @@
 
         <span class="n">python_versions_to_normalize</span> <span class="o">=</span> <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions_for_icarus&#39;</span><span class="p">]</span>
 
-    <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">def_v</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_default_version&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_default_full_version&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">tmp_py_v</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">python_versions_to_normalize</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">v</span><span class="p">,</span> <span class="n">get_latest_python_version</span><span class="p">(</span><span class="n">v</span><span class="p">)]))</span>
+            <span class="n">short_version</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">full_version</span> <span class="o">=</span> <span class="n">get_latest_python_version</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]),</span> <span class="n">v</span><span class="p">]))</span>
+            <span class="n">short_version</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">full_version</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="n">tmp_py_v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">short_version</span><span class="p">,</span> <span class="n">full_version</span><span class="p">]))</span>
+
+    <span class="c1"># Python default always stays at index 0</span>
+    <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;python_versions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tmp_py_v</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">def_v</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tmp_py_v</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">def_v</span>
+    <span class="p">]</span>
 
     <span class="k">return</span> <span class="n">ib_arg_mmp</span>
 

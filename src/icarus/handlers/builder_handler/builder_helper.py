@@ -697,12 +697,22 @@ def normalize_and_set_python_version(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
 
         python_versions_to_normalize = ib_arg_mmp['python_versions_for_icarus']
 
-    ib_arg_mmp['python_versions'] = []
+    def_v = f"{ib_arg_mmp['python_default_version']}:{ib_arg_mmp['python_default_full_version']}"
+    tmp_py_v = []
+
     for v in python_versions_to_normalize:
         if len(v.split('.')) == 2:
-            ib_arg_mmp['python_versions'].append(':'.join([v, get_latest_python_version(v)]))
+            short_version = v
+            full_version = get_latest_python_version(v)
         elif len(v.split('.')) == 3:
-            ib_arg_mmp['python_versions'].append(':'.join(['.'.join(v.split('.')[:2]), v]))
+            short_version = '.'.join(v.split('.')[:2])
+            full_version = v
+        tmp_py_v.append(':'.join([short_version, full_version]))
+
+    # Python default always stays at index 0
+    ib_arg_mmp['python_versions'] = [v for v in tmp_py_v if v == def_v] + [
+        v for v in tmp_py_v if v != def_v
+    ]
 
     return ib_arg_mmp
 
