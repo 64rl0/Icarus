@@ -82,6 +82,8 @@ function echo_title() {
 }
 
 function echo_running_hooks() {
+    local hook
+
     echo_title "Running Info"
     echo -e "Collected and preparing to run ${running_hooks_count} hook(s)."
     for hook in "${running_hooks_name[@]}"; do
@@ -91,7 +93,9 @@ function echo_running_hooks() {
 }
 
 function echo_summary() {
-    local execution_time execution_time_total execution_time_partial tool total_execution_time python_versions_pretty
+    local execution_time execution_time_total execution_time_partial tool total_execution_time
+    local python_versions_pretty python_version_composite hook
+
     execution_time=""
     execution_time_total=0
     execution_time_partial=""
@@ -156,6 +160,67 @@ function echo_summary() {
 ####################################################################################################
 # CONSTANTS
 ####################################################################################################
+function should_ignore_path() {
+    local path="${1}"
+    local rel_path="${2}"
+
+    local normalized_path ignored pat anchored dir_only anywhere need_anywhere p
+    local -a patterns
+
+    normalized_path="${rel_path%/}"
+
+    for ignored in "${icarus_ignore_array[@]}"; do
+        pat="${ignored#./}"
+        anchored=false
+        dir_only=false
+        anywhere=false
+        need_anywhere=false
+
+        if [[ "${pat}" == /* ]]; then
+            anchored=true
+            pat="${pat#/}"
+        fi
+        if [[ "${pat}" == */ ]]; then
+            dir_only=true
+            pat="${pat%/}"
+        fi
+        if [[ "${pat}" == '**/'* ]]; then
+            pat="${pat#**/}"
+            anywhere=true
+        fi
+        if [[ "${anywhere}" == true || "${pat}" == */* ]]; then
+            need_anywhere=true
+        fi
+
+        patterns=()
+        if [[ "${anchored}" == true ]]; then
+            patterns+=("${pat}")
+            if [[ "${dir_only}" == true ]]; then
+                patterns+=("${pat}/*" "${pat}/**")
+            fi
+        else
+            patterns+=("${pat}")
+            if [[ "${need_anywhere}" == true ]]; then
+                patterns+=("**/${pat}")
+            fi
+            if [[ "${dir_only}" == true ]]; then
+                patterns+=("${pat}/*" "${pat}/**")
+                if [[ "${need_anywhere}" == true ]]; then
+                    patterns+=("**/${pat}/*" "**/${pat}/**")
+                fi
+            fi
+        fi
+
+        for p in "${patterns[@]}"; do
+            if [[ "${normalized_path}" == ${p} ]]; then
+                return 0
+            fi
+        done
+    done
+
+    return 1
+}
+
 function set_constants() {
     echo_title "Analyzing icarus.cfg"
 
@@ -240,100 +305,104 @@ function set_constants() {
     docs_execution_time=0
     exec_execution_time=0
 
-    declare -a -g active_dirs=()
-    declare -a -g active_py_files=()
-    declare -a -g active_sh_files=()
-    declare -a -g active_other_files=()
+    declare -a -g active_dirs_d1=()
+    declare -a -g active_py_files_d1=()
+    declare -a -g active_sh_files_d1=()
+    declare -a -g active_other_files_d1=()
     declare -a -g active_files_all=()
 
     echo -e "Walking package root"
-    local -a all_dirs_l1
-    all_dirs_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type d))
 
-    for dir in "${all_dirs_l1[@]}"; do
-        unset ignore_dir
+    local pat anchored dir_only has_glob path rel_path
+    local -a find_cmd prune_patterns prune_expr
 
-        for ignored in "${icarus_ignore_array[@]}"; do
-            if [[ "${ignored}" =~ ^\*\/.+ ]]; then
-                if [[ "${dir}/" == "${project_root_dir_abs}"${ignored} ]]; then
-                    ignore_dir=true
-                    break
-                fi
-            else
-                if [[ "${dir}/" == "${project_root_dir_abs}/"${ignored} ]]; then
-                    ignore_dir=true
-                    break
-                fi
-            fi
-        done
+    # We do a partial prune on safe ignore without any * to speed up find
+    # and exclude big excluded dirs
+    prune_patterns=()
+    for pat in "${icarus_ignore_array[@]}"; do
+        anchored=false
+        dir_only=false
+        has_glob=false
 
-        if [[ "${ignore_dir}" != true ]]; then
-            active_dirs+=("${dir}")
+        pat="${pat#./}"
+        if [[ "${pat}" == /* ]]; then
+            anchored=true
+            pat="${pat#/}"
         fi
-    done
+        if [[ "${pat}" == */ ]]; then
+            dir_only=true
+            pat="${pat%/}"
+        fi
+        if [[ "${pat}" == '**/'* ]]; then
+            pat="${pat#**/}"
+        fi
+        # Does it contain any of *, ? or [
+        if [[ "${pat}" == *[\*\?\[]* ]]; then
+            has_glob=true
+        fi
 
-    declare -r -g active_dirs
-
-    local -a all_files_l1
-    all_files_l1=($(find "${project_root_dir_abs}" -mindepth 1 -maxdepth 1 -type f))
-
-    for file in "${all_files_l1[@]}"; do
-        unset ignore_file
-
-        for ignored in "${icarus_ignore_array[@]}"; do
-            if [[ "${ignored}" =~ ^\*\/.+ ]]; then
-                if [[ "${file}" == "${project_root_dir_abs}"${ignored} ]]; then
-                    ignore_file=true
-                    break
-                fi
+        # Only use -prune for simple (no-glob) directory-like ignores
+        if [[ "${has_glob}" == false ]]; then
+            if [[ "${anchored}" == true ]]; then
+                prune_patterns+=("${project_root_dir_abs}/${pat}")
             else
-                if [[ "${file}" == "${project_root_dir_abs}/"${ignored} ]]; then
-                    ignore_file=true
-                    break
-                fi
-            fi
-        done
-
-        if [[ "${ignore_file}" != true ]]; then
-            if [[ "${file}" =~ .+\.py$ ]]; then
-                active_py_files+=("${file}")
-            elif [[ "${file}" =~ .+\.sh$ ]]; then
-                active_sh_files+=("${file}")
-            else
-                active_other_files+=("${file}")
+                prune_patterns+=("${project_root_dir_abs}/${pat}")
+                prune_patterns+=("${project_root_dir_abs}/*/${pat}")
             fi
         fi
     done
 
-    declare -r -g active_py_files
-    declare -r -g active_sh_files
-    declare -r -g active_other_files
-
-    local -a all_files
-    all_files=($(find "${project_root_dir_abs}" -type f))
-
-    for file in "${all_files[@]}"; do
-        unset ignore_file
-
-        for ignored in "${icarus_ignore_array[@]}"; do
-            if [[ "${ignored}" =~ ^\*\/.+ ]]; then
-                if [[ "${file}" == "${project_root_dir_abs}"${ignored}* ]]; then
-                    ignore_file=true
-                    break
-                fi
-            else
-                if [[ "${file}" == "${project_root_dir_abs}/"${ignored}* ]]; then
-                    ignore_file=true
-                    break
-                fi
-            fi
+    if ((${#prune_patterns[@]})); then
+        prune_expr=("(")
+        for pat in "${prune_patterns[@]}"; do
+            prune_expr+=("-path" "${pat}" "-o")
         done
+        # Slice to remove the trailing "-o"
+        prune_expr=("${prune_expr[@]:0:${#prune_expr[@]}-1}")
+        prune_expr+=(")")
+        find_cmd=("find" "${project_root_dir_abs}" "-mindepth" "1" "${prune_expr[@]}" "-prune" "-o" "-print0")
+    else
+        find_cmd=("find" "${project_root_dir_abs}" "-mindepth" "1" "-print0")
+    fi
 
-        if [[ "${ignore_file}" != true ]]; then
-            active_files_all+=("${file}")
+    while IFS= read -r -d '' path; do
+        # Strip the project root prefix plus the trailing / from the absolute path
+        rel_path="${path#${project_root_dir_abs}/}"
+
+        if should_ignore_path "${path}" "${rel_path}"; then
+            continue
         fi
-    done
 
+        # Dirs classification
+        if [[ -d "${path}" ]]; then
+            if [[ "${rel_path}" != *'/'* ]]; then
+                # Depth-1 directories only
+                active_dirs_d1+=("${path}")
+            fi
+            continue
+        fi
+
+        # If we get here then it's not a directory
+        # Files classification
+        if [[ "${rel_path}" != *'/'* ]]; then
+            # Depth-1 directories only
+            if [[ "${path}" =~ .+\.py$ ]]; then
+                active_py_files_d1+=("${path}")
+            elif [[ "${path}" =~ .+\.sh$ ]]; then
+                active_sh_files_d1+=("${path}")
+            else
+                active_other_files_d1+=("${path}")
+            fi
+        fi
+
+        # Always an active file regardless of the type and depth
+        active_files_all+=("${path}")
+    done < <("${find_cmd[@]}")
+
+    declare -r -g active_dirs_d1
+    declare -r -g active_py_files_d1
+    declare -r -g active_sh_files_d1
+    declare -r -g active_other_files_d1
     declare -r -g active_files_all
 
     echo
@@ -357,7 +426,10 @@ function set_python_constants() {
 # TOOLS
 ####################################################################################################
 function run_isort() {
-    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local el
+    local -a elements
+
+    elements=("${active_dirs_d1[@]}" "${active_py_files_d1[@]}")
 
     validate_command "isort" || {
         isort_summary_status="${failed}"
@@ -376,7 +448,10 @@ function run_isort() {
 }
 
 function run_black() {
-    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local el
+    local -a elements
+
+    elements=("${active_dirs_d1[@]}" "${active_py_files_d1[@]}")
 
     validate_command "black" || {
         black_summary_status="${failed}"
@@ -395,7 +470,10 @@ function run_black() {
 }
 
 function run_flake8() {
-    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local el
+    local -a elements
+
+    elements=("${active_dirs_d1[@]}" "${active_py_files_d1[@]}")
 
     validate_command "flake8" || {
         flake8_summary_status="${failed}"
@@ -414,7 +492,10 @@ function run_flake8() {
 }
 
 function run_mypy() {
-    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local el
+    local -a elements
+
+    elements=("${active_dirs_d1[@]}" "${active_py_files_d1[@]}")
 
     validate_command "mypy" || {
         mypy_summary_status="${failed}"
@@ -435,7 +516,10 @@ function run_mypy() {
 }
 
 function run_shfmt() {
-    local elements=("${active_dirs[@]}" "${active_sh_files[@]}")
+    local el
+    local -a elements
+
+    elements=("${active_dirs_d1[@]}" "${active_sh_files_d1[@]}")
 
     validate_command "shfmt" || {
         shfmt_summary_status="${failed}"
@@ -454,8 +538,11 @@ function run_shfmt() {
 }
 
 function run_char_replacement() {
-    local elements=("${active_files_all[@]}")
-    local counter=0
+    local el counter
+    local -a elements
+
+    counter=0
+    elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
         # Skip this script
@@ -501,8 +588,11 @@ function run_char_replacement() {
 }
 
 function run_eofnewline() {
-    local elements=("${active_files_all[@]}")
-    local counter=0
+    local el counter last_byte fixed file_path penultimate_byte
+    local -a elements
+
+    counter=0
+    elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
         # Skip empty files – they already satisfy the “blank line” rule.
@@ -520,8 +610,8 @@ function run_eofnewline() {
         fi
 
         # Read last byte safely (strip spaces cranked out by od)
-        local last_byte=$(tail -c 1 -- "${el}" | od -An -tu1 | tr -d '[:space:]')
-        local fixed=false
+        last_byte=$(tail -c 1 -- "${el}" | od -An -tu1 | tr -d '[:space:]')
+        fixed=false
 
         # Add \n only if it isn't one already.
         if [[ "${last_byte}" != 10 ]]; then
@@ -534,7 +624,7 @@ function run_eofnewline() {
         # The last char already is a \n.
         else
             while true; do
-                local penultimate_byte=$(tail -c 2 -- "${el}" | head -c 1 | od -An -tu1 | tr -d '[:space:]')
+                penultimate_byte=$(tail -c 2 -- "${el}" | head -c 1 | od -An -tu1 | tr -d '[:space:]')
                 if [[ "${penultimate_byte}" == 10 ]]; then
                     if [[ "${fixed}" != true ]]; then
                         fixed=true
@@ -560,8 +650,11 @@ function run_eofnewline() {
 }
 
 function run_trailingwhitespaces() {
-    local elements=("${active_files_all[@]}")
-    local counter=0
+    local el counter file_path
+    local -a elements
+
+    counter=0
+    elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
         # Skip empty files – they already satisfy the “blank line” rule.
@@ -603,8 +696,11 @@ function run_trailingwhitespaces() {
 }
 
 function run_eolnorm() {
-    local elements=("${active_files_all[@]}")
-    local counter=0
+    local el counter file_path tmp
+    local -a elements
+
+    counter=0
+    elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
         # Skip empty files – they already satisfy the “blank line” rule.
@@ -682,7 +778,10 @@ function run_brazil_pytest() {
 }
 
 function run_venv_pytest() {
-    local elements=("${active_dirs[@]}" "${active_py_files[@]}")
+    local -a elements
+
+    elements=("${active_dirs_d1[@]}" "${active_py_files_d1[@]}")
+
     echo -e "Preparing tests"
     echo
 
@@ -754,12 +853,14 @@ function run_venv_documentation() {
 }
 
 function build_brazil_env() {
+    local brazil_bin_dir
+
     # We don't want to suppress this error
     brazil ws sync --md || exit 1
 
     {
         # Use brazil runtime farm to build brazil runtime env
-        local brazil_bin_dir="$(brazil-path testrun.runtimefarm)/python${python_version_default_for_brazil}/bin"
+        brazil_bin_dir="$(brazil-path testrun.runtimefarm)/python${python_version_default_for_brazil}/bin"
         brazil-build
     } || {
         build_summary_status="${failed}"
@@ -768,8 +869,10 @@ function build_brazil_env() {
 }
 
 function install_python_runtime() {
-    local dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
-    local root_tree=(
+    local d compression dest_tar
+    local -a root_tree
+
+    root_tree=(
         "${path_to_cache_root}/CPython"
         "${path_to_runtime_root}/CPython"
         "${path_to_runtime_root}/bin"
@@ -778,6 +881,8 @@ function install_python_runtime() {
         "${path_to_runtime_root}/private"
         "${path_to_runtime_root}/share"
     )
+
+    dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
 
     for d in "${root_tree[@]}"; do
         mkdir -p "${d}" || {
@@ -805,7 +910,11 @@ function install_python_runtime() {
         build_single_run_status=1
         exit_code=1
     }
-    tar -vxzf "${dest_tar}" -C "${path_to_cache_root}/CPython" || {
+    compression="$(file "${dest_tar}" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')" || {
+        echo_error "Failed to detect '${dest_tar}' compression type."
+        exit_code=1
+    }
+    tar -v -x --"${compression}" -f "${dest_tar}" -C "${path_to_cache_root}/CPython" || {
         echo_error "Failed to unpack '${python_pkg_name}'."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -831,6 +940,8 @@ function install_python_runtime() {
 }
 
 function build_venv_env() {
+    local requirements_path
+
     build_single_run_status=0
 
     activate_venv_env_core
@@ -1048,43 +1159,46 @@ function deactivate_venv_env() {
 }
 
 function clean_common() {
-    local dirs_to_clean=(
+    local path
+    local -a dirs_to_clean files_to_clean
+
+    dirs_to_clean=(
         "${project_root_dir_abs}/src/"*".egg-info"
     )
-    for dir in "${dirs_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}$(basename ${dir})${end}'"
-        echo -e "${dir}"
-        rm -rf "${dir}" || {
-            echo_error "Failed to clean '${dir}'."
+    for path in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}$(basename ${path})${end}'"
+        echo -e "${path}"
+        rm -rf "${path}" || {
+            echo_error "Failed to clean '${path}'."
             clean_summary_status="${failed}"
             exit_code=1
         }
         echo
     done
 
-    local dirs_to_clean=(
+    dirs_to_clean=(
         ".mypy_cache"
         ".pytest_cache"
         "__pycache__"
     )
-    for dir in "${dirs_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}${dir}${end}'"
-        find "${project_root_dir_abs}" -type d -name "${dir}" -print -exec rm -rf {} + || {
-            echo_error "Failed to clean '${dir}'."
+    for path in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}${path}${end}'"
+        find "${project_root_dir_abs}" -type d -name "${path}" -print -exec rm -rf {} + || {
+            echo_error "Failed to clean '${path}'."
             clean_summary_status="${failed}"
             exit_code=1
         }
         echo
     done
 
-    local files_to_clean=(
+    files_to_clean=(
         ".DS_Store"
         "Thumbs.db"
     )
-    for file in "${files_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}${file}${end}'"
-        find "${project_root_dir_abs}" -type f -name "${file}" -print -exec rm -rf {} + || {
-            echo_error "Failed to clean '${file}'."
+    for path in "${files_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}${path}${end}'"
+        find "${project_root_dir_abs}" -type f -name "${path}" -print -exec rm -rf {} + || {
+            echo_error "Failed to clean '${path}'."
             clean_summary_status="${failed}"
             exit_code=1
         }
@@ -1106,14 +1220,17 @@ function clean_brazil_env() {
 }
 
 function clean_venv_env() {
-    local dirs_to_clean=(
+    local path
+    local -a dirs_to_clean
+
+    dirs_to_clean=(
         "${project_root_dir_abs}/${build_env_dir_name}"
     )
-    for dir in "${dirs_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}$(basename "${dir}")${end}'"
-        echo -e "${dir}"
-        rm -rf "${dir}" || {
-            echo_error "Failed to clean '${dir}'."
+    for path in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}$(basename "${path}")${end}'"
+        echo -e "${path}"
+        rm -rf "${path}" || {
+            echo_error "Failed to clean '${path}'."
             clean_summary_status="${failed}"
             exit_code=1
         }
@@ -1157,6 +1274,8 @@ function exec_venv() {
 # DISPATCHERS
 ####################################################################################################
 function dispatch_tools() {
+    local start_block end_block
+
     if [[ "${build}" == "Y" ]]; then
         start_block=$(date +%s.%N)
 
@@ -1434,6 +1553,8 @@ function dispatch_tools() {
 }
 
 function dispatch_hooks() {
+    local python_version_composite
+
     echo_running_hooks
 
     if [[ "${build_system_in_use}" == "brazil" ]]; then
