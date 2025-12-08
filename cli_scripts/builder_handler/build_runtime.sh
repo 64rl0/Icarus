@@ -437,6 +437,7 @@ function build_generic() {
                 exit_code=1
                 break
             fi
+            echo -e "Waiting for download..."
             sleep 2
         fi
     done
