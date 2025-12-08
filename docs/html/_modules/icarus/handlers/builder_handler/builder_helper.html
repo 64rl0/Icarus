@@ -646,6 +646,15 @@
             <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s1">&#39;All icarus ignore array in </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">ICARUS_CFG_FILENAME</span><span class="si">}</span><span class="s1"> must be strings&#39;</span>
             <span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="s1">&#39;//&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;icarus ignore array in </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">ICARUS_CFG_FILENAME</span><span class="si">}</span><span class="s1"> cannot contain `//`&#39;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;***&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;icarus ignore array in </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">ICARUS_CFG_FILENAME</span><span class="si">}</span><span class="s1"> cannot contain `***`&#39;</span>
+                <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
