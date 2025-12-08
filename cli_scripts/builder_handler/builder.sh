@@ -274,6 +274,7 @@ function set_constants() {
 
     passed="${bold_black}${bg_green} PASS ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
+    warned="${bold_black}${bg_yellow} WARN ${end}"
 
     index_summary_status="${passed}"
     build_summary_status="${passed}"
@@ -1586,12 +1587,19 @@ function dispatch_hooks() {
 # MAIN
 ####################################################################################################
 function main() {
+    local start_block end_block elapsed_time
+
     validate_prerequisites
 
+    # Setting constants, indexing workspace and benchmarking the execution
     start_block=$(date +%s.%N)
     set_constants "${@}"
     end_block=$(date +%s.%N)
-    index_execution_time=$(echo "${index_execution_time}" + "${end_block} - ${start_block}" | bc)
+    elapsed_time=$(echo "${end_block} - ${start_block}" | bc)
+    if [[ $(echo "${elapsed_time} > 5" | bc) -eq 1 ]]; then
+        index_summary_status="${warned}"
+    fi
+    index_execution_time=$(echo "${index_execution_time}" + "${elapsed_time}" | bc)
 
     dispatch_hooks "${@}"
 
