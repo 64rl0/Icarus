@@ -80,7 +80,7 @@ platform_id_script_path_abs="${script_dir_abs}/platform_id.sh"
 declare -r platform_id_script_path_abs
 
 venv_name="build_venv"
-python_full_version_for_venv="3.13.9"
+python_full_version_for_venv="3.13.11"
 platform_id="$(bash "${platform_id_script_path_abs}")"
 download_url="https://github.com/64rl0/PythonRuntime/releases/download/cpython-${python_full_version_for_venv}-${platform_id}/cpython-${python_full_version_for_venv}-${platform_id}.tar.gz"
 pybin="${project_root_dir_abs}/${venv_name}/env/icarus-runtime/bin/python3"
