@@ -6,8 +6,6 @@
 
 # bin/icarus
 # Created 1/18/25 - 6:35 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Basic Foreground Colors
 declare -r black=$'\033[30m'
@@ -84,7 +82,7 @@ declare -r log_filepath
 
 # Check if the --update option is called
 if [[ "$1" == '--update' ]]; then
-	if [[ "${BASH_SOURCE[0]}" =~ _Projects\/Icarus\/ ]]; then
+	if [[ "${script_dir_abs}" =~ _Projects\/Icarus\/ ]]; then
 		echo -e "${bg_red}${bold_black}[WARNING]${end}"
 		echo -e " You are about to run ${red}git reset --hard${end} on the dev env!"
 		echo -e " Operation Interrupted! Only available in PROD!"

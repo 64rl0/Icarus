@@ -6,25 +6,19 @@
 
 # scripts/platform_id.sh
 # Created 6/6/25 - 3:47 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Script Options
 set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
-# -------------------------------------------------------------------
 # sanitize: replace any character not in [A-Za-z0-9.-] with a dash
-# -------------------------------------------------------------------
 sanitize() {
     local raw="$1"
     # The sed expression replaces every character that's not A-Za-z0-9 or '.' or '-' with '-'
     echo "$raw" | sed 's/[^A-Za-z0-9.\-]/-/g'
 }
 
-# -------------------------------------------------------------------
 # linux_flavour: parse /etc/os-release for ID and VERSION_ID
-# -------------------------------------------------------------------
 linux_flavour() {
     # If /etc/os-release is readable, pull ID and VERSION_ID
     if [[ -r /etc/os-release ]]; then
@@ -44,9 +38,8 @@ linux_flavour() {
     fi
 }
 
-# -------------------------------------------------------------------
-# platform_id: combine OS-flavour and architecture, then sanitize/normalize
-# -------------------------------------------------------------------
+# platform_id: combine OS-flavour and architecture,
+# then sanitize/normalize
 platform_id() {
     # 1) Determine architecture (lowercased)
     #    e.g. “x86_64” → “x86_64”, “aarch64” or “arm64” → “arm64”
