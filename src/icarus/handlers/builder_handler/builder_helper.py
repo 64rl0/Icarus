@@ -610,6 +610,15 @@ def validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
             raise utils.IcarusParserException(
                 f'All icarus ignore array in {config.ICARUS_CFG_FILENAME} must be strings'
             )
+        for v in ib_arg_mmp.get('icarus_ignore_array', []):
+            if '//' in v:
+                raise utils.IcarusParserException(
+                    f'icarus ignore array in {config.ICARUS_CFG_FILENAME} cannot contain `//`'
+                )
+            if '***' in v:
+                raise utils.IcarusParserException(
+                    f'icarus ignore array in {config.ICARUS_CFG_FILENAME} cannot contain `***`'
+                )
     else:
         if not isinstance(ib_arg_mmp.get('icarus_ignore_array'), list):
             raise utils.IcarusParserException(
