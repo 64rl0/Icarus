@@ -28,8 +28,10 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 convert_to_snake_case() {
     local input_str="$1"
 
+    local sanitized_input_str snake_case_str
+
     # Remove leading and trailing whitespace
-    local sanitized_input_str=$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    sanitized_input_str=$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
     # Validate input: only alphanumeric characters are allowed
     if ! [[ "${sanitized_input_str}" =~ ^[a-zA-Z0-9]+$ ]]; then
@@ -38,7 +40,7 @@ convert_to_snake_case() {
     fi
 
     # Convert camelCase to snake_case
-    local snake_case_str=$(echo "${sanitized_input_str}" | sed -r 's/([0-9]+)/_\1_/g; s/([a-z])([A-Z])/\1_\2/g' | tr '[:upper:]' '[:lower:]' | sed -r 's/__/_/g; s/^_+|_+$//g')
+    snake_case_str=$(echo "${sanitized_input_str}" | sed -r 's/([0-9]+)/_\1_/g; s/([a-z])([A-Z])/\1_\2/g' | tr '[:upper:]' '[:lower:]' | sed -r 's/__/_/g; s/^_+|_+$//g')
 
     # Output the snake_case string
     echo "${snake_case_str}"
@@ -48,15 +50,18 @@ python_package_init() {
     local input_str="${1}"
     local package_language="${2}"
 
-    # Remove leading and trailing whitespace
-    local package_name_pascal_case="$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-    local package_language_cleaned="$(echo "${package_language}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    local package_name_pascal_case package_language_cleaned package_name_snake_case package_name_dashed
+    local absolute_current_path package_absolute_path package_src_folder
 
-    local package_name_snake_case=$(convert_to_snake_case "${package_name_pascal_case}")
-    local package_name_dashed="$(echo "${package_name_snake_case}" | sed 's/_/-/g')"
-    local absolute_current_path="$(realpath "$(pwd)")"
-    local package_absolute_path="${absolute_current_path}/${package_name_pascal_case}"
-    local package_src_folder="${package_absolute_path}/src/${package_name_snake_case}"
+    # Remove leading and trailing whitespace
+    package_name_pascal_case="$(echo "${input_str}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    package_language_cleaned="$(echo "${package_language}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+    package_name_snake_case=$(convert_to_snake_case "${package_name_pascal_case}")
+    package_name_dashed="$(echo "${package_name_snake_case}" | sed 's/_/-/g')"
+    absolute_current_path="$(realpath "$(pwd)")"
+    package_absolute_path="${absolute_current_path}/${package_name_pascal_case}"
+    package_src_folder="${package_absolute_path}/src/${package_name_snake_case}"
 
     if [[ -z "${package_name_snake_case}" ]]; then
         echo -e "Invalid input: only alphanumeric characters are allowed in the package name."
@@ -103,7 +108,7 @@ python_package_init() {
     cd "${package_absolute_path}"
     git init
     git add .
-    git commit -q -m "FEAT: Initial commit for ${package_name_pascal_case} automatically created by ${cli_name} create"
+    git commit -q -m "Initial commit for ${package_name_pascal_case} automatically created by ${cli_name} create"
 
     echo -e "\n${bold_green}${green_check_mark} Package ${package_name_pascal_case} successfully created!${end}"
 }
