@@ -93,8 +93,9 @@ function echo_running_hooks() {
 }
 
 function echo_summary() {
-    local execution_time execution_time_total execution_time_partial tool total_execution_time
-    local python_versions_pretty python_version_composite hook
+    local execution_time execution_time_total execution_time_partial total_execution_time
+    local python_versions_pretty python_version_composite hook tool
+    local -a all_running_hooks_name
 
     execution_time=""
     execution_time_total=0
@@ -102,6 +103,7 @@ function echo_summary() {
     tool=""
     total_execution_time=""
     python_versions_pretty=""
+    all_running_hooks_name=("index" "${running_hooks_name[@]}")
 
     for python_version_composite in "${python_versions[@]}"; do
         python_versions_pretty+="Python$(echo "${python_version_composite}" | cut -d ':' -f 2) "
@@ -127,7 +129,7 @@ function echo_summary() {
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${running_hooks_name[@]}"; do
+    for hook in "${all_running_hooks_name[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
         eval execution_time='$'"${hook}_execution_time"
@@ -140,7 +142,7 @@ function echo_summary() {
         printf "%-30s | %-6s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
-    for hook in "${running_hooks_name[@]}"; do
+    for hook in "${all_running_hooks_name[@]}"; do
         eval execution_time_partial='$'"${hook}_execution_time"
         execution_time_partial="$(printf "%.3f" "${execution_time_partial}")"
         execution_time_total="$(echo "${execution_time_total} + ${execution_time_partial}" | bc)"
@@ -273,6 +275,7 @@ function set_constants() {
     passed="${bold_black}${bg_green} PASS ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
 
+    index_summary_status="${passed}"
     build_summary_status="${passed}"
     clean_summary_status="${passed}"
     isort_summary_status="${passed}"
@@ -289,6 +292,7 @@ function set_constants() {
     docs_summary_status="${passed}"
     exec_summary_status="${passed}"
 
+    index_execution_time=0
     build_execution_time=0
     clean_execution_time=0
     isort_execution_time=0
@@ -1583,7 +1587,12 @@ function dispatch_hooks() {
 ####################################################################################################
 function main() {
     validate_prerequisites
+
+    start_block=$(date +%s.%N)
     set_constants "${@}"
+    end_block=$(date +%s.%N)
+    index_execution_time=$(echo "${index_execution_time}" + "${end_block} - ${start_block}" | bc)
+
     dispatch_hooks "${@}"
 
     return "${exit_code}"
