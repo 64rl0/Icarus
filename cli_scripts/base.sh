@@ -6,8 +6,6 @@
 
 # cli_scripts/base.sh
 # Created 1/21/25 - 12:25 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Basic Foreground Colors
 declare -r black_=$'\033[30m'

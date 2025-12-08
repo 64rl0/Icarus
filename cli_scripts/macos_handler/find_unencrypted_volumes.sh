@@ -6,8 +6,6 @@
 
 # cli_scripts/macos_handler/find_unencrypted_volumes.sh
 # Created 1/20/25 - 10:45 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Script Paths
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"

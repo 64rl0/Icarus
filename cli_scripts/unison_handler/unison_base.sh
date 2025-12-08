@@ -6,8 +6,6 @@
 
 # cli_scripts/unison_handler/unison_base.sh
 # Created 1/21/25 - 1:50 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # User defined variables
 declare -r unison_launchd_label="com.icarus.unison.launchd"

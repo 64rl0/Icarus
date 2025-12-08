@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/amazon_handler/update_hosts.py
 # Created 1/21/25 - 8:21 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

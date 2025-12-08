@@ -6,8 +6,6 @@
 
 # cli_scripts/amazon_handler/update_hosts_d.sh
 # Created 1/20/25 - 11:39 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Script Paths
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"

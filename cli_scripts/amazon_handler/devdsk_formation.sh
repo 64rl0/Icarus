@@ -6,8 +6,6 @@
 
 # cli_scripts/amazon_handler/devdsk_formation.sh
 # Created 1/20/25 - 11:23 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Script Paths
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"

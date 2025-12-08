@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/macos_handler/macos_parser.py
 # Created 1/19/25 - 4:03 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

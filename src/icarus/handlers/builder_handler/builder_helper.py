@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/builder_handler/builder_helper.py
 # Created 5/24/25 - 8:48 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

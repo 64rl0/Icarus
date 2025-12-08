@@ -11,8 +11,6 @@
 
 # test/test_application.py
 # Created 2/27/24 - 11:14 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

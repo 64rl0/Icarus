@@ -6,8 +6,6 @@
 
 # scripts/update_version.sh
 # Created 1/21/25 - 9:56 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # THIS SCRIPT CAN ONLY BE SOURCE FROM ANOTHER SCRIPT WHERE THE VARIABLES HERE BELOW ARE DEFINED
 # DO NOT RUN THIS SCRIPT DIRECTLY

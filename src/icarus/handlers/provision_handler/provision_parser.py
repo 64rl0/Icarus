@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/provision_handler/provision_parser.py
 # Created 5/25/25 - 8:35 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

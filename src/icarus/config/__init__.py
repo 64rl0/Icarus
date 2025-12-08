@@ -11,8 +11,6 @@
 
 # src/icarus/config/__init__.py
 # Created 7/19/23 - 10:24 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

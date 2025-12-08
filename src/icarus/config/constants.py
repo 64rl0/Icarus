@@ -11,8 +11,6 @@
 
 # src/icarus/config/constants.py
 # Created 1/18/25 - 5:52 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

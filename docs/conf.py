@@ -11,8 +11,6 @@
 
 # docs/conf.py
 # Created 5/20/25 - 11:12 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 Configuration file for the Sphinx documentation builder.

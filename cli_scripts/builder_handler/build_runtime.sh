@@ -6,8 +6,6 @@
 
 # cli_scripts/builder_handler/build_runtime.sh
 # Created 5/15/25 - 11:55 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Script Paths
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"

@@ -11,8 +11,6 @@
 
 # src/icarus/config/aaa_env_vars.py
 # Created 1/25/24 - 10:11 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

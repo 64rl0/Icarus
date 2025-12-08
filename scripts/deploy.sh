@@ -6,8 +6,6 @@
 
 # scripts/deploy.sh
 # Created 1/21/25 - 10:02 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Basic Foreground Colors
 declare -r black=$'\033[30m'

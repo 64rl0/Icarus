@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/__init__.py
 # Created 1/19/25 - 11:09 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

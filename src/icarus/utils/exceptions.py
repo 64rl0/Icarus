@@ -11,8 +11,6 @@
 
 # src/icarus/utils/exceptions.py
 # Created 1/23/25 - 5:44 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

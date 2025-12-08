@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/global_handler/global_parser.py
 # Created 1/23/25 - 12:03 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

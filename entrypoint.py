@@ -11,8 +11,6 @@
 
 # entrypoint.py
 # Created 1/18/25 - 6:35 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...

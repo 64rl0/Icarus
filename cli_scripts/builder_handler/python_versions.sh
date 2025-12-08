@@ -6,8 +6,6 @@
 
 # cli_scripts/builder_handler/python_versions.sh
 # Created 8/15/25 - 8:55 PM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 # Script Paths
 script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
