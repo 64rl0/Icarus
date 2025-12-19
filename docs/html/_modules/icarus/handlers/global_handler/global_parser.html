@@ -108,6 +108,17 @@
 
         <span class="k">return</span> <span class="n">return_code</span>
 
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">update</span> <span class="o">==</span> <span class="s1">&#39;--update&#39;</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Update is done via the bin file so we just print the</span>
+        <span class="c1"># new version here</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">cli_version</span><span class="o">.</span><span class="n">cli_version</span><span class="p">()</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_code</span>
+
     <span class="k">else</span><span class="p">:</span>
         <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown command from </span><span class="si">{</span><span class="n">handle_global_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>

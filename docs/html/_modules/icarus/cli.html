@@ -106,12 +106,20 @@
 
     <span class="n">tl_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--version&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--update&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
         <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--version&#39;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;display version information and exit&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tl_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--update&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--update&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;update icarus cli to the latest version&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">tl_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
@@ -740,7 +748,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Check for global commands first</span>
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">:</span>
         <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="si">=}</span><span class="s2"> handler=</span><span class="si">{</span><span class="n">handlers</span><span class="o">.</span><span class="n">handle_global_command</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">return_code</span> <span class="o">=</span> <span class="n">handlers</span><span class="o">.</span><span class="n">handle_global_command</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
