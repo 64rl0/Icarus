@@ -17,4 +17,5 @@ declare -r unison_daily_restart_path="${HOME}/Library/LaunchAgents/com.icarus.un
 declare -r -a devdsk_to_sync=(
     "9"
     "10"
+    "14"
 )
