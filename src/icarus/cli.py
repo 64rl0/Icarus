@@ -71,12 +71,20 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     tl_par.add_argument(
         '--version',
-        '--update',
         required=False,
         action='store_const',
         const='--version',
         default='',
         help='display version information and exit',
+    )
+
+    tl_par.add_argument(
+        '--update',
+        required=False,
+        action='store_const',
+        const='--update',
+        default='',
+        help='update icarus cli to the latest version',
     )
 
     tl_par.add_argument(
@@ -699,7 +707,7 @@ def execute(args: argparse.Namespace) -> int:
     """
 
     # Check for global commands first
-    if args.version:
+    if args.version or args.update:
         module_logger.debug(f"Running {args=} handler={handlers.handle_global_command.__name__}")
 
         return_code = handlers.handle_global_command(args=args)

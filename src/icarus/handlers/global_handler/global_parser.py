@@ -73,6 +73,17 @@ def handle_global_command(args: argparse.Namespace) -> int:
 
         return return_code
 
+    elif args.update == '--update':
+        module_logger.debug(f"Running {args.update=}")
+
+        # Update is done via the bin file so we just print the
+        # new version here
+        return_code = cli_version.cli_version()
+
+        assert isinstance(return_code, int)
+
+        return return_code
+
     else:
         module_logger.debug(f"Running {args=}")
         raise utils.IcarusParserException(f"Unknown command from {handle_global_command.__name__}")
