@@ -952,7 +952,11 @@ function build_venv_env() {
     # Build python runtime
     install_python_runtime
 
-    # Create Local env
+    # Ensure the Local env path always points to the exact runtime we just built.
+    # We (1) create the parent dirs if missing, then (2) remove any existing env root
+    # (old symlink or directory), then (3) recreate it as a symlink to the target
+    # CPython runtime. This keeps the path deterministic and avoids stale/partial
+    # environments from previous runs.
     mkdir -p "${path_to_env_root}" || {
         echo_error "Failed to create '${path_to_env_root}'."
         build_summary_status="${failed}"
@@ -974,7 +978,7 @@ function build_venv_env() {
 
     # Install pip and update
     echo -e "${bold_green}${sparkles} Updating pip...${end}"
-    "python${python_version}" -m pip install --upgrade pip setuptools wheel || {
+    "python${python_version}" -m pip install --upgrade pip || {
         echo_error "Failed to update pip."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -984,8 +988,8 @@ function build_venv_env() {
     # Install tools required by icarus builder to build and release
     echo
     echo -e "${bold_green}${sparkles} Installing builder tools into 'Python${python_full_version}' env...${end}"
-    "python${python_version}" -m pip install -I build twine || {
-        echo_error "Failed to update pip."
+    "python${python_version}" -m pip install --force-reinstall setuptools wheel build twine || {
+        echo_error "Failed to install builder tools."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
@@ -995,8 +999,8 @@ function build_venv_env() {
     echo
     echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
     for requirements_path in "${requirements_paths[@]}"; do
-        "python${python_version}" -m pip install -I -r "${project_root_dir_abs}/${requirements_path}" || {
-            echo_error "Failed to install requirements ${requirements_path} 'Python${python_full_version}' env."
+        "python${python_version}" -m pip install --force-reinstall --requirement "${project_root_dir_abs}/${requirements_path}" || {
+            echo_error "Failed to install requirements '${requirements_path}'."
             build_summary_status="${failed}"
             build_single_run_status=1
             exit_code=1
@@ -1029,8 +1033,8 @@ function build_venv_env() {
     # Install local package into env (as last so it will override the same name)
     echo
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
-    "python${python_version}" -m pip install -I "${path_to_wheel_root}/dist/"*.whl || {
-        echo_error "Failed to install '${project_root_dir_abs}' into 'Python${python_full_version}' env."
+    "python${python_version}" -m pip install --force-reinstall "${path_to_wheel_root}/dist/"*.whl || {
+        echo_error "Failed to install '${package_name_snake_case}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
@@ -1126,7 +1130,7 @@ function activate_venv_env_core() {
 
     # Adding runtime bin to path
     OLD_PATH="${PATH}"
-    export PATH="${path_to_runtime_root}/bin:${path_to_env_root}/bin:${OLD_PATH}"
+    export PATH="${path_to_env_root}/bin:${path_to_runtime_root}/bin:${OLD_PATH}"
 }
 
 function activate_venv_env() {
