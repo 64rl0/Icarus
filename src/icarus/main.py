@@ -32,15 +32,17 @@ This module ...
 # Standard Library Imports
 import sys
 
-# Local Folder (Relative) Imports
-from . import cli, config, utils
+# Local Application Imports
+from icarus import cli, config, utils
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['main']
+__all__ = [
+    'main',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

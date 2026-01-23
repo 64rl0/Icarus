@@ -29,8 +29,8 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .provision_parser import *
+# Local Application Imports
+from icarus.handlers.provision_handler.provision_parser import *
 
 # END IMPORTS
 # ======================================================================

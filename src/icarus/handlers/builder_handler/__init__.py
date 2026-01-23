@@ -29,9 +29,9 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .builder_helper import *
-from .builder_parser import *
+# Local Application Imports
+from icarus.handlers.builder_handler.builder_helper import *
+from icarus.handlers.builder_handler.builder_parser import *
 
 # END IMPORTS
 # ======================================================================

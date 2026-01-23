@@ -36,7 +36,9 @@ This module ...
 
 
 # List of public names in the module
-__all__ = ['IcarusParserException']
+__all__ = [
+    'IcarusParserException',
+]
 
 # Setting up logger for current module
 # module_logger =

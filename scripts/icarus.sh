@@ -26,9 +26,6 @@ declare -r project_root_dir_abs
 python_interpreter_abs="${project_root_dir_abs}/runtime_env/env/bin/python3"
 declare -r python_interpreter_abs
 
-python_entrypoint_abs="${project_root_dir_abs}/entrypoint.py"
-declare -r python_entrypoint_abs
-
 log_path="${project_root_dir_abs}/log"
 declare -r log_path
 
@@ -80,4 +77,4 @@ if [ ! -x "${python_interpreter_abs}" ]; then
 fi
 
 # Execute the main CLI script with the virtual environment's Python
-exec "${python_interpreter_abs}" "${python_entrypoint_abs}" "$@"
+exec "${python_interpreter_abs}" -m icarus "$@"

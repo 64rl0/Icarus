@@ -29,8 +29,8 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .amazon_parser import *
+# Local Application Imports
+from icarus.handlers.amazon_handler.amazon_parser import *
 
 # END IMPORTS
 # ======================================================================

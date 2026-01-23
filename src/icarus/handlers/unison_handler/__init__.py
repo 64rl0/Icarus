@@ -29,8 +29,8 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .unison_parser import *
+# Local Application Imports
+from icarus.handlers.unison_handler.unison_parser import *
 
 # END IMPORTS
 # ======================================================================

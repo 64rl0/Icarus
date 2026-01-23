@@ -12,7 +12,7 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 cli_scripts_dir_abs="$(realpath -- "${script_dir_abs}/../")"
 declare -r cli_scripts_dir_abs
-this_icarus_abs_filepath="$(realpath -- "${script_dir_abs}/../../bin/icarus")"
+this_icarus_abs_filepath="$(realpath -- "${script_dir_abs}/../../../../../../../../bin/icarus")"
 declare -r this_icarus_abs_filepath
 this_script_abs_filepath="$(realpath -- "${BASH_SOURCE[0]}")"
 declare -r this_script_abs_filepath
@@ -574,13 +574,13 @@ function run_char_replacement() {
 
         if [[ $(uname -s) == "Darwin" ]]; then
             # macOS
-            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${failed}"
                 exit_code=1
             }
         else
             # Linux
-            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${failed}"
                 exit_code=1
             }

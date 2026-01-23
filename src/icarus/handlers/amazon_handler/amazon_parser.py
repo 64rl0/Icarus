@@ -32,16 +32,18 @@ This module ...
 # Standard Library Imports
 import argparse
 
-# Local Folder (Relative) Imports
-from ... import config, utils
-from . import update_hosts
+# Local Application Imports
+from icarus import config, utils
+from icarus.handlers.amazon_handler import update_hosts
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['handle_amazon_command']
+__all__ = [
+    'handle_amazon_command',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

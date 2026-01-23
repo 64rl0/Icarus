@@ -29,10 +29,10 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .aaa_env_vars import *
-from .constants import *
-from .tools import *
+# Local Application Imports
+from icarus.config.aaa_env_vars import *
+from icarus.config.constants import *
+from icarus.config.tools import *
 
 # END IMPORTS
 # ======================================================================

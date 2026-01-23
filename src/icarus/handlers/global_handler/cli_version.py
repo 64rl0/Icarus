@@ -34,15 +34,17 @@ import os
 import subprocess
 import sys
 
-# Local Folder (Relative) Imports
-from ... import config, utils
+# Local Application Imports
+from icarus import config, utils
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['cli_version']
+__all__ = [
+    'cli_version',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

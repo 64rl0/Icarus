@@ -33,16 +33,18 @@ This module ...
 import argparse
 from typing import Union
 
-# Local Folder (Relative) Imports
-from ... import config, utils
-from . import builder_helper
+# Local Application Imports
+from icarus import config, utils
+from icarus.handlers.builder_handler import builder_helper
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['handle_builder_command']
+__all__ = [
+    'handle_builder_command',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

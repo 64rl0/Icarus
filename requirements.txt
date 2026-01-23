@@ -1,16 +1,5 @@
-# My Library
-carlogtt-python-library
-
-# Runtime dependencies
-python-dotenv
-requests
-pyyaml
-
 # Test dependencies
 pytest
-
-# Type checking depencencies
-types-PyYAML
 
 # Documentation dependencies
 sphinx

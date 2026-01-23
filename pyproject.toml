@@ -8,15 +8,31 @@ authors = [
     {name = "Carlo Gatti", email = "carlo.gatti@me.com"}
 ]
 requires-python = ">= 3.9"
-dependencies = []
+dependencies = [
+    # My Library
+    "carlogtt-python-library",
 
+    # Runtime dependencies
+    "python-dotenv",
+    "requests",
+    "pyyaml",
+
+    # Type checking depencencies
+    "types-PyYAML"
+]
 
 [project.urls]
 Homepage = "https://github.com/64rl0/Icarus"
 
-
 [project.optional-dependencies]
 dev = []
+
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["**/*"]
 
 
 [tool.black]

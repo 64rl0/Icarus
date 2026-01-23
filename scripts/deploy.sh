@@ -78,9 +78,14 @@ project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 update_version="${script_dir_abs}/update_version.sh"
 declare -r update_version
+build_runtime="${script_dir_abs}/build_runtime.sh"
+declare -r build_runtime
 
 pushd "${project_root_dir_abs}" >/dev/null 2>&1
 git fetch
+
+# Making fresh runtime
+bash "${build_runtime}"
 
 # Running icarus builder build tool
 "${project_root_dir_abs}"/bin/icarus builder release

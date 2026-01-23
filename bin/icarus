@@ -50,10 +50,10 @@ x86_64 | amd64)
 	;;
 esac
 
-launcher="${project_root_dir_abs}/launcher/bin/${os_id}/${arch_id}/icarus"
+icarus_bin="${project_root_dir_abs}/libexec/icarus/${os_id}/${arch_id}/icarus"
 
-if [[ -x "${launcher}" ]]; then
-	exec "${launcher}" "$@"
+if [[ -x "${icarus_bin}" ]]; then
+	exec "${icarus_bin}" "$@"
 fi
 
 echo -e "${bg_red}${bold_black}[ERROR]${end} - Missing launcher binary for ${os_id}.${arch_id}"

@@ -29,8 +29,8 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .global_parser import *
+# Local Application Imports
+from icarus.handlers.global_handler.global_parser import *
 
 # END IMPORTS
 # ======================================================================

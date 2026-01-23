@@ -48,8 +48,8 @@ import yaml
 # My Library Imports
 import carlogtt_python_library as mylib
 
-# Local Folder (Relative) Imports
-from ... import config, utils
+# Local Application Imports
+from icarus import config, utils
 
 # END IMPORTS
 # ======================================================================

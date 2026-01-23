@@ -9,8 +9,8 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# entrypoint.py
-# Created 1/18/25 - 6:35 PM UK Time (London) by carlogtt
+# src/icarus/__main__.py
+# Created 1/23/26 - 4:24 PM UK Time (London) by carlogtt
 
 """
 This module ...
@@ -32,8 +32,8 @@ This module ...
 # Standard Library Imports
 import sys
 
-# Third Party Library Imports
-from src.icarus.main import main
+# Local Application Imports
+from icarus.main import main
 
 # END IMPORTS
 # ======================================================================

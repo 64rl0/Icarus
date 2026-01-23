@@ -32,15 +32,17 @@ This module ...
 # My Library Imports
 import carlogtt_python_library
 
-# Local Folder (Relative) Imports
-from . import constants
+# Local Application Imports
+from icarus.config import constants
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['master_logger']
+__all__ = [
+    'master_logger',
+]
 
 # Setting up logger for current module
 # module_logger =

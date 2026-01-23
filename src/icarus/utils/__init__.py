@@ -29,10 +29,10 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .custom_argparse import *
-from .exceptions import *
-from .utils import *
+# Local Application Imports
+from icarus.utils.custom_argparse import *
+from icarus.utils.exceptions import *
+from icarus.utils.utils import *
 
 # END IMPORTS
 # ======================================================================

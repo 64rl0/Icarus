@@ -37,15 +37,17 @@ import subprocess
 # Third Party Library Imports
 import requests
 
-# Local Folder (Relative) Imports
-from ... import config
+# Local Application Imports
+from icarus import config
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['update_hots']
+__all__ = [
+    'update_hots',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

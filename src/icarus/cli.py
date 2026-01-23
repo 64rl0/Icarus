@@ -32,8 +32,8 @@ This module ...
 # Standard Library Imports
 import argparse
 
-# Local Folder (Relative) Imports
-from . import config, handlers, utils
+# Local Application Imports
+from icarus import config, handlers, utils
 
 # END IMPORTS
 # ======================================================================

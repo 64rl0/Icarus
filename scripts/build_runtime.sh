@@ -44,7 +44,11 @@ rm -rf "${project_root_dir_abs}/${venv_name}/cpython.tar.gz"
 # Install requirements
 echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
 "${pybin}" -m pip install --upgrade pip
-"${pybin}" -m pip install --force-reinstall --requirement "${project_root_dir_abs}/requirements.txt"
+"${pybin}" -m pip install --force-reinstall "${project_root_dir_abs}"
+
+# Cleanup
+rm -rf "${project_root_dir_abs}/build"
+rm -rf "${project_root_dir_abs}/src/icarus.egg-info"
 
 # Build complete!
 echo -e "\n\n${bold_green}${sparkles} ${venv_name} build Complete & Ready for use!${end}"

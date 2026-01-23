@@ -15,8 +15,8 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
-launcher_dir="${project_root_dir_abs}/launcher"
-declare -r launcher_dir
+libexec_dir="${project_root_dir_abs}/libexec/icarus"
+declare -r libexec_dir
 
 host_os="$(uname -s)"
 host_arch="$(uname -m)"
@@ -38,7 +38,7 @@ linux_src="${project_root_dir_abs}/launcher/icarus_launcher_linux.c"
 
 build_macos() {
     local arch="$1"
-    local output_dir="${launcher_dir}/bin/macos/${arch}"
+    local output_dir="${libexec_dir}/macos/${arch}"
     local output="${output_dir}/icarus"
     local cc="${CC_MACOS:-clang}"
 
@@ -62,7 +62,7 @@ build_macos() {
 
 build_linux() {
     local arch="$1"
-    local output_dir="${launcher_dir}/bin/linux/${arch}"
+    local output_dir="${libexec_dir}/linux/${arch}"
     local output="${output_dir}/icarus"
     local cc=""
     local cc_label=""
@@ -110,10 +110,20 @@ build_linux() {
 build_all() {
     local failed=0
 
-    build_macos "arm64" || failed=1
-    build_macos "x86_64" || failed=1
-    build_linux "arm64" || failed=1
-    build_linux "x86_64" || failed=1
+    case "${host_os}" in
+    Darwin)
+        build_macos "arm64" || failed=1
+        build_macos "x86_64" || failed=1
+        ;;
+    Linux)
+        build_linux "arm64" || failed=1
+        build_linux "x86_64" || failed=1
+        ;;
+    *)
+        echo "Unsupported host OS: ${host_os}"
+        return 1
+        ;;
+    esac
 
     if [[ "${failed}" -ne 0 ]]; then
         echo "One or more launcher builds failed."

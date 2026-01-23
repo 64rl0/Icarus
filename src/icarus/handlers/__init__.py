@@ -29,13 +29,13 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .amazon_handler import *
-from .builder_handler import *
-from .global_handler import *
-from .macos_handler import *
-from .provision_handler import *
-from .unison_handler import *
+# Local Application Imports
+from icarus.handlers.amazon_handler import *
+from icarus.handlers.builder_handler import *
+from icarus.handlers.global_handler import *
+from icarus.handlers.macos_handler import *
+from icarus.handlers.provision_handler import *
+from icarus.handlers.unison_handler import *
 
 # END IMPORTS
 # ======================================================================

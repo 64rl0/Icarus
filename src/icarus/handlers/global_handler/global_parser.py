@@ -32,16 +32,18 @@ This module ...
 # Standard Library Imports
 import argparse
 
-# Local Folder (Relative) Imports
-from ... import config, utils
-from . import cli_version
+# Local Application Imports
+from icarus import config, utils
+from icarus.handlers.global_handler import cli_version
 
 # END IMPORTS
 # ======================================================================
 
 
 # List of public names in the module
-__all__ = ['handle_global_command']
+__all__ = [
+    'handle_global_command',
+]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)

@@ -29,8 +29,8 @@ This module ...
 # Importing required libraries and modules for the application.
 # ======================================================================
 
-# Local Folder (Relative) Imports
-from .macos_parser import *
+# Local Application Imports
+from icarus.handlers.macos_handler.macos_parser import *
 
 # END IMPORTS
 # ======================================================================

@@ -40,8 +40,8 @@ import sys
 from collections.abc import Callable
 from typing import Any, Optional, Union
 
-# Local Folder (Relative) Imports
-from .. import config
+# Local Application Imports
+from icarus import config
 
 # END IMPORTS
 # ======================================================================
