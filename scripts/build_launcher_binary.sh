@@ -18,6 +18,21 @@ declare -r project_root_dir_abs
 launcher_dir="${project_root_dir_abs}/launcher"
 declare -r launcher_dir
 
+host_os="$(uname -s)"
+host_arch="$(uname -m)"
+
+case "${host_arch}" in
+arm64 | aarch64)
+    host_arch_id="arm64"
+    ;;
+x86_64 | amd64)
+    host_arch_id="x86_64"
+    ;;
+*)
+    host_arch_id="${host_arch}"
+    ;;
+esac
+
 macos_src="${project_root_dir_abs}/launcher/icarus_launcher_macos.c"
 linux_src="${project_root_dir_abs}/launcher/icarus_launcher_linux.c"
 
@@ -26,6 +41,11 @@ build_macos() {
     local output_dir="${launcher_dir}/bin/macos/${arch}"
     local output="${output_dir}/icarus"
     local cc="${CC_MACOS:-clang}"
+
+    if [[ "${host_os}" != "Darwin" ]]; then
+        echo "macOS launcher build requires a macOS host."
+        return 1
+    fi
 
     if ! command -v "${cc}" >/dev/null 2>&1; then
         echo "Missing compiler for macOS (${cc})."
@@ -45,18 +65,38 @@ build_linux() {
     local output_dir="${launcher_dir}/bin/linux/${arch}"
     local output="${output_dir}/icarus"
     local cc=""
+    local cc_label=""
+    local needs_cross=0
+
+    if [[ "${host_os}" != "Linux" ]]; then
+        echo "Linux launcher build requires a Linux host."
+        return 1
+    fi
 
     if [[ "${arch}" == "x86_64" ]]; then
-        cc="${CC_LINUX_X86_64:-cc}"
+        cc_label="CC_LINUX_X86_64"
+        if [[ "${host_arch_id}" == "x86_64" ]]; then
+            cc="${CC_LINUX_X86_64:-cc}"
+        else
+            cc="${CC_LINUX_X86_64:-x86_64-linux-gnu-gcc}"
+            needs_cross=1
+        fi
     else
-        cc="${CC_LINUX_ARM64:-aarch64-linux-gnu-gcc}"
-        if ! command -v "${cc}" >/dev/null 2>&1; then
+        cc_label="CC_LINUX_ARM64"
+        if [[ "${host_arch_id}" == "arm64" ]]; then
             cc="${CC_LINUX_ARM64:-cc}"
+        else
+            cc="${CC_LINUX_ARM64:-aarch64-linux-gnu-gcc}"
+            needs_cross=1
         fi
     fi
 
     if ! command -v "${cc}" >/dev/null 2>&1; then
-        echo "Missing compiler for Linux ${arch} (${cc})."
+        if [[ "${needs_cross}" -eq 1 ]]; then
+            echo "Missing cross-compiler for Linux ${arch} (${cc}). Set ${cc_label} to a cross compiler."
+        else
+            echo "Missing compiler for Linux ${arch} (${cc})."
+        fi
         return 1
     fi
 
