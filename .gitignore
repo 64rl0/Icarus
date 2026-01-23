@@ -289,5 +289,6 @@ cython_debug/
 
 
 ### Carlo Personal Exclusions
+.icarus/
 build_*/
-!lib
+runtime_env/

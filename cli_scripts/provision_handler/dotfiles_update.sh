@@ -41,6 +41,7 @@ function dotfiles_update() {
         "${HOME}/.config/fzf"
         "${HOME}/.config/homebrew"
         "${HOME}/.config/lazygit"
+        "${HOME}/.config/opencode"
         "${HOME}/.config/starship"
         "${HOME}/.config/tmux"
         "${HOME}/.config/yazi"

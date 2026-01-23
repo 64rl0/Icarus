@@ -101,49 +101,70 @@ def set_logger_level(level: int) -> None:
 
 
 def run_bash_script(
-    script_path: Union[str, pathlib.Path], script_args: Optional[list[str]] = None
+    script_path: Union[str, pathlib.Path],
+    script_args: Optional[list[str]] = None,
+    log_path: Optional[Union[str, pathlib.Path]] = None,
 ) -> int:
     """
     Runs a Bash script with the given arguments.
 
     :param script_path: Path to the Bash script.
     :param script_args: List of arguments to pass to the script.
+    :param log_path: Path to the log file.
     :return: Exit code of the Bash script.
     """
 
     module_logger.debug(f"Running BASH script with script_args before serializing {script_args=}")
 
-    if script_args is None:
-        script_args = []
+    script_args_normalized: list[str] = []
 
-    else:
+    if script_args is not None:
         if not isinstance(script_args, list):
             raise TypeError(f"{script_args=} must be a list of strings")
 
-        script_args_tmp = []
-
         for arg in script_args:
             if arg is None:
-                script_args_tmp.append('')
+                script_args_normalized.append('')
             elif isinstance(arg, str):
-                script_args_tmp.append(arg)
+                script_args_normalized.append(arg)
             else:
-                script_args_tmp.append(str(arg))
+                script_args_normalized.append(str(arg))
 
-        script_args = script_args_tmp
-
-    module_logger.debug(f"Running BASH script with script_args after serializing {script_args=}")
+    module_logger.debug(
+        f"Running BASH script with script_args after serializing {script_args_normalized=}"
+    )
 
     try:
         # Combine the script path and its arguments
-        command = ['bash', script_path] + script_args
+        command = ['bash', script_path] + script_args_normalized
 
-        # Execute the script and wait for it to complete
-        result = subprocess.run(command, check=True, text=True)
+        if log_path is not None:
+            with open(log_path, 'w', encoding='utf-8', errors='replace') as log_handle:
+                process = subprocess.Popen(
+                    command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    encoding="utf-8",
+                    text=True,
+                    bufsize=1,
+                    errors='replace',
+                )
+                if process.stdout is None:
+                    raise RuntimeError("Subprocess stdout is None")
+                for line in process.stdout:
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+                    log_handle.write(line)
+                process.wait()
+                return_code = process.returncode
+        else:
+            # Execute the script and wait for it to complete
+            complete_process = subprocess.run(command, check=True, text=True)
+            return_code = complete_process.returncode
 
-        module_logger.debug(f"{command=} executed successfully with exit code: {result.returncode}")
+        module_logger.debug(f"{command=} executed successfully with exit code: {return_code}")
 
-        return result.returncode
+        return return_code
 
     except subprocess.CalledProcessError as ex:
         module_logger.debug(f"{command=} failed with exit code {ex.returncode}: {ex}")

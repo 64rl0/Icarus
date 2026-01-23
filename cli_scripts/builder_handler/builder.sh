@@ -237,9 +237,7 @@ function set_constants() {
     declare -r -g package_language
     declare -r -g build_system_in_use
     declare -r -g platform_identifier
-    declare -r -g python_version_default_for_brazil
-    declare -r -g python_versions_for_brazil
-    declare -r -g build_env_dir_name
+    declare -r -g build_root_dir
     declare -r -g python_version_default_for_icarus
     declare -r -g python_versions_for_icarus
     declare -r -g requirements_paths
@@ -411,18 +409,22 @@ function set_constants() {
     echo
 }
 
-function set_python_constants() {
+function set_icarus_python3_constants() {
     python_version="$(echo "${1}" | cut -d ':' -f 1)"
     python_full_version="$(echo "${1}" | cut -d ':' -f 2)"
 
-    path_to_cache_root="${project_root_dir_abs}/${build_env_dir_name}/cache"
-    path_to_runtime_root="${project_root_dir_abs}/${build_env_dir_name}/runtime/${platform_identifier}"
-    path_to_env_root="${project_root_dir_abs}/${build_env_dir_name}/env/${platform_identifier}/CPython/${python_full_version}"
-    path_to_wheel_root="${project_root_dir_abs}/${build_env_dir_name}/wheel/${package_name_snake_case}/${platform_identifier}/CPython/${python_full_version}"
+    path_to_cache_root="${project_root_dir_abs}/${build_root_dir}/cache"
+    path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/runtime/${platform_identifier}"
+    path_to_env_root="${project_root_dir_abs}/${build_root_dir}/env/${platform_identifier}"
+    path_to_wheel_root="${project_root_dir_abs}/${build_root_dir}/wheel/${package_name_snake_case}/${platform_identifier}/CPython/${python_full_version}"
 
     python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
     python_pkg_full_name="${python_pkg_name}.tar.gz"
     python_pkg_download_url="https://github.com/64rl0/PythonRuntime/releases/download/${python_pkg_name}/${python_pkg_full_name}"
+}
+
+function set_icarus_cdk_constants() {
+    :
 }
 
 ####################################################################################################
@@ -772,15 +774,7 @@ function run_gitleaks() {
     echo
 }
 
-function run_brazil_pytest() {
-    brazil-build brazil_test || {
-        pytest_summary_status="${failed}"
-        exit_code=1
-    }
-    echo
-}
-
-function run_venv_pytest() {
+function run_pytest() {
     local -a elements
 
     elements=("${active_dirs_d1[@]}" "${active_py_files_d1[@]}")
@@ -801,15 +795,7 @@ function run_venv_pytest() {
     echo
 }
 
-function run_brazil_documentation() {
-    brazil-build amazon_doc_utils_build_sphinx || {
-        docs_summary_status="${failed}"
-        exit_code=1
-    }
-    echo
-}
-
-function run_venv_documentation() {
+function run_documentation() {
     validate_command "sphinx-apidoc" || {
         docs_summary_status="${failed}"
         exit_code=1
@@ -855,20 +841,47 @@ function run_venv_documentation() {
     echo
 }
 
-function build_brazil_env() {
-    local brazil_bin_dir
+function link_python_to_runtime() {
+    local filename filepath files_to_link
 
-    # We don't want to suppress this error
-    brazil ws sync --md || exit 1
+    files_to_link=(
+        "${path_to_runtime_root}/CPython/${python_full_version}/bin/"*
+    )
+    for filepath in "${files_to_link[@]}"; do
+        filename="$(basename "${filepath}")"
+        ln -f -s -n "${filepath}" "${path_to_runtime_root}/bin/${filename}" || {
+            echo_error "Failed to create symlink to '${path_to_runtime_root}' for '${filename}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
 
-    {
-        # Use brazil runtime farm to build brazil runtime env
-        brazil_bin_dir="$(brazil-path testrun.runtimefarm)/python${python_version_default_for_brazil}/bin"
-        brazil-build
-    } || {
-        build_summary_status="${failed}"
-        exit_code=1
-    }
+    files_to_link=(
+        "${path_to_runtime_root}/CPython/${python_full_version}/include/"*
+    )
+    for filepath in "${files_to_link[@]}"; do
+        filename="$(basename "${filepath}")"
+        ln -f -s -n "${filepath}" "${path_to_runtime_root}/include/${filename}" || {
+            echo_error "Failed to create symlink to '${path_to_runtime_root}' for '${filename}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
+
+    files_to_link=(
+        "${path_to_runtime_root}/CPython/${python_full_version}/lib/"*
+    )
+    for filepath in "${files_to_link[@]}"; do
+        filename="$(basename "${filepath}")"
+        ln -f -s -n "${filepath}" "${path_to_runtime_root}/lib/${filename}" || {
+            echo_error "Failed to create symlink to '${path_to_runtime_root}' for '${filename}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
 }
 
 function install_python_runtime() {
@@ -895,6 +908,14 @@ function install_python_runtime() {
             exit_code=1
         }
     done
+
+    # Make lib64 → lib symlink
+    ln -f -s -n "./lib" "${path_to_runtime_root}/lib64" || {
+        echo_error "Failed to create '${path_to_runtime_root}/lib64' symlink."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
 
     echo -e "${bold_green}${sparkles} Downloading & Installing 'Python${python_full_version}'${end}"
     if [[ ! -e "${dest_tar}" ]]; then
@@ -936,49 +957,63 @@ function install_python_runtime() {
         build_single_run_status=1
         exit_code=1
     }
+
+    # Link all runtime bins to env root
+    link_python_to_runtime
+
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         echo -e "done!"
         echo
     fi
 }
 
-function build_venv_env() {
-    local requirements_path
+function build_icarus_python3() {
+    local requirements_path dir dirs_to_link
 
     build_single_run_status=0
 
-    activate_venv_env_core
+    activate_icarus_python3_core
 
     # Build python runtime
     install_python_runtime
 
     # Ensure the Local env path always points to the exact runtime we just built.
-    # We (1) create the parent dirs if missing, then (2) remove any existing env root
-    # (old symlink or directory), then (3) recreate it as a symlink to the target
-    # CPython runtime. This keeps the path deterministic and avoids stale/partial
-    # environments from previous runs.
-    mkdir -p "${path_to_env_root}" || {
-        echo_error "Failed to create '${path_to_env_root}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
+    # We (1) remove any existing env root (old symlink or directory), then
+    # (2) recreate it, then (3) create the  symlinks to the target runtime dirs.
+    # This keeps the path deterministic and avoids stale/partial environments from
+    # previous runs.
     rm -rf "${path_to_env_root}" || {
         echo_error "Failed to remove '${path_to_env_root}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-    ln -f -s "${path_to_runtime_root}/CPython/${python_full_version}" "${path_to_env_root}" || {
-        echo_error "Failed to create symlink to '${path_to_env_root}'."
+    mkdir -p "${path_to_env_root}" || {
+        echo_error "Failed to create '${path_to_env_root}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
+    dirs_to_link=(
+        "../../runtime/${platform_identifier}/bin"
+        "../../runtime/${platform_identifier}/include"
+        "../../runtime/${platform_identifier}/lib"
+        "../../runtime/${platform_identifier}/lib64"
+        "../../runtime/${platform_identifier}/private"
+        "../../runtime/${platform_identifier}/share"
+    )
+    for dir in "${dirs_to_link[@]}"; do
+        ln -f -s -n "${dir}" "${path_to_env_root}" || {
+            echo_error "Failed to create symlink to '${path_to_env_root}' for '${dir}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
 
     # Install pip and update
     echo -e "${bold_green}${sparkles} Updating pip...${end}"
-    "python${python_version}" -m pip install --upgrade pip || {
+    "python${python_version}" -m pip install --upgrade --no-warn-script-location pip || {
         echo_error "Failed to update pip."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -988,7 +1023,7 @@ function build_venv_env() {
     # Install tools required by icarus builder to build and release
     echo
     echo -e "${bold_green}${sparkles} Installing builder tools into 'Python${python_full_version}' env...${end}"
-    "python${python_version}" -m pip install --force-reinstall setuptools wheel build twine || {
+    "python${python_version}" -m pip install --force-reinstall --no-warn-script-location setuptools wheel build twine || {
         echo_error "Failed to install builder tools."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -999,7 +1034,7 @@ function build_venv_env() {
     echo
     echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
     for requirements_path in "${requirements_paths[@]}"; do
-        "python${python_version}" -m pip install --force-reinstall --requirement "${project_root_dir_abs}/${requirements_path}" || {
+        "python${python_version}" -m pip install --force-reinstall --no-warn-script-location --requirement "${project_root_dir_abs}/${requirements_path}" || {
             echo_error "Failed to install requirements '${requirements_path}'."
             build_summary_status="${failed}"
             build_single_run_status=1
@@ -1023,7 +1058,7 @@ function build_venv_env() {
     }
     echo
     echo -e "${bold_green}${package} Checking package health${end}"
-    twine check "${path_to_wheel_root}/dist/"* || {
+    "python${python_version}" -m twine check "${path_to_wheel_root}/dist/"* || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1033,17 +1068,20 @@ function build_venv_env() {
     # Install local package into env (as last so it will override the same name)
     echo
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
-    "python${python_version}" -m pip install --force-reinstall "${path_to_wheel_root}/dist/"*.whl || {
+    "python${python_version}" -m pip install --force-reinstall --no-warn-script-location "${path_to_wheel_root}/dist/"*.whl || {
         echo_error "Failed to install '${package_name_snake_case}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
 
+    # Link all runtime bins to env root (after install)
+    link_python_to_runtime
+
     # Cleanup post
     echo
     echo -e "${bold_green}${broom} Cleaning up...${end}"
-    if [[ "${build_env_dir_name}" == 'build' ]]; then
+    if [[ "${build_root_dir}" == 'build' ]]; then
         mkdir -p "${path_to_wheel_root}/build" || {
             echo_error "Failed to create build dir."
             build_summary_status="${failed}"
@@ -1078,12 +1116,12 @@ function build_venv_env() {
     }
     echo -e "cleanup completed"
 
-    deactivate_venv_env_core
+    deactivate_icarus_python3_core
 
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
         echo
-        echo -e "${bold_green}${green_check_mark} 'Python${python_full_version}' build complete & Ready for use!${end}"
+        echo -e "${bold_green}${green_check_mark} 'Python${python_full_version}' build Complete & Ready for use!${end}"
         echo
     else
         # Build failed!
@@ -1093,8 +1131,21 @@ function build_venv_env() {
     fi
 }
 
-function echo_env_info() {
-    local bin_dir="${1}"
+function activate_icarus_python3_core() {
+    # we need to keep this activate core separated from any echo message as it's being
+    # used in the build function too
+
+    # Adding runtime bin to path
+    OLD_PATH="${PATH}"
+    export PATH="${path_to_env_root}/bin:${OLD_PATH}"
+}
+
+function activate_icarus_python3() {
+    if [[ ! -e "${path_to_env_root}/bin/python${python_version}" ]]; then
+        echo_error "Cannot find the requested env: \`Python${python_full_version}\`"
+    fi
+
+    activate_icarus_python3_core
 
     # Display Project info
     echo -e "${bold_green}${green_circle} Project Root:${end}"
@@ -1103,71 +1154,65 @@ function echo_env_info() {
 
     # Display env info
     echo -e "${bold_green}${green_circle} Runtime Environment:${end}"
-    echo -e "Runtime Env: ${bin_dir}"
+    echo -e "Runtime Env: $(command -v "python${python_version}")"
     echo -e "Platform ID: ${platform_identifier}"
     echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
     echo
 }
 
-function activate_brazil_env() {
-    local brazil_bin_dir
-
-    # Use brazil runtime farm to activate brazil runtime env
-    brazil_bin_dir="$(brazil-path testrun.runtimefarm 2>/dev/null)/python${python_version_default_for_brazil}/bin"
-    brazil-build
-
-    # Adding brazil python runtime to path
-    OLD_PATH="${PATH}"
-    export PATH="${brazil_bin_dir}:${PATH}"
-
-    # Display Env info
-    echo_env_info "${brazil_bin_dir}"
-}
-
-function activate_venv_env_core() {
-    # we need to keep this activate core separated from any echo message as it's being
-    # used in the build function too
-
-    # Adding runtime bin to path
-    OLD_PATH="${PATH}"
-    export PATH="${path_to_env_root}/bin:${path_to_runtime_root}/bin:${OLD_PATH}"
-}
-
-function activate_venv_env() {
-    local bin_dir
-
-    if [[ ! -e "${path_to_env_root}/bin/python${python_version}" ]]; then
-        echo_error "Cannot find the requested env: \`Python${python_full_version}\`"
-    fi
-
-    activate_venv_env_core
-
-    # Display Env info
-    bin_dir="$(command -v "python${python_version}")"
-    echo_env_info "${bin_dir}"
-}
-
-function deactivate_brazil_env() {
-    export PATH="${OLD_PATH}"
-    echo -e "Environment deactivated!"
-    echo
-}
-
-function deactivate_venv_env_core() {
+function deactivate_icarus_python3_core() {
     # we need to keep this deactivate core separated from any echo message as it's being
     # used in the build function too
     export PATH="${OLD_PATH}"
 }
 
-function deactivate_venv_env() {
-    deactivate_venv_env_core
+function deactivate_icarus_python3() {
+    deactivate_icarus_python3_core
     echo -e "Environment deactivated!"
     echo
 }
 
-function clean_common() {
+function clean_icarus_root() {
     local path
-    local -a dirs_to_clean files_to_clean
+    local -a dirs_to_clean
+
+    dirs_to_clean=(
+        "${project_root_dir_abs}/${build_root_dir}"
+    )
+    for path in "${dirs_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}$(basename "${path}")${end}'"
+        echo -e "${path}"
+        rm -rf "${path}" || {
+            echo_error "Failed to clean '${path}'."
+            clean_summary_status="${failed}"
+            exit_code=1
+        }
+        echo
+    done
+}
+
+function clean_macos() {
+    local path
+    local -a files_to_clean
+
+    files_to_clean=(
+        ".DS_Store"
+        "Thumbs.db"
+    )
+    for path in "${files_to_clean[@]}"; do
+        echo -e "Cleaning '${blue}${path}${end}'"
+        find "${project_root_dir_abs}" -type f -name "${path}" -print -exec rm -rf {} + || {
+            echo_error "Failed to clean '${path}'."
+            clean_summary_status="${failed}"
+            exit_code=1
+        }
+        echo
+    done
+}
+
+function clean_python() {
+    local path
+    local -a dirs_to_clean
 
     dirs_to_clean=(
         "${project_root_dir_abs}/src/"*".egg-info"
@@ -1197,41 +1242,14 @@ function clean_common() {
         }
         echo
     done
-
-    files_to_clean=(
-        ".DS_Store"
-        "Thumbs.db"
-    )
-    for path in "${files_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}${path}${end}'"
-        find "${project_root_dir_abs}" -type f -name "${path}" -print -exec rm -rf {} + || {
-            echo_error "Failed to clean '${path}'."
-            clean_summary_status="${failed}"
-            exit_code=1
-        }
-        echo
-    done
-
 }
 
-function clean_brazil_env() {
-    echo -e "Cleaning up..."
-    echo
-    clean_common
-
-    brazil-build clean || {
-        clean_summary_status="${failed}"
-        exit_code=1
-    }
-    echo
-}
-
-function clean_venv_env() {
+function clean_node() {
     local path
     local -a dirs_to_clean
 
     dirs_to_clean=(
-        "${project_root_dir_abs}/${build_env_dir_name}"
+        "${project_root_dir_abs}/node_modules"
     )
     for path in "${dirs_to_clean[@]}"; do
         echo -e "Cleaning '${blue}$(basename "${path}")${end}'"
@@ -1243,8 +1261,16 @@ function clean_venv_env() {
         }
         echo
     done
+}
 
-    clean_common
+function clean_cdk() {
+    :
+}
+
+function clean_icarus_python3() {
+    clean_icarus_root
+    clean_macos
+    clean_python
 
     if [[ "${clean_summary_status}" == "${failed}" ]]; then
         echo -e "${bold_red}${stop_sign} Environment cleanup failed!${end}"
@@ -1255,18 +1281,22 @@ function clean_venv_env() {
     fi
 }
 
-function exec_brazil() {
-    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
-    echo
+function clean_icarus_cdk() {
+    clean_icarus_root
+    clean_macos
+    clean_node
+    clean_cdk
 
-    brazil-test-exec "${initial_exec_command_received[@]}" || {
-        exec_summary_status="${failed}"
-        exit_code=1
-    }
-    echo
+    if [[ "${clean_summary_status}" == "${failed}" ]]; then
+        echo -e "${bold_red}${stop_sign} Environment cleanup failed!${end}"
+        echo
+    else
+        echo -e "${bold_green}${broom} Environment cleanup completed!${end}"
+        echo
+    fi
 }
 
-function exec_venv() {
+function exec_cmd() {
     echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
     echo
 
@@ -1280,18 +1310,14 @@ function exec_venv() {
 ####################################################################################################
 # DISPATCHERS
 ####################################################################################################
-function dispatch_tools() {
+function dispatch_icarus_python3() {
     local start_block end_block
 
     if [[ "${build}" == "Y" ]]; then
         start_block=$(date +%s.%N)
 
         echo_title "Building Env"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            build_brazil_env
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            build_venv_env
-        fi
+        build_icarus_python3
 
         end_block=$(date +%s.%N)
         build_execution_time=$(echo "${build_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1306,15 +1332,7 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Cleaning Env"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                clean_brazil_env
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                clean_venv_env
-            fi
-        fi
+        clean_icarus_python3
 
         end_block=$(date +%s.%N)
         clean_execution_time=$(echo "${clean_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1324,12 +1342,20 @@ function dispatch_tools() {
     fi
 
     # Tools that are run as composite and need build env access
-    if [[ "${build_system_in_use}" == "brazil" ]]; then
-        echo_title "Project & Env info"
-        activate_brazil_env
-    elif [[ "${build_system_in_use}" == "icarus" ]]; then
-        echo_title "Project & Env info"
-        activate_venv_env
+    echo_title "Project & Env info"
+    activate_icarus_python3
+
+    if [[ "${exec}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
+
+        echo_title "Running exec"
+        exec_cmd
+
+        end_block=$(date +%s.%N)
+        exec_execution_time=$(echo "${exec_execution_time}" + "${end_block} - ${start_block}" | bc)
+
+        # exec always runs alone but we can't return here as we need to deactivate the env
+        # so we let the block run until the end
     fi
 
     if [[ "${isort}" == "Y" ]]; then
@@ -1339,11 +1365,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_isort
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_isort
-            fi
+            run_isort
         fi
 
         end_block=$(date +%s.%N)
@@ -1357,11 +1379,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_black
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_black
-            fi
+            run_black
         fi
 
         end_block=$(date +%s.%N)
@@ -1372,11 +1390,7 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running Flake8"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_flake8
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_flake8
-        fi
+        run_flake8
 
         end_block=$(date +%s.%N)
         flake8_execution_time=$(echo "${flake8_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1386,11 +1400,7 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running mypy"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_mypy
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_mypy
-        fi
+        run_mypy
 
         end_block=$(date +%s.%N)
         mypy_execution_time=$(echo "${mypy_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1403,11 +1413,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_shfmt
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_shfmt
-            fi
+            run_shfmt
         fi
 
         end_block=$(date +%s.%N)
@@ -1421,11 +1427,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_eolnorm
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_eolnorm
-            fi
+            run_eolnorm
         fi
 
         end_block=$(date +%s.%N)
@@ -1439,11 +1441,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_char_replacement
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_char_replacement
-            fi
+            run_char_replacement
         fi
 
         end_block=$(date +%s.%N)
@@ -1457,11 +1455,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_trailingwhitespaces
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_trailingwhitespaces
-            fi
+            run_trailingwhitespaces
         fi
 
         end_block=$(date +%s.%N)
@@ -1475,11 +1469,7 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_eofnewline
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_eofnewline
-            fi
+            run_eofnewline
         fi
 
         end_block=$(date +%s.%N)
@@ -1490,11 +1480,7 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running gitleaks"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_gitleaks
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_gitleaks
-        fi
+        run_gitleaks
 
         end_block=$(date +%s.%N)
         gitleaks_execution_time=$(echo "${gitleaks_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1504,11 +1490,7 @@ function dispatch_tools() {
         start_block=$(date +%s.%N)
 
         echo_title "Running pytest"
-        if [[ "${build_system_in_use}" == "brazil" ]]; then
-            run_brazil_pytest
-        elif [[ "${build_system_in_use}" == "icarus" ]]; then
-            run_venv_pytest
-        fi
+        run_pytest
 
         end_block=$(date +%s.%N)
         pytest_execution_time=$(echo "${pytest_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1521,65 +1503,42 @@ function dispatch_tools() {
         if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
             echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                run_brazil_documentation
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                run_venv_documentation
-            fi
+            run_documentation
         fi
 
         end_block=$(date +%s.%N)
         docs_execution_time=$(echo "${docs_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
-    if [[ "${exec}" == "Y" ]]; then
-        start_block=$(date +%s.%N)
-
-        echo_title "Running exec"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
-            if [[ "${build_system_in_use}" == "brazil" ]]; then
-                exec_brazil
-            elif [[ "${build_system_in_use}" == "icarus" ]]; then
-                exec_venv
-            fi
-        fi
-
-        end_block=$(date +%s.%N)
-        exec_execution_time=$(echo "${exec_execution_time}" + "${end_block} - ${start_block}" | bc)
-    fi
-
-    if [[ "${build_system_in_use}" == "brazil" ]]; then
-        echo_title "Deactivating Environment"
-        deactivate_brazil_env
-    elif [[ "${build_system_in_use}" == "icarus" ]]; then
-        echo_title "Deactivating Environment"
-        deactivate_venv_env
-    fi
+    echo_title "Deactivating Environment"
+    deactivate_icarus_python3
 }
 
-function dispatch_hooks() {
+function dispatch_icarus_cdk() {
+    :
+}
+
+function dispatch_build_system() {
     local python_version_composite
 
     echo_running_hooks
 
-    if [[ "${build_system_in_use}" == "brazil" ]]; then
-        dispatch_tools
-    elif [[ "${build_system_in_use}" == "icarus" ]]; then
+    if [[ "${build_system_in_use}" == "icarus-python3" ]]; then
         if [[ "${clean}" == "Y" ]]; then
-            set_python_constants "${python_default_version}:${python_default_full_version}"
-            dispatch_tools
+            set_icarus_python3_constants "${python_default_version}:${python_default_full_version}"
+            dispatch_icarus_python3
         elif [[ "${exec}" == "Y" ]]; then
-            set_python_constants "${python_default_version}:${python_default_full_version}"
-            dispatch_tools
+            set_icarus_python3_constants "${python_default_version}:${python_default_full_version}"
+            dispatch_icarus_python3
         else
             for python_version_composite in "${python_versions[@]}"; do
-                set_python_constants "${python_version_composite}"
+                set_icarus_python3_constants "${python_version_composite}"
                 echo_title "Running tools for: Python${python_version}" "header"
-                dispatch_tools
+                dispatch_icarus_python3
             done
         fi
+    elif [[ "${build_system_in_use}" == "icarus-cdk" ]]; then
+        dispatch_icarus_cdk
     fi
 
     echo_summary
@@ -1603,7 +1562,7 @@ function main() {
     fi
     index_execution_time=$(echo "${index_execution_time}" + "${elapsed_time}" | bc)
 
-    dispatch_hooks "${@}"
+    dispatch_build_system "${@}"
 
     return "${exit_code}"
 }

@@ -37,6 +37,23 @@
 <span id="icarus-handlers-builder-handler-builder-helper-module"></span><h1>icarus.handlers.builder_handler.builder_helper module<a class="headerlink" href="#module-icarus.handlers.builder_handler.builder_helper" title="Link to this heading">¶</a></h1>
 <p>This module …</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="icarus.handlers.builder_handler.builder_helper.acquire_builder_lock">
+<span class="sig-prename descclassname"><span class="pre">icarus.handlers.builder_handler.builder_helper.</span></span><span class="sig-name descname"><span class="pre">acquire_builder_lock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/icarus/handlers/builder_handler/builder_helper.html#acquire_builder_lock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.handlers.builder_handler.builder_helper.acquire_builder_lock" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire an exclusive builder lock for the project.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A handle for the acquired lock.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="icarus.handlers.builder_handler.builder_helper.ensure_builder_control_plane">
+<span class="sig-prename descclassname"><span class="pre">icarus.handlers.builder_handler.builder_helper.</span></span><span class="sig-name descname"><span class="pre">ensure_builder_control_plane</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/icarus/handlers/builder_handler/builder_helper.html#ensure_builder_control_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.handlers.builder_handler.builder_helper.ensure_builder_control_plane" title="Link to this definition">¶</a></dt>
+<dd><p>Ensure the builder control plane directories exist in the project.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="icarus.handlers.builder_handler.builder_helper.get_argv">
 <span class="sig-prename descclassname"><span class="pre">icarus.handlers.builder_handler.builder_helper.</span></span><span class="sig-name descname"><span class="pre">get_argv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ib_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/icarus/handlers/builder_handler/builder_helper.html#get_argv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.handlers.builder_handler.builder_helper.get_argv" title="Link to this definition">¶</a></dt>
 <dd><p>Get the arguments for the builder.sh script.</p>
@@ -46,6 +63,34 @@
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The arguments for the builder.sh script.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="icarus.handlers.builder_handler.builder_helper.release_builder_lock">
+<span class="sig-prename descclassname"><span class="pre">icarus.handlers.builder_handler.builder_helper.</span></span><span class="sig-name descname"><span class="pre">release_builder_lock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lock_handle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">IO</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/icarus/handlers/builder_handler/builder_helper.html#release_builder_lock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.handlers.builder_handler.builder_helper.release_builder_lock" title="Link to this definition">¶</a></dt>
+<dd><p>Release the builder lock and remove the lock file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>lock_handle</strong> – A handle for the lock to be released.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="icarus.handlers.builder_handler.builder_helper.run_bash_script_with_logging">
+<span class="sig-prename descclassname"><span class="pre">icarus.handlers.builder_handler.builder_helper.</span></span><span class="sig-name descname"><span class="pre">run_bash_script_with_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">script_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">script_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/icarus/handlers/builder_handler/builder_helper.html#run_bash_script_with_logging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#icarus.handlers.builder_handler.builder_helper.run_bash_script_with_logging" title="Link to this definition">¶</a></dt>
+<dd><p>Run a Bash script, log trace, and persist error logs on failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>script_path</strong></p></li>
+<li><p><strong>script_args</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code of the Bash script.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -91,7 +136,11 @@
 <li class="toctree-l6 current"><a class="reference internal" href="icarus.handlers.builder_handler.html">icarus.handlers.builder_handler package</a><ul class="current">
 <li class="toctree-l7 current"><a class="reference internal" href="icarus.handlers.builder_handler.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l8 current"><a class="current reference internal" href="#">icarus.handlers.builder_handler.builder_helper module</a><ul>
+<li class="toctree-l9"><a class="reference internal" href="#icarus.handlers.builder_handler.builder_helper.acquire_builder_lock"><code class="docutils literal notranslate"><span class="pre">acquire_builder_lock()</span></code></a></li>
+<li class="toctree-l9"><a class="reference internal" href="#icarus.handlers.builder_handler.builder_helper.ensure_builder_control_plane"><code class="docutils literal notranslate"><span class="pre">ensure_builder_control_plane()</span></code></a></li>
 <li class="toctree-l9"><a class="reference internal" href="#icarus.handlers.builder_handler.builder_helper.get_argv"><code class="docutils literal notranslate"><span class="pre">get_argv()</span></code></a></li>
+<li class="toctree-l9"><a class="reference internal" href="#icarus.handlers.builder_handler.builder_helper.release_builder_lock"><code class="docutils literal notranslate"><span class="pre">release_builder_lock()</span></code></a></li>
+<li class="toctree-l9"><a class="reference internal" href="#icarus.handlers.builder_handler.builder_helper.run_bash_script_with_logging"><code class="docutils literal notranslate"><span class="pre">run_bash_script_with_logging()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l8"><a class="reference internal" href="icarus.handlers.builder_handler.builder_parser.html">icarus.handlers.builder_handler.builder_parser module</a></li>

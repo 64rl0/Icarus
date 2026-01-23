@@ -30,6 +30,7 @@ This module ...
 # ======================================================================
 
 # Standard Library Imports
+import datetime
 import os
 import pathlib
 
@@ -54,8 +55,16 @@ CLI_DESCRIPTION = (
     ' _| \\___| \\__,_| _|    \\__,_| ____/  '
 )
 CLI_EPILOG = ''
-CLI_VERSION = 'build 2.4.6 built on 01/14/2026'
+CLI_VERSION = 'build 2.5.0 built on 01/23/2026'
 
 ROOT_DIR = pathlib.Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 CLI_SCRIPTS_DIR = pathlib.Path(os.path.join(ROOT_DIR, 'cli_scripts'))
+
+SYSTEM_TZ = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+
 ICARUS_CFG_FILENAME = 'icarus.cfg'
+ICARUS_CONTROL_PLANE_DIRNAME = '.icarus'
+ICARUS_LOG_DIRNAME = 'log'
+ICARUS_TRACE_LOG_FILENAME = 'trace.log'
+ICARUS_LOCK_DIRNAME = 'lock'
+ICARUS_BUILDER_LOCK_FILENAME = 'builder.lock'

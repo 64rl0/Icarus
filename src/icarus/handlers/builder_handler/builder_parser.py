@@ -113,10 +113,18 @@ def handle_builder_command(args: argparse.Namespace) -> int:
     elif args.builder_command not in singleton_args and any(builder_args.values()):
         module_logger.debug(f"Running {args.builder_command=}")
 
-        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
-        script_args = [builder_helper.get_argv(ib_args=builder_args)]
+        builder_helper.ensure_builder_control_plane()
+        builder_lock = builder_helper.acquire_builder_lock()
 
-        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+        try:
+            script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
+            script_args = [builder_helper.get_argv(ib_args=builder_args)]
+
+            return_code = builder_helper.run_bash_script_with_logging(
+                script_path=script_path, script_args=script_args
+            )
+        finally:
+            builder_helper.release_builder_lock(builder_lock)
 
         return return_code
 
