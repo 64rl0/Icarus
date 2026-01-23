@@ -43,8 +43,10 @@ static int resolve_exe_dir(char *out, size_t out_len) {
         return -1;
     }
 
-    strncpy(out, resolved, out_len - 1);
-    out[out_len - 1] = '\0';
+    if (snprintf(out, out_len, "%s", resolved) >= (int)out_len) {
+        errno = ENAMETOOLONG;
+        return -1;
+    }
 
     char *slash = strrchr(out, '/');
     if (slash == NULL) {
