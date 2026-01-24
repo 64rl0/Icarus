@@ -56,7 +56,7 @@ CLI_DESCRIPTION = (
     ' _| \\___| \\__,_| _|    \\__,_| ____/  '
 )
 CLI_EPILOG = ''
-CLI_VERSION = 'build 2.6.0 built on 01/23/2026'
+CLI_VERSION = 'build 2.6.1 built on 01/24/2026'
 
 ROOT_DIR = pathlib.Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 CLI_SCRIPTS_DIR = pathlib.Path(
