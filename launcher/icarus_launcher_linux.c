@@ -58,6 +58,38 @@ static int resolve_exe_dir(char *out, size_t out_len) {
     return 0;
 }
 
+static int resolve_project_root(const char *exe_dir, char *out, size_t out_len) {
+    char current[PATH_MAX];
+    if (snprintf(current, sizeof(current), "%s", exe_dir) >= (int)sizeof(current)) {
+        errno = ENAMETOOLONG;
+        return -1;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        char script_path[PATH_MAX];
+        if (snprintf(script_path, sizeof(script_path), "%s/scripts/icarus.sh", current) >=
+            (int)sizeof(script_path)) {
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+
+        if (access(script_path, R_OK) == 0) {
+            if (snprintf(out, out_len, "%s", current) >= (int)out_len) {
+                errno = ENAMETOOLONG;
+                return -1;
+            }
+            return 0;
+        }
+
+        if (ascend_dir(current, 1) != 0) {
+            break;
+        }
+    }
+
+    errno = ENOENT;
+    return -1;
+}
+
 int main(int argc, char *argv[]) {
     char exe_dir[PATH_MAX];
     if (resolve_exe_dir(exe_dir, sizeof(exe_dir)) != 0) {
@@ -66,9 +98,7 @@ int main(int argc, char *argv[]) {
     }
 
     char project_root_dir[PATH_MAX];
-    strncpy(project_root_dir, exe_dir, sizeof(project_root_dir) - 1);
-    project_root_dir[sizeof(project_root_dir) - 1] = '\0';
-    if (ascend_dir(project_root_dir, 4) != 0) {
+    if (resolve_project_root(exe_dir, project_root_dir, sizeof(project_root_dir)) != 0) {
         fprintf(stderr, "Failed to resolve project root: %s\n", strerror(errno));
         return 1;
     }
