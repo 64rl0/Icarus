@@ -2097,58 +2097,6 @@ function echo_final_response() {
 }
 
 function read_build_versions() {
-    # macos26
-    # - 3.15 none yet
-    # - 3.14 all version
-    # - 3.13 all version
-    # - 3.12 all version
-    # - 3.11 all version
-    # - 3.10 all version
-    # - 3.9 up to and including 3.9.1
-    # - 3.8 up to and including 3.8.10
-
-    # macos15
-    # - 3.15 none yet
-    # - 3.14 all version
-    # - 3.13 all version
-    # - 3.12 all version
-    # - 3.11 all version
-    # - 3.10 all version
-    # - 3.9 up to and including 3.9.1
-    # - 3.8 up to and including 3.8.10
-
-    # macos14
-    # - 3.15 none yet
-    # - 3.14 all version
-    # - 3.13 all version
-    # - 3.12 all version
-    # - 3.11 all version
-    # - 3.10 all version
-    # - 3.9 up to and including 3.9.1
-    # - 3.8 up to and including 3.8.10
-
-    # AL2023
-    # - 3.15 none yet
-    # - 3.14 all version
-    # - 3.13 all version
-    # - 3.12 all version
-    # - 3.11 all version
-    # - 3.10 all version
-    # - 3.9 all version
-    # - 3.8 all version
-    # - 3.7 up to and including 3.7.6
-
-    # AL2
-    # - 3.15 none yet
-    # - 3.14 all version
-    # - 3.13 all version
-    # - 3.12 all version
-    # - 3.11 all version
-    # - 3.10 all version
-    # - 3.9 all version
-    # - 3.8 all version
-    # - 3.7 up to and including 3.7.1
-
     declare -g -r verv=(
         # PYTHON 3.15
         # "3.15.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
