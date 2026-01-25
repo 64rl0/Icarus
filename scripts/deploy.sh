@@ -95,7 +95,7 @@ echo -e "${bold_green}Select release type${end}"
 
 echo -e "${bold_green}Pushing changes to git${end}"
 git add .
-git commit -m "REFACTOR: update version to 'build ${new_major}.${new_minor}.${new_patch} built on ${today}'"
+git commit -m "publish build ${new_major}.${new_minor}.${new_patch} (${today})"
 git push
 
 echo

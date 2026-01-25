@@ -31,6 +31,7 @@ This module ...
 
 # Standard Library Imports
 import datetime
+import importlib.metadata
 import os
 import pathlib
 import sys
@@ -56,7 +57,9 @@ CLI_DESCRIPTION = (
     ' _| \\___| \\__,_| _|    \\__,_| ____/  '
 )
 CLI_EPILOG = ''
-CLI_VERSION = 'build 2.6.1 built on 01/24/2026'
+
+_SEMANTIC_VERSION = importlib.metadata.version(CLI_NAME)
+CLI_VERSION = f'build {_SEMANTIC_VERSION} built on 01/25/2026'
 
 ROOT_DIR = pathlib.Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 CLI_SCRIPTS_DIR = pathlib.Path(
