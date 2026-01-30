@@ -109,7 +109,7 @@ function echo_summary() {
     echo_title "Icarus Builder Summary"
 
     echo -e "${bold_blue}${cli_name} builder:${end}"
-    echo -e "$("${this_icarus_abs_filepath}" --version)"
+    echo -e "$("${this_cli_fullpath}" --version)"
     echo
 
     echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"

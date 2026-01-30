@@ -22,22 +22,21 @@ declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 
-this_icarus_abs_filepath="${project_root_dir_abs}/bin/icarus"
-declare -r -x this_icarus_abs_filepath
 python_interpreter_abs="${project_root_dir_abs}/runtime_env/env/bin/python3"
 declare -r python_interpreter_abs
 log_path="${project_root_dir_abs}/log"
 declare -r log_path
 log_filepath="${project_root_dir_abs}/log/icarus.log"
 declare -r log_filepath
-env_file="${project_root_dir_abs}/.env"
-declare -r env_file
 
 # Setting up the environment variables.
-if [[ -f "${env_file}" ]]; then
-    . "${env_file}"
+# Are we in the icarus development environment?
+if [[ "$(pwd)" =~ _Projects\/Icarus ]]; then
+    ICARUS_ENV="dev"
+else
+    ICARUS_ENV="prod"
 fi
-# Is the running icarus the development env icarus?
+# Is the running icarus the development environment icarus?
 if [[ "${project_root_dir_abs}" =~ _Projects\/Icarus ]]; then
     IS_ICARUS_DEV=true
 else
