@@ -46,16 +46,16 @@ declare -r -x ICARUS_ENV
 declare -r -x IS_ICARUS_DEV
 
 # Validate we are not running the prod script on the dev env.
-if [[ "$ICARUS_ENV" == "dev" && "$IS_ICARUS_DEV" == false ]]; then
+if [[ "${ICARUS_ENV}" == "dev" && "${IS_ICARUS_DEV}" == false ]]; then
     echo "${bg_red}${bold_black}[ERROR]${end} - You cant run production icarus in the development environment"
     exit 1
 fi
 
 # Check if the --update option is called.
 if [[ "$1" == '--update' ]]; then
-    if [[ "$ICARUS_ENV" == "dev" ]]; then
+    if [[ "${ICARUS_ENV}" == "dev" ]]; then
         echo -e "${bg_red}${bold_black}[WARNING]${end}"
-        echo -e " You are about to run ${red}git reset --hard${end} on the dev env!"
+        echo -e " You are about to run ${red}git reset --hard${end} in the development environment!"
         echo -e " Operation Interrupted! Only available in PROD!"
         echo -e " Use make build-runtime in dev!"
         exit 1
@@ -80,7 +80,7 @@ fi
 
 # Ensure the virtual environment exists.
 if [ ! -x "${python_interpreter_abs}" ]; then
-    if [[ "$ICARUS_ENV" == "dev" ]]; then
+    if [[ "${ICARUS_ENV}" == "dev" ]]; then
         echo -e "${bg_red}${bold_black}[WARNING]${end}"
         echo -e " Operation Interrupted! Only available in PROD!"
         echo -e " Use make build-runtime in dev!"

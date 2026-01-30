@@ -112,6 +112,8 @@ echo
 echo -e "${bold_green}Creating github release${end}"
 gh release create "v${new_major}.${new_minor}.${new_patch}" --latest=true --repo "64rl0/Icarus" --title "" --notes ""
 
+pushd "${HOME}" >/dev/null 2>&1
+
 echo
 echo -e "${bold_green}Updating local version of icarus${end}"
 icarus --update || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to update icarus"

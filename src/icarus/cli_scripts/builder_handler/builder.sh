@@ -123,9 +123,9 @@ function echo_summary() {
     echo
 
     echo -e "${bold_blue}Execution metrics overview:${end}"
-    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "--------"
     printf "%-41s | %-7s | %-7s\n" "${bold_white}Tool${end}" "${bold_white}Status${end}" "${bold_white}Timings${end}"
-    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "--------"
     for hook in "${all_running_hooks_name[@]}"; do
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
@@ -138,7 +138,7 @@ function echo_summary() {
         fi
         printf "%-30s | %-6s | %-7s\n" "${tool}" "${status}" "${execution_time}"
     done
-    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "--------"
     for hook in "${all_running_hooks_name[@]}"; do
         eval execution_time_partial='$'"${hook}_execution_time"
         execution_time_partial="$(printf "%.3f" "${execution_time_partial}")"
@@ -152,7 +152,7 @@ function echo_summary() {
     fi
     total_execution_time="$(printf '%s' "total-execution-time ..................................." | cut -c1-39)"
     printf "%-30s | %-7s\n" "${total_execution_time}" "${execution_time_total}"
-    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "----------"
+    printf "%s-+-%s-+-%s\n" "------------------------------" "------" "--------"
     echo
 }
 
@@ -592,7 +592,7 @@ function run_char_replacement() {
 
     for el in "${elements[@]}"; do
         # Skip this script
-        if [[ "$ICARUS_ENV" == "dev" && $(basename "${el}") == "${this_script_filename}" ]]; then
+        if [[ "${ICARUS_ENV}" == "dev" && $(basename "${el}") == "${this_script_filename}" ]]; then
             continue
         fi
 
