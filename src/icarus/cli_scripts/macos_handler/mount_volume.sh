@@ -56,7 +56,7 @@ macos_mount_volume() {
         exit 1
     fi
 
-    local vol_info_file="/tmp/${volume_name}.plist"
+    local vol_info_file="/${tmp_root}/macos/${volume_name}.plist"
 
     echo -e "Retrieving diskutil info for ${volume_name}"
     /usr/sbin/diskutil info -plist "${volume_name}" >"${vol_info_file}" || {

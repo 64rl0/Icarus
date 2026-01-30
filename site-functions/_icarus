@@ -10,7 +10,7 @@
 # Optional debug logger: writes debug lines to $BASH_COMP_DEBUG_FILE if set
 ICARUS_COMP_DEBUG=false
 if "${ICARUS_COMP_DEBUG}"; then
-    BASH_COMP_DEBUG_FILE='/tmp/icarus_comp_debug.log'
+    BASH_COMP_DEBUG_FILE='/tmp/icarus/completion/icarus_comp_debug.log'
 fi
 
 __icarus_debug() {

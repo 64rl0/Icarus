@@ -417,7 +417,7 @@ function ensure_icarus_build_root_env() {
     local -a root_tree
 
     # Cache stays in the system tmp
-    path_to_cache_root="/tmp/${cli_name}/builder/cache"
+    path_to_cache_root="/${tmp_root}/builder/cache"
 
     path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
     path_to_env_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env"

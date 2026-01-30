@@ -85,6 +85,7 @@ fi
 # CLI variables
 declare -r cli_name='icarus'
 declare -r this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
+declare -r tmp_root="/tmp/${cli_name}"
 
 function echo_error() {
     local message="${1}"

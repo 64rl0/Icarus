@@ -31,7 +31,7 @@ auth_init_express() {
         return
     fi
 
-    tmp_path="/tmp/${cli_name}/amazon"
+    tmp_path="/${tmp_root}/amazon"
     tmp_file="${tmp_path}/auth-init-expect.exp"
 
     mkdir -p "${tmp_path}"

@@ -55,10 +55,10 @@ unison_install_launchd() {
         <true/>
 
         <key>StandardOutPath</key>
-        <string>/tmp/${unison_launchd_label}.log</string>
+        <string>/${tmp_root}/log/${unison_launchd_label}.log</string>
 
         <key>StandardErrorPath</key>
-        <string>/tmp/${unison_launchd_label}.log</string>
+        <string>/${tmp_root}/log/${unison_launchd_label}.log</string>
 
         <key>ProgramArguments</key>
         <array>
@@ -104,10 +104,10 @@ EOF
         </dict>
 
         <key>StandardOutPath</key>
-        <string>/tmp/${unison_daily_restart_label}.log</string>
+        <string>/${tmp_root}/log/${unison_daily_restart_label}.log</string>
 
         <key>StandardErrorPath</key>
-        <string>/tmp/${unison_daily_restart_label}.log</string>
+        <string>/${tmp_root}/log/${unison_daily_restart_label}.log</string>
 
         <key>ProgramArguments</key>
         <array>

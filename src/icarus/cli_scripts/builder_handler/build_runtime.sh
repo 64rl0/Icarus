@@ -115,7 +115,7 @@ function set_constants() {
         exit_code=1
     fi
 
-    python_builds="/tmp/builds_python"
+    python_builds="/${tmp_root}/builder/build_runtime/python_builds"
 
     python_build_root="${python_builds}/build-workspace"
     python_version_build_root="${python_build_root}/${python_full_version}"
