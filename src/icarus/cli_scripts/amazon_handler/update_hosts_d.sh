@@ -48,10 +48,10 @@ update_etc_hosts_daemon() {
         </dict>
 
         <key>StandardOutPath</key>
-        <string>/${tmp_root}/log/${hosts_launchd_daemon_label}.log</string>
+        <string>/${tmp_root_sudo}/log/${hosts_launchd_daemon_label}.log</string>
 
         <key>StandardErrorPath</key>
-        <string>/${tmp_root}/log/${hosts_launchd_daemon_label}.log</string>
+        <string>/${tmp_root_sudo}/log/${hosts_launchd_daemon_label}.log</string>
 
         <key>ProgramArguments</key>
         <array>
