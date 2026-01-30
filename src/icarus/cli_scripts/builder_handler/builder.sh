@@ -12,15 +12,12 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 cli_scripts_dir_abs="$(realpath -- "${script_dir_abs}/../")"
 declare -r cli_scripts_dir_abs
-this_icarus_abs_filepath="$(realpath -- "${script_dir_abs}/../../../../../../../../bin/icarus")"
-declare -r this_icarus_abs_filepath
-this_script_abs_filepath="$(realpath -- "${BASH_SOURCE[0]}")"
-declare -r this_script_abs_filepath
-cli_script_base="${cli_scripts_dir_abs}/base.sh"
-declare -r cli_script_base
+
+this_script_filename="$(basename -- "${BASH_SOURCE[0]}")"
+declare -r this_script_filename
 
 # Sourcing base file
-source "${cli_script_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
+. "${cli_scripts_dir_abs}/base.sh" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
 
 # Script Options
 set -o errexit  # Exit immediately if a command exits with a non-zero status
@@ -30,19 +27,16 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 # SYSTEM
 ####################################################################################################
 function validate_command() {
-    local command_to_validate="${1}"
+    local command_to_validate
+
+    command_to_validate=$1
+
     if [[ -z "$(command -v "${command_to_validate}" 2>/dev/null)" ]]; then
         echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH" "errexit"
     fi
 }
 
 function validate_prerequisites() {
-    # Validate we are not running the prod script on this dev env to prevent special formatting
-    # of this script
-    if [[ "${PWD}" =~ _Projects\/Icarus && ! "${this_icarus_abs_filepath}" =~ _Projects\/Icarus\/ ]]; then
-        echo_error "You are not supposed to run production ${cli_name} in the ${cli_name} development environment" "errexit"
-    fi
-
     validate_command "bc"
 
     echo
@@ -598,7 +592,7 @@ function run_char_replacement() {
 
     for el in "${elements[@]}"; do
         # Skip this script
-        if [[ "${el}" == "${this_script_abs_filepath}" ]]; then
+        if [[ "$ICARUS_ENV" == "dev" && $(basename "${el}") == "${this_script_filename}" ]]; then
             continue
         fi
 
@@ -621,13 +615,13 @@ function run_char_replacement() {
 
         if [[ $(uname -s) == "Darwin" ]]; then
             # macOS
-            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i '' 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${failed}"
                 exit_code=1
             }
         else
             # Linux
-            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
+            find "${el}" -type f -exec sed -i 's/ / /g' {} + 2>&1 || {
                 whitespaces_summary_status="${failed}"
                 exit_code=1
             }

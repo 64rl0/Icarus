@@ -12,15 +12,9 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 cli_scripts_dir_abs="$(realpath -- "${script_dir_abs}/../")"
 declare -r cli_scripts_dir_abs
-this_icarus_abs_filepath="$(realpath -- "${script_dir_abs}/../../bin/icarus")"
-declare -r this_icarus_abs_filepath
-this_script_abs_filepath="$(realpath -- "${BASH_SOURCE[0]}")"
-declare -r this_script_abs_filepath
-cli_script_base="${cli_scripts_dir_abs}/base.sh"
-declare -r cli_script_base
 
 # Sourcing base file
-source "${cli_script_base}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
+. "${cli_scripts_dir_abs}/base.sh" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
 
 # Script Options
 set -o errexit  # Exit immediately if a command exits with a non-zero status

@@ -108,6 +108,8 @@ git add .
 git commit -m "publish build ${new_major}.${new_minor}.${new_patch} (${today})"
 git push
 
+echo
+echo -e "${bold_green}Creating github release${end}"
 gh release create "v${new_major}.${new_minor}.${new_patch}" --latest=true --repo "64rl0/Icarus" --title "" --notes ""
 
 echo
