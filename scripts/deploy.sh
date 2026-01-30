@@ -81,6 +81,16 @@ declare -r update_version
 build_runtime="${script_dir_abs}/build_runtime.sh"
 declare -r build_runtime
 
+if ! command -v gh >/dev/null 2>&1; then
+    echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] GitHub CLI (gh) is not installed or not in PATH."
+    exit 1
+fi
+
+if [[ -z "${GH_TOKEN}" ]]; then
+    echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] GH_TOKEN environment variable is not set."
+    exit 1
+fi
+
 pushd "${project_root_dir_abs}" >/dev/null 2>&1
 git fetch
 
@@ -97,6 +107,8 @@ echo -e "${bold_green}Pushing changes to git${end}"
 git add .
 git commit -m "publish build ${new_major}.${new_minor}.${new_patch} (${today})"
 git push
+
+gh release create "v${new_major}.${new_minor}.${new_patch}" --latest=true --repo "64rl0/Icarus" --title "" --notes ""
 
 echo
 echo -e "${bold_green}Updating local version of icarus${end}"

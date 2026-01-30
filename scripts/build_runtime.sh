@@ -33,6 +33,7 @@ declare -r pybin="${project_root_dir_abs}/${venv_name}/env/bin/python3"
 echo -e "\n\n${bold_green}${sparkles} Preparing Runtime env...${end}"
 rm -rf "${project_root_dir_abs:?}/${venv_name}"
 mkdir -p "${project_root_dir_abs}/${venv_name}"
+echo -e "done!"
 
 # Download Python Runtime
 echo -e "\n\n${bold_green}${sparkles} Downloading Python Runtime...${end}"
@@ -44,7 +45,7 @@ rm -rf "${project_root_dir_abs}/${venv_name}/cpython.tar.gz"
 # Install requirements
 echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
 "${pybin}" -m pip install --upgrade pip
-"${pybin}" -m pip install --force-reinstall "${project_root_dir_abs}"
+"${pybin}" -m pip install "${project_root_dir_abs}"
 
 # Cleanup
 rm -rf "${project_root_dir_abs}/build"

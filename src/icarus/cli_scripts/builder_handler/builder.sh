@@ -101,7 +101,12 @@ function echo_summary() {
     tool=""
     total_execution_time=""
     python_versions_pretty=""
-    all_running_hooks_name=("index" "${running_hooks_name[@]}")
+
+    if [[ "${linkfarm_hook}" == true ]]; then
+        all_running_hooks_name=("index" "linkfarm" "${running_hooks_name[@]}")
+    else
+        all_running_hooks_name=("index" "${running_hooks_name[@]}")
+    fi
 
     for python_version_composite in "${python_versions[@]}"; do
         python_versions_pretty+="Python$(echo "${python_version_composite}" | cut -d ':' -f 2) "
@@ -272,7 +277,10 @@ function set_constants() {
     failed="${bold_black}${bg_red} FAIL ${end}"
     warned="${bold_black}${bg_yellow} WARN ${end}"
 
+    linkfarm_hook=false
+
     index_summary_status="${passed}"
+    linkfarm_summary_status="${passed}"
     build_summary_status="${passed}"
     clean_summary_status="${passed}"
     isort_summary_status="${passed}"
@@ -290,6 +298,7 @@ function set_constants() {
     exec_summary_status="${passed}"
 
     index_execution_time=0
+    linkfarm_execution_time=0
     build_execution_time=0
     clean_execution_time=0
     isort_execution_time=0
@@ -409,14 +418,52 @@ function set_constants() {
     echo
 }
 
+function ensure_icarus_build_root_env() {
+    local dir
+    local -a root_tree
+
+    # Cache stays in the system tmp
+    path_to_cache_root="/tmp/${cli_name}/builder/cache"
+
+    path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
+    path_to_env_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env"
+
+    root_tree=(
+        "${path_to_cache_root}"
+        "${path_to_runtime_root}"
+        "${path_to_env_root}"
+    )
+
+    for dir in "${root_tree[@]}"; do
+        mkdir -p "${dir}" || {
+            echo_error "Failed to create '${dir}'."
+            index_summary_status="${failed}"
+            exit_code=1
+        }
+    done
+
+    # Link cache to local build root
+    ln -f -s -n "${path_to_cache_root}" "${project_root_dir_abs}/${build_root_dir}/cache" || {
+        echo_error "Failed to create symlink to '${path_to_cache_root}'."
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+    }
+
+    declare -g -r path_to_cache_root
+    declare -g -r path_to_runtime_root
+    declare -g -r path_to_env_root
+}
+
 function set_icarus_python3_constants() {
+    # We cannot lock these vars to GLOBAL READONLY because the for loop to
+    # run multi-python versions needs to modify them.
+
     python_version="$(echo "${1}" | cut -d ':' -f 1)"
     python_full_version="$(echo "${1}" | cut -d ':' -f 2)"
 
-    path_to_cache_root="${project_root_dir_abs}/${build_root_dir}/cache"
-    path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/runtime/${platform_identifier}"
-    path_to_env_root="${project_root_dir_abs}/${build_root_dir}/env/${platform_identifier}"
-    path_to_wheel_root="${project_root_dir_abs}/${build_root_dir}/wheel/${package_name_snake_case}/${platform_identifier}/CPython/${python_full_version}"
+    python_bin="${path_to_runtime_root}/CPython/${python_full_version}/bin/python${python_version}"
+
+    path_to_dist_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/${package_name_snake_case}/CPython/${python_full_version}"
 
     python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
     python_pkg_full_name="${python_pkg_name}.tar.gz"
@@ -841,81 +888,25 @@ function run_documentation() {
     echo
 }
 
-function link_python_to_runtime() {
-    local filename filepath files_to_link
-
-    files_to_link=(
-        "${path_to_runtime_root}/CPython/${python_full_version}/bin/"*
-    )
-    for filepath in "${files_to_link[@]}"; do
-        filename="$(basename "${filepath}")"
-        ln -f -s -n "${filepath}" "${path_to_runtime_root}/bin/${filename}" || {
-            echo_error "Failed to create symlink to '${path_to_runtime_root}' for '${filename}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
-
-    files_to_link=(
-        "${path_to_runtime_root}/CPython/${python_full_version}/include/"*
-    )
-    for filepath in "${files_to_link[@]}"; do
-        filename="$(basename "${filepath}")"
-        ln -f -s -n "${filepath}" "${path_to_runtime_root}/include/${filename}" || {
-            echo_error "Failed to create symlink to '${path_to_runtime_root}' for '${filename}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
-
-    files_to_link=(
-        "${path_to_runtime_root}/CPython/${python_full_version}/lib/"*
-    )
-    for filepath in "${files_to_link[@]}"; do
-        filename="$(basename "${filepath}")"
-        ln -f -s -n "${filepath}" "${path_to_runtime_root}/lib/${filename}" || {
-            echo_error "Failed to create symlink to '${path_to_runtime_root}' for '${filename}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
-}
-
 function install_python_runtime() {
-    local d compression dest_tar
+    local dir compression dest_tar
     local -a root_tree
 
     root_tree=(
         "${path_to_cache_root}/CPython"
         "${path_to_runtime_root}/CPython"
-        "${path_to_runtime_root}/bin"
-        "${path_to_runtime_root}/include"
-        "${path_to_runtime_root}/lib"
-        "${path_to_runtime_root}/private"
-        "${path_to_runtime_root}/share"
     )
 
     dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
 
-    for d in "${root_tree[@]}"; do
-        mkdir -p "${d}" || {
-            echo_error "Failed to create '${d}'."
+    for dir in "${root_tree[@]}"; do
+        mkdir -p "${dir}" || {
+            echo_error "Failed to create '${dir}'."
             build_summary_status="${failed}"
             build_single_run_status=1
             exit_code=1
         }
     done
-
-    # Make lib64 → lib symlink
-    ln -f -s -n "./lib" "${path_to_runtime_root}/lib64" || {
-        echo_error "Failed to create '${path_to_runtime_root}/lib64' symlink."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
 
     echo -e "${bold_green}${sparkles} Downloading & Installing 'Python${python_full_version}'${end}"
     if [[ ! -e "${dest_tar}" ]]; then
@@ -958,72 +949,28 @@ function install_python_runtime() {
         exit_code=1
     }
 
-    # Link all runtime bins to env root
-    link_python_to_runtime
-
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         echo -e "done!"
         echo
     fi
 }
 
-function build_icarus_python3() {
-    local requirements_path dir dirs_to_link
-
-    build_single_run_status=0
-
-    activate_icarus_python3_core
-
-    # Build python runtime
-    install_python_runtime
-
-    # Ensure the Local env path always points to the exact runtime we just built.
-    # We (1) remove any existing env root (old symlink or directory), then
-    # (2) recreate it, then (3) create the  symlinks to the target runtime dirs.
-    # This keeps the path deterministic and avoids stale/partial environments from
-    # previous runs.
-    rm -rf "${path_to_env_root}" || {
-        echo_error "Failed to remove '${path_to_env_root}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    mkdir -p "${path_to_env_root}" || {
-        echo_error "Failed to create '${path_to_env_root}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    dirs_to_link=(
-        "../../runtime/${platform_identifier}/bin"
-        "../../runtime/${platform_identifier}/include"
-        "../../runtime/${platform_identifier}/lib"
-        "../../runtime/${platform_identifier}/lib64"
-        "../../runtime/${platform_identifier}/private"
-        "../../runtime/${platform_identifier}/share"
-    )
-    for dir in "${dirs_to_link[@]}"; do
-        ln -f -s -n "${dir}" "${path_to_env_root}" || {
-            echo_error "Failed to create symlink to '${path_to_env_root}' for '${dir}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
+function install_python_dependencies() {
+    local requirements_path
 
     # Install pip and update
     echo -e "${bold_green}${sparkles} Updating pip...${end}"
-    "python${python_version}" -m pip install --upgrade --no-warn-script-location pip || {
+    "${python_bin}" -m pip install --no-warn-script-location --upgrade pip || {
         echo_error "Failed to update pip."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
 
-    # Install tools required by icarus builder to build and release
+    # Install tools required by icarus builder
     echo
     echo -e "${bold_green}${sparkles} Installing builder tools into 'Python${python_full_version}' env...${end}"
-    "python${python_version}" -m pip install --force-reinstall --no-warn-script-location setuptools wheel build twine || {
+    "${python_bin}" -m pip install --no-warn-script-location setuptools build twine || {
         echo_error "Failed to install builder tools."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1034,7 +981,7 @@ function build_icarus_python3() {
     echo
     echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
     for requirements_path in "${requirements_paths[@]}"; do
-        "python${python_version}" -m pip install --force-reinstall --no-warn-script-location --requirement "${project_root_dir_abs}/${requirements_path}" || {
+        "${python_bin}" -m pip install --no-warn-script-location --requirement "${project_root_dir_abs}/${requirements_path}" || {
             echo_error "Failed to install requirements '${requirements_path}'."
             build_summary_status="${failed}"
             build_single_run_status=1
@@ -1042,15 +989,15 @@ function build_icarus_python3() {
         }
     done
 
-    # Cleanup pre silently
-    # We are about to rebuild the wheel so make sure the env is clean to accommodate the new one
-    rm -rf "${path_to_wheel_root}"
+    # Cleanup silently
+    # We are about to rebuild the dist so make sure the env is clean to accommodate the new one
+    rm -rf "${path_to_dist_root}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package
     echo
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
-    "python${python_version}" -m build --wheel --outdir "${path_to_wheel_root}/dist" "${project_root_dir_abs}" || {
+    "${python_bin}" -m build --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1058,7 +1005,7 @@ function build_icarus_python3() {
     }
     echo
     echo -e "${bold_green}${package} Checking package health${end}"
-    "python${python_version}" -m twine check "${path_to_wheel_root}/dist/"* || {
+    "${python_bin}" -m twine check "${path_to_dist_root}/"* || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1068,84 +1015,329 @@ function build_icarus_python3() {
     # Install local package into env (as last so it will override the same name)
     echo
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
-    "python${python_version}" -m pip install --force-reinstall --no-warn-script-location "${path_to_wheel_root}/dist/"*.whl || {
+    "${python_bin}" -m pip install --no-warn-script-location "${path_to_dist_root}/"*.whl || {
         echo_error "Failed to install '${package_name_snake_case}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
 
-    # Link all runtime bins to env root (after install)
-    link_python_to_runtime
-
-    # Cleanup post
+    # Cleanup final
     echo
     echo -e "${bold_green}${broom} Cleaning up...${end}"
-    if [[ "${build_root_dir}" == 'build' ]]; then
-        mkdir -p "${path_to_wheel_root}/build" || {
-            echo_error "Failed to create build dir."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-        mv "${project_root_dir_abs}/build/lib" "${path_to_wheel_root}/build" || {
-            echo_error "Failed to move build/lib dir to env dir."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-        mv "${project_root_dir_abs}/build/bdist."* "${path_to_wheel_root}/build" || {
-            echo_error "Failed to move build/bdist dir to env dir."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    else
-        mv "${project_root_dir_abs}/build" "${path_to_wheel_root}" || {
-            echo_error "Failed to move build dir to env dir."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    fi
-    mv "${project_root_dir_abs}/src/"*".egg-info" "${path_to_wheel_root}/build" || {
+    mv "${project_root_dir_abs}/src/"*".egg-info" "${path_to_dist_root}" || {
         echo_error "Failed to move build dir to env dir."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
     echo -e "cleanup completed"
+}
 
-    deactivate_icarus_python3_core
+function ensure_runtime() {
+    local dir
+    local -a root_tree
+
+    # We do not clean the path_to_runtime_root as we do for the farm root because
+    # if the user wants to compile some special programs needed for the application
+    # the place where to compile them would be the runtime local.
+
+    root_tree=(
+        "${path_to_runtime_root}/local/bin"
+        "${path_to_runtime_root}/local/config"
+        "${path_to_runtime_root}/local/include"
+        "${path_to_runtime_root}/local/lib"
+        "${path_to_runtime_root}/local/private"
+        "${path_to_runtime_root}/local/share"
+        "${path_to_runtime_root}/local/src"
+    )
+
+    for dir in "${root_tree[@]}"; do
+        mkdir -p "${dir}" || {
+            echo_error "Failed to create '${dir}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
+
+    # Make lib64 → lib symlink
+    ln -f -s -n "./lib" "${path_to_runtime_root}/local/lib64" || {
+        echo_error "Failed to create '${path_to_runtime_root}/local/lib64' symlink."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+}
+
+function build_runtime_icarus_python3() {
+    # Single run status is used to monitor the outcome of a single run in
+    # the for loop of python versions, if a previous run version but the
+    # current succeed we do not wat to show the overall failure but we
+    # want to show the succeed of the single run.
+    build_single_run_status=0
+
+    ensure_runtime
+    install_python_runtime
+    install_python_dependencies
 
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
         echo
-        echo -e "${bold_green}${green_check_mark} 'Python${python_full_version}' build Complete & Ready for use!${end}"
+        echo -e "${bold_green}${green_check_mark} Runtime build Complete!${end}"
         echo
     else
         # Build failed!
         echo
-        echo -e "${bold_red}${stop_sign} 'Python${python_full_version}' build failed!${end}"
+        echo -e "${bold_red}${stop_sign} Runtime build failed!${end}"
         echo
     fi
 }
 
-function activate_icarus_python3_core() {
-    # we need to keep this activate core separated from any echo message as it's being
-    # used in the build function too
+function link_prefix_to_farm_validate() {
+    local source_prefix dest_prefix
 
-    # Adding runtime bin to path
-    OLD_PATH="${PATH}"
-    export PATH="${path_to_env_root}/bin:${OLD_PATH}"
-}
+    source_prefix=$1
+    dest_prefix=$2
 
-function activate_icarus_python3() {
-    if [[ ! -e "${path_to_env_root}/bin/python${python_version}" ]]; then
-        echo_error "Cannot find the requested env: \`Python${python_full_version}\`"
+    if [[ $# -gt 2 ]]; then
+        echo_error "Too many arguments"
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+        return 1
     fi
 
-    activate_icarus_python3_core
+    if [[ -z "${source_prefix}" || -z "${dest_prefix}" ]]; then
+        echo_error "Missing arguments: 'source_prefix' and/or 'dest_prefix'"
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+        return 1
+    fi
+
+    if [[ ! -d "${source_prefix}" ]]; then
+        echo_error "Source prefix does not exist: '${source_prefix}'"
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+        return 1
+    fi
+}
+
+function link_prefix_to_farm_apply() {
+    local source_prefix dest_prefix rel_path dest_path dest_dir path
+
+    source_prefix=$1
+    dest_prefix=$2
+    shift 2
+
+    while IFS= read -r -d '' path; do
+        rel_path="${path#${source_prefix}/}"
+        dest_path="${dest_prefix}/${rel_path}"
+
+        # Directory handling (real directories only).
+        # If the current item is a real directory (not a symlink).
+        if [[ -d "${path}" && ! -L "${path}" ]]; then
+            # If the destination path exists but isn’t a directory.
+            if [[ -e "${dest_path}" && ! -d "${dest_path}" ]]; then
+                rm -rf "${dest_path}" || {
+                    echo_error "Failed to remove '${dest_path}'."
+                    linkfarm_summary_status="${failed}"
+                    exit_code=1
+                }
+            fi
+            mkdir -p "${dest_path}" || {
+                echo_error "Failed to create '${dest_path}'."
+                linkfarm_summary_status="${failed}"
+                exit_code=1
+            }
+            continue
+        fi
+
+        dest_dir="$(dirname "${dest_path}")"
+        # Ensure destination parent is a directory.
+        # If the parent path exists but isn’t a directory (file/symlink),
+        # it removes it and recreates it as a directory.
+        if [[ -e "${dest_dir}" && ! -d "${dest_dir}" ]]; then
+            rm -rf "${dest_dir}" || {
+                echo_error "Failed to remove '${dest_dir}'."
+                linkfarm_summary_status="${failed}"
+                exit_code=1
+            }
+        fi
+        mkdir -p "${dest_dir}" || {
+            echo_error "Failed to create '${dest_dir}'."
+            linkfarm_summary_status="${failed}"
+            exit_code=1
+        }
+
+        # Remove conflicting directory at destination (for files/symlinks).
+        # If a real directory exists where a file/symlink should go, it deletes it.
+        if [[ -e "${dest_path}" && -d "${dest_path}" && ! -L "${dest_path}" ]]; then
+            rm -rf "${dest_path}" || {
+                echo_error "Failed to remove '${dest_path}'."
+                linkfarm_summary_status="${failed}"
+                exit_code=1
+            }
+        fi
+
+        ln -f -s -n "${path}" "${dest_path}" || {
+            echo_error "Failed to create symlink to '${dest_prefix}' for '${dest_path}'."
+            linkfarm_summary_status="${failed}"
+            exit_code=1
+        }
+    done < <(find "${source_prefix}" -mindepth 1 "$@" -print0)
+}
+
+function link_prefix_to_farm_shallow() {
+    local source_prefix dest_prefix filename filepath old_nullglob
+    local -a files_to_link
+
+    source_prefix=$1
+    dest_prefix=$2
+
+    link_prefix_to_farm_validate "${@}" || return 1
+
+    # By default Bash leaves an unmatched glob as a literal *,
+    # so you need to enable nullglob
+    # shopt -p nullglob returns non‑zero when the option is currently off,
+    # even though it still prints the state (shopt -u nullglob).
+    old_nullglob=$(shopt -p nullglob) || :
+    shopt -s nullglob
+
+    files_to_link=(
+        "${source_prefix}/include/"*
+    )
+    for filepath in "${files_to_link[@]}"; do
+        filename="$(basename "${filepath}")"
+        ln -f -s -n "${filepath}" "${dest_prefix}/include/${filename}" || {
+            echo_error "Failed to create symlink to '${dest_prefix}' for '${filename}'."
+            linkfarm_summary_status="${failed}"
+            exit_code=1
+        }
+    done
+
+    files_to_link=(
+        "${source_prefix}/lib/"*
+    )
+    for filepath in "${files_to_link[@]}"; do
+        filename="$(basename "${filepath}")"
+        ln -f -s -n "${filepath}" "${dest_prefix}/lib/${filename}" || {
+            echo_error "Failed to create symlink to '${dest_prefix}' for '${filename}'."
+            linkfarm_summary_status="${failed}"
+            exit_code=1
+        }
+    done
+
+    eval "${old_nullglob}"
+
+    link_prefix_to_farm_apply "${source_prefix}" "${dest_prefix}" \
+        "(" -path "${source_prefix}/lib" -o \
+        -path "${source_prefix}/lib/*" -o \
+        -path "${source_prefix}/lib64" -o \
+        -path "${source_prefix}/lib64/*" -o \
+        -path "${source_prefix}/include" -o \
+        -path "${source_prefix}/include/*" -o \
+        -path "${source_prefix}/local" -o \
+        -path "${source_prefix}/local/*" ")" -prune -o
+}
+
+function link_prefix_to_farm_deep() {
+    local source_prefix dest_prefix
+
+    source_prefix=$1
+    dest_prefix=$2
+
+    link_prefix_to_farm_validate "${@}" || return 1
+
+    link_prefix_to_farm_apply "${source_prefix}" "${dest_prefix}" \
+        "(" -path "${source_prefix}/lib64" -o \
+        -path "${source_prefix}/lib64/*" ")" -prune -o
+}
+
+function ensure_farm() {
+    local dir farm_path
+    local -a root_tree
+
+    farm_path=$1
+
+    if [[ -z "${farm_path}" ]]; then
+        echo_error "Missing argument: 'farm_path'"
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+    fi
+
+    # Ensure the farm path always points to the exact runtime we just built.
+    # (1) remove any existing farm root (old symlink or directory)
+    # (2) recreate it
+    # (3) create the env dirs.
+    # This keeps the path deterministic and avoids stale/partial environments from
+    # previous runs.
+
+    rm -rf "${farm_path}" || {
+        echo_error "Failed to remove '${farm_path}'."
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+    }
+    mkdir -p "${farm_path}" || {
+        echo_error "Failed to create '${farm_path}'."
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+    }
+
+    root_tree=(
+        "${farm_path}/bin"
+        "${farm_path}/config"
+        "${farm_path}/include"
+        "${farm_path}/lib"
+        "${farm_path}/private"
+        "${farm_path}/share"
+        "${farm_path}/src"
+    )
+
+    for dir in "${root_tree[@]}"; do
+        mkdir -p "${dir}" || {
+            echo_error "Failed to create '${dir}'."
+            linkfarm_summary_status="${failed}"
+            exit_code=1
+        }
+    done
+
+    # Make lib64 → lib symlink
+    ln -f -s -n "./lib" "${farm_path}/lib64" || {
+        echo_error "Failed to create '${farm_path}/lib64' symlink."
+        linkfarm_summary_status="${failed}"
+        exit_code=1
+    }
+}
+
+function activate_runtimefarm_path() {
+    local runtimefarm runtimefarm_failed
+
+    runtimefarm_failed=false
+    runtimefarm="${path_to_env_root}/runtimefarm"
+
+    ensure_farm "${runtimefarm}"
+
+    # Create a symlink farm.
+    # If there are some user custom install bin in the runtime local they will override
+    # the ones installed by python or requirements that it is the desire outcome.
+    link_prefix_to_farm_shallow "${path_to_runtime_root}/CPython/${python_full_version}" "${runtimefarm}" || {
+        runtimefarm_failed=true
+        exit_code=1
+    }
+    link_prefix_to_farm_deep "${path_to_runtime_root}/local" "${runtimefarm}" || {
+        runtimefarm_failed=true
+        exit_code=1
+    }
+
+    # If there isn't a symlink farm, then we incur the risk of using system binaries,
+    # therefore this is a hard stop.
+    if [[ "${runtimefarm_failed}" == true ]]; then
+        echo_error "Failed to create runtimefarm." "errexit"
+    fi
+
+    # Adding runtimefarm bin to path
+    OLD_PATH="${PATH}"
+    export PATH="${runtimefarm}/bin:${OLD_PATH}"
 
     # Display Project info
     echo -e "${bold_green}${green_circle} Project Root:${end}"
@@ -1154,20 +1346,14 @@ function activate_icarus_python3() {
 
     # Display env info
     echo -e "${bold_green}${green_circle} Runtime Environment:${end}"
-    echo -e "Runtime Env: $(command -v "python${python_version}")"
+    echo -e "Runtimefarm: $(command -v "python${python_version}")"
     echo -e "Platform ID: ${platform_identifier}"
     echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
     echo
 }
 
-function deactivate_icarus_python3_core() {
-    # we need to keep this deactivate core separated from any echo message as it's being
-    # used in the build function too
+function deactivate_runtimefarm_path() {
     export PATH="${OLD_PATH}"
-}
-
-function deactivate_icarus_python3() {
-    deactivate_icarus_python3_core
     echo -e "Environment deactivated!"
     echo
 }
@@ -1317,7 +1503,7 @@ function dispatch_icarus_python3() {
         start_block=$(date +%s.%N)
 
         echo_title "Building Env"
-        build_icarus_python3
+        build_runtime_icarus_python3
 
         end_block=$(date +%s.%N)
         build_execution_time=$(echo "${build_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1342,8 +1528,12 @@ function dispatch_icarus_python3() {
     fi
 
     # Tools that are run as composite and need build env access
+    linkfarm_hook=true
+    start_block=$(date +%s.%N)
     echo_title "Project & Env info"
-    activate_icarus_python3
+    activate_runtimefarm_path
+    end_block=$(date +%s.%N)
+    linkfarm_execution_time=$(echo "${exec_execution_time}" + "${end_block} - ${start_block}" | bc)
 
     if [[ "${exec}" == "Y" ]]; then
         start_block=$(date +%s.%N)
@@ -1511,7 +1701,7 @@ function dispatch_icarus_python3() {
     fi
 
     echo_title "Deactivating Environment"
-    deactivate_icarus_python3
+    deactivate_runtimefarm_path
 }
 
 function dispatch_icarus_cdk() {
@@ -1555,6 +1745,7 @@ function main() {
     # Setting constants, indexing workspace and benchmarking the execution
     start_block=$(date +%s.%N)
     set_constants "${@}"
+    ensure_icarus_build_root_env
     end_block=$(date +%s.%N)
     elapsed_time=$(echo "${end_block} - ${start_block}" | bc)
     if [[ $(echo "${elapsed_time} > 5" | bc) -eq 1 ]]; then

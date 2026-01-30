@@ -2,7 +2,7 @@
 name = "icarus"
 description = "CLI toolkit for environment provisioning and workflow automation"
 readme = "README.md"
-version = "2.6.2"
+version = "2.7.0"
 license = "MIT"
 authors = [
     {name = "Carlo Gatti", email = "carlo.gatti@me.com"}
@@ -26,6 +26,11 @@ Homepage = "https://github.com/64rl0/Icarus"
 
 [project.optional-dependencies]
 dev = []
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools]

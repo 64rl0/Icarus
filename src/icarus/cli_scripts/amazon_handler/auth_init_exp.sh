@@ -26,6 +26,8 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 auth_init_express() {
+    local tmp_file
+
     if [[ -z "${CARLOGTT_SECRET_MIDWAY_PIN}" || -z "${CARLOGTT_SECRET_AMZ_ANT_PASSWORD}" ]]; then
         echo -e "${red}CARLOGTT_SECRET_MIDWAY_PIN and/or CARLOGTT_SECRET_AMZ_ANT_PASSWORD env variable(s) not found! Run the following command to set them.${end}"
         echo -e "${red}export CARLOGTT_SECRET_MIDWAY_PIN=<your midway pin>${end}"
@@ -33,7 +35,9 @@ auth_init_express() {
         return
     fi
 
-    cat <<EOF >"/tmp/auth-init-expect.exp"
+    tmp_file="/tmp/${cli_name}/amazon/auth-init-expect.exp"
+
+    cat <<EOF >"${tmp_file}"
 #!/usr/bin/expect
 # vim: ft=sh
 
@@ -106,7 +110,7 @@ expect {
 EOF
 
     # Run the expect script as file to maintain interactivity
-    expect "/tmp/auth-init-expect.exp"
+    expect "${tmp_file}"
 }
 
 parse_args() {

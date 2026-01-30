@@ -4,10 +4,6 @@ pytest
 # Documentation dependencies
 sphinx
 
-# Build dependencies
-build
-twine
-
 # Development dependencies
 black
 isort
