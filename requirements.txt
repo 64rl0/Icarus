@@ -3,6 +3,7 @@ pytest
 
 # Documentation dependencies
 sphinx
+sphinx-rtd-theme
 
 # Development dependencies
 black
