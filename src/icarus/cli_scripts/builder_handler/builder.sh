@@ -856,6 +856,18 @@ function run_documentation() {
         return
     fi
 
+    # Creating requirements for Read the Docs
+    echo "git+https://github.com/64rl0/${package_name_pascal_case}.git" >"${project_root_dir_abs}/requirements-read-the-docs.txt" || {
+        echo_error "Failed to generate 'requirements-read-the-docs.txt'."
+        docs_summary_status="${failed}"
+        exit_code=1
+    }
+    "${python_bin}" -m pip freeze | sed '/ @ file:\/\//d' >>"${project_root_dir_abs}/requirements-read-the-docs.txt" || {
+        echo_error "Failed to generate 'requirements-read-the-docs.txt'."
+        docs_summary_status="${failed}"
+        exit_code=1
+    }
+
     # Cleaning docs env
     rm -rf "${project_root_dir_abs}/docs/_apidoc"
     rm -rf "${project_root_dir_abs}/docs/html"
@@ -867,7 +879,7 @@ function run_documentation() {
     }
 
     # Generating HTML docs
-    sphinx-build -v --fail-on-warning --builder html "${project_root_dir_abs}/docs" "${project_root_dir_abs}/docs/html" || {
+    sphinx-build -v --color --fail-on-warning --builder html "${project_root_dir_abs}/docs" "${project_root_dir_abs}/docs/html" || {
         docs_summary_status="${failed}"
         exit_code=1
     }
