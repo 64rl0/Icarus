@@ -972,6 +972,7 @@ function install_python_runtime() {
         build_single_run_status=1
         exit_code=1
     }
+
     # Clean any partial or old dir left there before moving to runtime root
     rm -rf "${path_to_runtime_root}/CPython/${python_full_version}" || {
         echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}'."
@@ -986,6 +987,36 @@ function install_python_runtime() {
         exit_code=1
     }
 
+    # Save the build release info
+    rm -rf "${path_to_runtime_root}/CPython/${python_full_version}/release-info" || {
+        echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}/release-info'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    mkdir -p "${path_to_runtime_root}/CPython/${python_full_version}/release-info" || {
+        echo_error "Failed to create '${path_to_runtime_root}/CPython/${python_full_version}/release-info'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    cat <<EOF >"${path_to_runtime_root}/CPython/${python_full_version}/release-info/build-py${python_version}.txt" || {
+build_timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+cli_name=${cli_name}
+python_version=${python_version}
+python_full_version=${python_full_version}
+platform_identifier=${platform_identifier}
+python_pkg_name=${python_pkg_name}
+python_pkg_full_name=${python_pkg_full_name}
+python_pkg_download_url=${python_pkg_download_url}
+runtime_root=${path_to_runtime_root}/CPython/${python_full_version}
+EOF
+        echo_error "Failed to create '${path_to_runtime_root}/CPython/${python_full_version}/release-info/build-py${python_version}.txt'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         echo -e "done!"
         echo
@@ -995,36 +1026,21 @@ function install_python_runtime() {
 function install_python_dependencies() {
     local requirements_path
 
-    # Install pip and update
-    echo -e "${bold_green}${sparkles} Updating pip...${end}"
+    # Install build-tools required by icarus builder
+    echo
+    echo -e "${bold_green}${sparkles} Installing build-tools into 'Python${python_full_version}' env...${end}"
     "${python_bin}" -m pip install --no-warn-script-location --upgrade pip || {
         echo_error "Failed to update pip."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-
-    # Install build-tools required by icarus builder
-    echo
-    echo -e "${bold_green}${sparkles} Installing build-tools into 'Python${python_full_version}' env...${end}"
     "${python_bin}" -m pip install --no-warn-script-location setuptools build twine || {
         echo_error "Failed to install build-tools."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-
-    # Install requirements
-    echo
-    echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
-    for requirements_path in "${requirements_paths[@]}"; do
-        "${python_bin}" -m pip install --no-warn-script-location --requirement "${project_root_dir_abs}/${requirements_path}" || {
-            echo_error "Failed to install requirements '${requirements_path}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
 
     # Cleanup silently
     # We are about to rebuild the dist so make sure the env is clean to accommodate the new one
@@ -1049,6 +1065,18 @@ function install_python_dependencies() {
         exit_code=1
     }
 
+    # Install requirements
+    echo
+    echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
+    for requirements_path in "${requirements_paths[@]}"; do
+        "${python_bin}" -m pip install --no-warn-script-location --requirement "${project_root_dir_abs}/${requirements_path}" || {
+            echo_error "Failed to install requirements '${requirements_path}'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    done
+
     # Install local package into env (as last so it will override the same name)
     echo
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
@@ -1059,16 +1087,21 @@ function install_python_dependencies() {
         exit_code=1
     }
 
+    # Save the packages release info
+    "${python_bin}" -m pip freeze >"${path_to_runtime_root}/CPython/${python_full_version}/release-info/packages-py${python_version}.txt" || {
+        echo_error "Failed to create 'release-info-py${python_version}.txt'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+
     # Cleanup final
-    echo
-    echo -e "${bold_green}${broom} Cleaning up...${end}"
     mv "${project_root_dir_abs}/src/"*".egg-info" "${path_to_dist_root}" || {
         echo_error "Failed to move build dir to env dir."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-    echo -e "cleanup completed"
 }
 
 function ensure_runtime() {
