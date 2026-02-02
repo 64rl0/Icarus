@@ -31,6 +31,7 @@ This module ...
 
 # Standard Library Imports
 import datetime
+import enum
 import errno
 import fcntl
 import getpass
@@ -98,7 +99,8 @@ class IbArgMmp(TypedDict):
     eofnewline: str
     gitleaks: str
     pytest: str
-    docs: str
+    sphinx: str
+    readthedocs: str
     exec: str
     initial_command_received: str
     initial_exec_command_received: list[str]
@@ -118,12 +120,18 @@ class IbArgMmp(TypedDict):
         Literal['eofnewline'],
         Literal['gitleaks'],
         Literal['pytest'],
-        Literal['docs'],
+        Literal['sphinx'],
+        Literal['readthedocs'],
         Literal['exec'],
     ]
     python_default_version: str
     python_default_full_version: str
     python_versions: list[str]
+
+
+class BuildSystems(enum.Enum):
+    ICARUS_PYTHON3 = 'icarus-python3'
+    ICARUS_CDK = 'icarus-cdk'
 
 
 def ensure_builder_control_plane() -> None:
@@ -297,7 +305,8 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMm
             'eofnewline',
             'gitleaks',
             'pytest',
-            'docs',
+            'sphinx',
+            'readthedocs',
             'exec',
         ),
         'icarus_config_filename': '',
@@ -328,7 +337,8 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMm
         'eofnewline': 'Y' if ib_args.get('eofnewline') else 'N',
         'gitleaks': 'Y' if ib_args.get('gitleaks') else 'N',
         'pytest': 'Y' if ib_args.get('pytest') else 'N',
-        'docs': 'Y' if ib_args.get('docs') else 'N',
+        'sphinx': 'Y' if ib_args.get('sphinx') else 'N',
+        'readthedocs': 'Y' if ib_args.get('readthedocs') else 'N',
         'exec': 'Y' if ib_args.get('exec') else 'N',
         'initial_command_received': 'icarus builder',
         'initial_exec_command_received': [],
@@ -385,11 +395,12 @@ def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[st
             raise utils.IcarusParserException('Invalid --exec argument')
         ib_arg_mmp.update({'initial_exec_command_received': initial_exec_command_received})
         # altering the exec value so it can be used from the for loop
-        # here below to make up the initial_command_received look nice
+        # here below to make up the initial_command_received look pretty
         ib_args['exec'] = f"--exec {' '.join(ib_args['exec'])}"
 
+    # RELEASE target
     if ib_args.get('release'):
-        if ib_arg_mmp['build_system_in_use'] in {'icarus-python3'}:
+        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
             ib_arg_mmp.update({
                 'build': 'Y',
                 'isort': 'Y',
@@ -403,15 +414,27 @@ def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[st
                 'eofnewline': 'Y',
                 'pytest': 'Y',
                 'gitleaks': 'Y',
-                'docs': 'Y',
+                'sphinx': 'Y',
+            })
+        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
+            ib_arg_mmp.update({
+                'build': 'Y',
+                'shfmt': 'Y',
+                'eolnorm': 'Y',
+                'whitespaces': 'Y',
+                'trailing': 'Y',
+                'eofnewline': 'Y',
+                'gitleaks': 'Y',
             })
         else:
             raise utils.IcarusParserException(
-                'The --release argument is only valid for icarus-python3 build systems'
+                'The --release target is not configured for the'
+                f' f{ib_arg_mmp["build_system_in_use"]} build systems'
             )
 
+    # FORMAT target
     if ib_args.get('format'):
-        if ib_arg_mmp['build_system_in_use'] in {'icarus-python3'}:
+        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
             ib_arg_mmp.update({
                 'isort': 'Y',
                 'black': 'Y',
@@ -421,19 +444,52 @@ def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[st
                 'trailing': 'Y',
                 'eofnewline': 'Y',
             })
-        else:
-            raise utils.IcarusParserException(
-                'The --format argument is only valid for icarus-python3 build systems'
-            )
-
-    if ib_args.get('test'):
-        if ib_arg_mmp['build_system_in_use'] in {'icarus-python3'}:
+        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
             ib_arg_mmp.update({
-                'pytest': 'Y',
+                'shfmt': 'Y',
+                'eolnorm': 'Y',
+                'whitespaces': 'Y',
+                'trailing': 'Y',
+                'eofnewline': 'Y',
             })
         else:
             raise utils.IcarusParserException(
-                'The --test argument is only valid for icarus-python3 build systems'
+                'The --format target is not configured for the'
+                f' f{ib_arg_mmp["build_system_in_use"]} build systems'
+            )
+
+    # TEST target
+    if ib_args.get('test'):
+        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
+            ib_arg_mmp.update({
+                'pytest': 'Y',
+            })
+        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
+            ib_arg_mmp.update({
+                # this is just a placeholder for now
+                'pytest': 'N',
+            })
+        else:
+            raise utils.IcarusParserException(
+                f'The --test target is not configured for the f{ib_arg_mmp["build_system_in_use"]}'
+                ' build systems'
+            )
+
+    # DOCS target
+    if ib_args.get('docs'):
+        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
+            ib_arg_mmp.update({
+                'sphinx': 'Y',
+            })
+        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
+            ib_arg_mmp.update({
+                # this is just a placeholder for now
+                'sphinx': 'N',
+            })
+        else:
+            raise utils.IcarusParserException(
+                f'The --docs target is not configured for the f{ib_arg_mmp["build_system_in_use"]}'
+                ' build systems'
             )
 
     for arg in ib_args.values():
@@ -504,7 +560,7 @@ def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
 
     try:
-        ib_arg_mmp['build_system_in_use'] = [d['runtime'] for d in bs if d.get('runtime')][0]
+        ib_arg_mmp['build_system_in_use'] = [d['system'] for d in bs if d.get('system')][0]
     except Exception:
         pass
 
@@ -549,8 +605,6 @@ def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     :return:
     """
 
-    accepted_build_systems = ['icarus-python3', 'icarus-cdk']
-
     if not ib_arg_mmp.get('package_name_pascal_case'):
         raise utils.IcarusParserException(
             f'No name specified in package {config.ICARUS_CFG_FILENAME}'
@@ -573,16 +627,16 @@ def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
 
     if not ib_arg_mmp.get('build_system_in_use'):
         raise utils.IcarusParserException(
-            f'No runtime specified in build-system {config.ICARUS_CFG_FILENAME}'
+            f'No system specified in build-system {config.ICARUS_CFG_FILENAME}'
         )
     else:
         if not isinstance(ib_arg_mmp.get('build_system_in_use'), str):
             raise utils.IcarusParserException(
-                f'runtime in build-system {config.ICARUS_CFG_FILENAME} must be a string'
+                f'system in build-system {config.ICARUS_CFG_FILENAME} must be a string'
             )
-        if ib_arg_mmp.get('build_system_in_use') not in accepted_build_systems:
+        if ib_arg_mmp.get('build_system_in_use') not in BuildSystems:
             raise utils.IcarusParserException(
-                f'Invalid runtime in build-system {config.ICARUS_CFG_FILENAME}'
+                f'Invalid system in build-system {config.ICARUS_CFG_FILENAME}'
             )
 
     if not ib_arg_mmp.get('build_root_dir'):

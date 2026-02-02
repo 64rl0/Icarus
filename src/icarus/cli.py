@@ -308,6 +308,21 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run a command inside the runtime environment',
     )
+    builder_exec = builder_sub.add_parser(
+        name='exec',
+        help='run a command inside the runtime environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_exec.add_argument(
+        'exec',
+        nargs='+',
+        metavar='CMD',
+        default='',
+        help='command to run inside the runtime environment',
+    )
+
     builder_par.add_argument(
         '--build',
         required=False,
@@ -316,6 +331,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='create/re-create the project runtime environment',
     )
+    builder_build = builder_sub.add_parser(
+        name='build',
+        help='create/re-create the project runtime environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_build.set_defaults(build='--build')
+
     builder_par.add_argument(
         '--clean',
         required=False,
@@ -324,6 +348,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='clean the project runtime environment',
     )
+    builder_clean = builder_sub.add_parser(
+        name='clean',
+        help='clean the project runtime environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_clean.set_defaults(clean='--clean')
+
     builder_par.add_argument(
         '--release',
         required=False,
@@ -332,6 +365,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the full “release” pipeline',
     )
+    builder_release = builder_sub.add_parser(
+        name='release',
+        help='run the full “release” pipeline',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_release.set_defaults(release='--release')
+
     builder_par.add_argument(
         '--format',
         required=False,
@@ -340,6 +382,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the formatting tools',
     )
+    builder_format = builder_sub.add_parser(
+        name='format',
+        help='run the formatting tools',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_format.set_defaults(format='--format')
+
     builder_par.add_argument(
         '--test',
         required=False,
@@ -348,6 +399,32 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the automated test suite',
     )
+    builder_test = builder_sub.add_parser(
+        name='test',
+        help='run the automated test suite',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_test.set_defaults(test='--test')
+
+    builder_par.add_argument(
+        '--docs',
+        required=False,
+        action='store_const',
+        const='--docs',
+        default='',
+        help='generate user documentation',
+    )
+    builder_docs = builder_sub.add_parser(
+        name='docs',
+        help='generate user documentation',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_docs.set_defaults(docs='--docs')
+
     builder_par.add_argument(
         '--isort',
         required=False,
@@ -437,12 +514,20 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='execute the unit/integration-test suite via pytest',
     )
     builder_par.add_argument(
-        '--docs',
+        '--sphinx',
         required=False,
         action='store_const',
-        const='--docs',
+        const='--sphinx',
         default='',
-        help='generate user documentation',
+        help='generate user documentation with sphinx',
+    )
+    builder_par.add_argument(
+        '--readthedocs',
+        required=False,
+        action='store_const',
+        const='--readthedocs',
+        default='',
+        help='generate readthedocs requirements',
     )
 
     builder_create = builder_sub.add_parser(
@@ -466,72 +551,12 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='the package name language',
     )
 
-    builder_build = builder_sub.add_parser(
-        name='build',
-        help='create/re-create the project runtime environment',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_build.set_defaults(build='--build')
-
-    builder_clean = builder_sub.add_parser(
-        name='clean',
-        help='clean the project runtime environment',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_clean.set_defaults(clean='--clean')
-
-    builder_release = builder_sub.add_parser(
-        name='release',
-        help='run the full “release” pipeline',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_release.set_defaults(release='--release')
-
-    builder_format = builder_sub.add_parser(
-        name='format',
-        help='run the formatting tools',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_format.set_defaults(format='--format')
-
-    builder_test = builder_sub.add_parser(
-        name='test',
-        help='run the automated test suite',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_test.set_defaults(test='--test')
-
     builder_sub.add_parser(
         name='build-runtime',
         help='build the interpreter runtime',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
-    )
-
-    builder_exec = builder_sub.add_parser(
-        name='exec',
-        help='run a command inside the runtime environment',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_exec.add_argument(
-        'exec',
-        nargs='+',
-        metavar='CMD',
-        default='',
-        help='command to run inside the runtime environment',
     )
 
     # =================

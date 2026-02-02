@@ -1,13 +1,10 @@
-# Test dependencies
-pytest
-
-# Documentation dependencies
-sphinx
-sphinx-rtd-theme
-
-# Development dependencies
-black
-isort
-mypy
-flake8
-pep8-naming
+#
+# Lists “library” (AKA “direct”) dependencies for your package.
+#
+# These are transitive: anyone that depends on your package
+# will automatically pick up these dependencies.
+#
+# NOTE: New or updated dependencies should be declared in the
+# `pyproject.toml` dependencies section. This file is kept for
+# legacy tooling compatibility.
+#

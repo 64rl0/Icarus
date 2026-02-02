@@ -81,11 +81,13 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         'eofnewline': args.eofnewline,
         'gitleaks': args.gitleaks,
         'pytest': args.pytest,
-        'docs': args.docs,
+        'sphinx': args.sphinx,
+        'readthedocs': args.readthedocs,
         'exec': args.exec,
         'release': args.release,
         'format': args.format,
         'test': args.test,
+        'docs': args.docs,
     }
     singleton_args = {
         'create',

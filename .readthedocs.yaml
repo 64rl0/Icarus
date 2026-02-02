@@ -9,6 +9,7 @@ version: 2
 python:
   install:
     - requirements: requirements-read-the-docs.txt
+    - requirements: requirements-read-the-docs-vcs.txt
 
 # Set the OS, Python version and other tools you might need
 build:

@@ -382,6 +382,21 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run a command inside the runtime environment&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">builder_exec</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;exec&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run a command inside the runtime environment&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_exec</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;exec&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;CMD&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;command to run inside the runtime environment&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--build&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -390,6 +405,15 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;create/re-create the project runtime environment&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">builder_build</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;build&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;create/re-create the project runtime environment&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_build</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">build</span><span class="o">=</span><span class="s1">&#39;--build&#39;</span><span class="p">)</span>
+
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--clean&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -398,6 +422,15 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clean the project runtime environment&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">builder_clean</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clean the project runtime environment&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_clean</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">clean</span><span class="o">=</span><span class="s1">&#39;--clean&#39;</span><span class="p">)</span>
+
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--release&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -406,6 +439,15 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the full “release” pipeline&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">builder_release</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the full “release” pipeline&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_release</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">release</span><span class="o">=</span><span class="s1">&#39;--release&#39;</span><span class="p">)</span>
+
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--format&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -414,6 +456,15 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the formatting tools&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">builder_format</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;format&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the formatting tools&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_format</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;--format&#39;</span><span class="p">)</span>
+
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--test&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -422,6 +473,32 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the automated test suite&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">builder_test</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the automated test suite&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_test</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="s1">&#39;--test&#39;</span><span class="p">)</span>
+
+    <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--docs&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--docs&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate user documentation&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_docs</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;docs&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate user documentation&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_docs</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">docs</span><span class="o">=</span><span class="s1">&#39;--docs&#39;</span><span class="p">)</span>
+
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--isort&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -511,12 +588,20 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;execute the unit/integration-test suite via pytest&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--docs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--sphinx&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
-        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--docs&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--sphinx&#39;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate user documentation&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate user documentation with sphinx&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--readthedocs&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--readthedocs&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate readthedocs requirements&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">builder_create</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
@@ -540,72 +625,12 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the package name language&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">builder_build</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;build&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;create/re-create the project runtime environment&#39;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
-        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">builder_build</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">build</span><span class="o">=</span><span class="s1">&#39;--build&#39;</span><span class="p">)</span>
-
-    <span class="n">builder_clean</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clean the project runtime environment&#39;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
-        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">builder_clean</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">clean</span><span class="o">=</span><span class="s1">&#39;--clean&#39;</span><span class="p">)</span>
-
-    <span class="n">builder_release</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the full “release” pipeline&#39;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
-        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">builder_release</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">release</span><span class="o">=</span><span class="s1">&#39;--release&#39;</span><span class="p">)</span>
-
-    <span class="n">builder_format</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;format&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the formatting tools&#39;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
-        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">builder_format</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;--format&#39;</span><span class="p">)</span>
-
-    <span class="n">builder_test</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run the automated test suite&#39;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
-        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">builder_test</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="s1">&#39;--test&#39;</span><span class="p">)</span>
-
     <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;build-runtime&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;build the interpreter runtime&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-
-    <span class="n">builder_exec</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;exec&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run a command inside the runtime environment&#39;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
-        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">builder_exec</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;exec&#39;</span><span class="p">,</span>
-        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;CMD&#39;</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;command to run inside the runtime environment&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># =================</span>
