@@ -75,6 +75,16 @@ def handle_provision_command(args: argparse.Namespace) -> int:
 
         return return_code
 
+    elif args.provision_command == 'envroot':
+        module_logger.debug(f"Running {args.provision_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'provision_handler' / 'envroot.sh'
+        script_args = None
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
     else:
         module_logger.debug(f"Running {args.provision_command=}")
         raise utils.IcarusParserException('the following arguments are required: <subcommand>')

@@ -1688,7 +1688,7 @@ function fix_runtime_paths_linux() {
 
 function fix_runtime_paths() {
     echo_time
-    echo -e "${bold_green}${sparkles} Fixing id’s and rpaths${end}"
+    echo -e "${bold_green}${sparkles} Fixing id's and rpaths${end}"
     local extension lib fw
 
     if [[ $(uname -s) == "Darwin" ]]; then

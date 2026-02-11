@@ -1,0 +1,15 @@
+#
+# Lists build dependencies for your package.
+#
+# Your package doesn’t need these packages at runtime,
+# but they are needed at build time.
+#
+# These are not transitive: anyone that depends on your package
+# will NOT automatically pick up these dependencies.
+#
+
+# Build dependencies
+setuptools
+build
+twine
+wheel

@@ -83,10 +83,14 @@ class IbArgMmp(TypedDict):
     build_root_dir: str
     python_version_default_for_icarus: str
     python_versions_for_icarus: list[str]
-    requirements_paths: list[str]
+    tool_requirements_paths: list[str]
+    run_requirements_paths: list[str]
+    dev_requirements_paths: list[str]
     icarus_ignore_array: list[str]
     build: str
     is_only_build_hook: str
+    is_release: str
+    merge: str
     clean: str
     isort: str
     black: str
@@ -101,11 +105,16 @@ class IbArgMmp(TypedDict):
     pytest: str
     sphinx: str
     readthedocs: str
-    exec: str
+    exectool: str
+    execrun: str
+    execdev: str
     initial_command_received: str
-    initial_exec_command_received: list[str]
+    initial_exectool_command_received: list[str]
+    initial_execrun_command_received: list[str]
+    initial_execdev_command_received: list[str]
     running_hooks_name: list[str]
     running_hooks_count: str
+    verbose: str
     all_hooks: tuple[
         Literal['build'],
         Literal['clean'],
@@ -122,11 +131,16 @@ class IbArgMmp(TypedDict):
         Literal['pytest'],
         Literal['sphinx'],
         Literal['readthedocs'],
-        Literal['exec'],
+        Literal['merge'],
+        Literal['exectool'],
+        Literal['execrun'],
+        Literal['execdev'],
     ]
     python_default_version: str
     python_default_full_version: str
     python_versions: list[str]
+    path_name: str
+    list_paths: str
 
 
 class BuildSystems(enum.Enum):
@@ -258,7 +272,7 @@ def run_bash_script_with_logging(
     return return_code
 
 
-def get_argv(ib_args: dict[str, Union[str, list[str]]]) -> str:
+def get_argv(ib_args: dict[str, Union[int, str, list[str]]]) -> str:
     """
     Get the arguments for the builder.sh script.
 
@@ -281,7 +295,7 @@ def get_argv(ib_args: dict[str, Union[str, list[str]]]) -> str:
     return ib_argv
 
 
-def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMmp:
+def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> IbArgMmp:
     """
     Initialize the IbbArgMmp dictionary with default values.
 
@@ -291,6 +305,7 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMm
 
     # Initialize the IbbArgMmp dictionary with default values
     ib_arg_mmp: IbArgMmp = {
+        'verbose': 'N',
         'all_hooks': (
             'build',
             'clean',
@@ -307,7 +322,10 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMm
             'pytest',
             'sphinx',
             'readthedocs',
-            'exec',
+            'merge',
+            'exectool',
+            'execrun',
+            'execdev',
         ),
         'icarus_config_filename': '',
         'icarus_config_filepath': '',
@@ -321,10 +339,12 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMm
         'build_root_dir': '',
         'python_version_default_for_icarus': '',
         'python_versions_for_icarus': [],
-        'requirements_paths': [],
+        'tool_requirements_paths': [],
+        'run_requirements_paths': [],
+        'dev_requirements_paths': [],
         'icarus_ignore_array': [],
+        'merge': 'Y' if ib_args.get('merge') else 'N',
         'build': 'Y' if ib_args.get('build') else 'N',
-        'is_only_build_hook': 'N',
         'clean': 'Y' if ib_args.get('clean') else 'N',
         'isort': 'Y' if ib_args.get('isort') else 'N',
         'black': 'Y' if ib_args.get('black') else 'N',
@@ -339,20 +359,28 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[str, list[str]]]) -> IbArgMm
         'pytest': 'Y' if ib_args.get('pytest') else 'N',
         'sphinx': 'Y' if ib_args.get('sphinx') else 'N',
         'readthedocs': 'Y' if ib_args.get('readthedocs') else 'N',
-        'exec': 'Y' if ib_args.get('exec') else 'N',
+        'exectool': 'Y' if ib_args.get('exectool') else 'N',
+        'execrun': 'Y' if ib_args.get('execrun') else 'N',
+        'execdev': 'Y' if ib_args.get('execdev') else 'N',
         'initial_command_received': 'icarus builder',
-        'initial_exec_command_received': [],
+        'initial_exectool_command_received': [],
+        'initial_execrun_command_received': [],
+        'initial_execdev_command_received': [],
+        'is_only_build_hook': 'N',
+        'is_release': 'N',
         'running_hooks_name': [],
         'running_hooks_count': '',
         'python_default_version': '',
         'python_default_full_version': '',
         'python_versions': [],
+        'path_name': '',
+        'list_paths': 'Y' if ib_args.get('list_paths') else 'N',
     }
 
     return ib_arg_mmp
 
 
-def _validate_build_cli_args_base_rules(ib_args: dict[str, Union[str, list[str]]]) -> None:
+def _validate_build_cli_args_base_rules(ib_args: dict[str, Union[int, str, list[str]]]) -> None:
     """
     Prepare the arguments for the builder.sh script.
 
@@ -363,20 +391,12 @@ def _validate_build_cli_args_base_rules(ib_args: dict[str, Union[str, list[str]]
     :return:
     """
 
-    # Initial validations
-    if ib_args.get('clean') and sum(1 for el in ib_args.values() if el) > 1:
-        raise utils.IcarusParserException('--clean is a standalone argument and must be used alone')
-
-    if ib_args.get('exec') and sum(1 for el in ib_args.values() if el) > 1:
-        raise utils.IcarusParserException('--exec is a standalone argument and must be used alone')
-
-    if not any(ib_args.values()):
-        raise utils.IcarusParserException(
-            f'{config.CLI_NAME} builder requires at least one argument'
-        )
+    # Initial validations placeholder
 
 
-def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[str]]]) -> IbArgMmp:
+def _process_ib_args(
+    ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[int, str, list[str]]]
+) -> IbArgMmp:
     """
     Prepare the arguments for the builder.sh script.
 
@@ -385,21 +405,54 @@ def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[st
     :return:
     """
 
-    if ib_args.get('exec'):
-        if len(ib_args['exec']) == 1:
-            initial_exec_command_received = ib_args['exec'][0].split()
-        elif len(ib_args['exec']) > 1:
-            assert isinstance(ib_args['exec'], list)
-            initial_exec_command_received = ib_args['exec']
+    if ib_args.get('verbose'):
+        ib_arg_mmp['verbose'] = 'Y'
+
+    if ib_args.get('exectool'):
+        assert not isinstance(ib_args['exectool'], int)
+        if len(ib_args['exectool']) == 1:
+            initial_exectool_command_received = ib_args['exectool'][0].split()
+        elif len(ib_args['exectool']) > 1:
+            assert isinstance(ib_args['exectool'], list)
+            initial_exectool_command_received = ib_args['exectool']
         else:
-            raise utils.IcarusParserException('Invalid --exec argument')
-        ib_arg_mmp.update({'initial_exec_command_received': initial_exec_command_received})
+            raise utils.IcarusParserException('Invalid --exec-tool argument')
+        ib_arg_mmp.update({'initial_exectool_command_received': initial_exectool_command_received})
         # altering the exec value so it can be used from the for loop
         # here below to make up the initial_command_received look pretty
-        ib_args['exec'] = f"--exec {' '.join(ib_args['exec'])}"
+        ib_args['exectool'] = f"--exec-tool {' '.join(ib_args['exectool'])}"
+
+    if ib_args.get('execrun'):
+        assert not isinstance(ib_args['execrun'], int)
+        if len(ib_args['execrun']) == 1:
+            initial_execrun_command_received = ib_args['execrun'][0].split()
+        elif len(ib_args['execrun']) > 1:
+            assert isinstance(ib_args['execrun'], list)
+            initial_execrun_command_received = ib_args['execrun']
+        else:
+            raise utils.IcarusParserException('Invalid --exec-run argument')
+        ib_arg_mmp.update({'initial_execrun_command_received': initial_execrun_command_received})
+        # altering the exec value so it can be used from the for loop
+        # here below to make up the initial_command_received look pretty
+        ib_args['execrun'] = f"--exec-run {' '.join(ib_args['execrun'])}"
+
+    if ib_args.get('execdev'):
+        assert not isinstance(ib_args['execdev'], int)
+        if len(ib_args['execdev']) == 1:
+            initial_execdev_command_received = ib_args['execdev'][0].split()
+        elif len(ib_args['execdev']) > 1:
+            assert isinstance(ib_args['execdev'], list)
+            initial_execdev_command_received = ib_args['execdev']
+        else:
+            raise utils.IcarusParserException('Invalid --exec-dev argument')
+        ib_arg_mmp.update({'initial_execdev_command_received': initial_execdev_command_received})
+        # altering the exec value so it can be used from the for loop
+        # here below to make up the initial_command_received look pretty
+        ib_args['execdev'] = f"--exec-dev {' '.join(ib_args['execdev'])}"
 
     # RELEASE target
     if ib_args.get('release'):
+        ib_arg_mmp['is_release'] = 'Y'
         if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
             ib_arg_mmp.update({
                 'build': 'Y',
@@ -492,9 +545,14 @@ def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[st
                 ' build systems'
             )
 
-    for arg in ib_args.values():
-        if arg:
-            ib_arg_mmp['initial_command_received'] += f" {arg}"
+    for arg_name, arg_value in ib_args.items():
+        if arg_name == 'verbose':
+            assert isinstance(arg_value, int)
+            if arg_value > 0:
+                ib_arg_mmp['initial_command_received'] += " -v"
+                continue
+        if arg_value:
+            ib_arg_mmp['initial_command_received'] += f" {arg_value}"
 
     for hook in ib_arg_mmp['all_hooks']:
         if ib_arg_mmp[hook] == 'Y':
@@ -504,6 +562,10 @@ def _process_ib_args(ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[str, list[st
 
     if ib_arg_mmp['build'] == 'Y' and ib_arg_mmp['running_hooks_count'] == str(1):
         ib_arg_mmp['is_only_build_hook'] = 'Y'
+
+    if ib_args.get('path_name'):
+        assert isinstance(ib_args['path_name'], str)
+        ib_arg_mmp['path_name'] = ib_args['path_name']
 
     return ib_arg_mmp
 
@@ -583,8 +645,22 @@ def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
 
     try:
-        ib_arg_mmp['requirements_paths'] = [
-            d['requirements'] for d in ipy if d.get('requirements')
+        ib_arg_mmp['tool_requirements_paths'] = [
+            d['tool-dependencies'] for d in ipy if d.get('tool-dependencies')
+        ][0]
+    except Exception:
+        pass
+
+    try:
+        ib_arg_mmp['run_requirements_paths'] = [
+            d['run-dependencies'] for d in ipy if d.get('run-dependencies')
+        ][0]
+    except Exception:
+        pass
+
+    try:
+        ib_arg_mmp['dev_requirements_paths'] = [
+            d['dev-dependencies'] for d in ipy if d.get('dev-dependencies')
         ][0]
     except Exception:
         pass
@@ -702,21 +778,53 @@ def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                     ' in the list of python versions'
                 )
 
-        if not ib_arg_mmp.get('requirements_paths'):
+        if not ib_arg_mmp.get('tool_requirements_paths'):
             # not a mandatory field
             pass
-        elif isinstance(ib_arg_mmp.get('requirements_paths'), list):
-            if not all(isinstance(v, str) for v in ib_arg_mmp.get('requirements_paths', [])):
+        elif isinstance(ib_arg_mmp.get('tool_requirements_paths'), list):
+            if not all(isinstance(v, str) for v in ib_arg_mmp.get('tool_requirements_paths', [])):
                 raise utils.IcarusParserException(
-                    f'All requirements in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
+                    f'All tool-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
                     ' strings'
                 )
         else:
-            if not isinstance(ib_arg_mmp.get('requirements_paths'), list):
+            if not isinstance(ib_arg_mmp.get('tool_requirements_paths'), list):
                 raise utils.IcarusParserException(
-                    f'requirements in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a list'
-                    ' of strings'
+                    f'tool-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a'
+                    ' list of strings'
                 )
+
+    if not ib_arg_mmp.get('run_requirements_paths'):
+        # not a mandatory field
+        pass
+    elif isinstance(ib_arg_mmp.get('run_requirements_paths'), list):
+        if not all(isinstance(v, str) for v in ib_arg_mmp.get('run_requirements_paths', [])):
+            raise utils.IcarusParserException(
+                f'All run-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
+                ' strings'
+            )
+    else:
+        if not isinstance(ib_arg_mmp.get('run_requirements_paths'), list):
+            raise utils.IcarusParserException(
+                f'run-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a list'
+                ' of strings'
+            )
+
+    if not ib_arg_mmp.get('dev_requirements_paths'):
+        # not a mandatory field
+        pass
+    elif isinstance(ib_arg_mmp.get('dev_requirements_paths'), list):
+        if not all(isinstance(v, str) for v in ib_arg_mmp.get('dev_requirements_paths', [])):
+            raise utils.IcarusParserException(
+                f'All dev-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
+                ' strings'
+            )
+    else:
+        if not isinstance(ib_arg_mmp.get('dev_requirements_paths'), list):
+            raise utils.IcarusParserException(
+                f'dev-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a list'
+                ' of strings'
+            )
 
     if ib_arg_mmp.get('build_system_in_use') == 'icarus-cdk':
         raise utils.IcarusParserException(
@@ -760,8 +868,12 @@ def _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgM
     stru = mylib.StringUtils()
 
     # Optional settings will get here as None, set defaults
-    if ib_arg_mmp.get('requirements_paths') is None:
-        ib_arg_mmp['requirements_paths'] = []
+    if ib_arg_mmp.get('tool_requirements_paths') is None:
+        ib_arg_mmp['tool_requirements_paths'] = []
+    if ib_arg_mmp.get('run_requirements_paths') is None:
+        ib_arg_mmp['run_requirements_paths'] = []
+    if ib_arg_mmp.get('dev_requirements_paths') is None:
+        ib_arg_mmp['dev_requirements_paths'] = []
     if ib_arg_mmp.get('icarus_ignore_array') is None:
         ib_arg_mmp['icarus_ignore_array'] = []
 
@@ -779,7 +891,9 @@ def _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgM
         list(set(ib_arg_mmp['python_versions_for_icarus'])), key=_sort_version, reverse=True
     )
     ib_arg_mmp['icarus_ignore_array'] = list(set(ib_arg_mmp['icarus_ignore_array']))
-    ib_arg_mmp['requirements_paths'] = list(set(ib_arg_mmp['requirements_paths']))
+    ib_arg_mmp['tool_requirements_paths'] = list(set(ib_arg_mmp['tool_requirements_paths']))
+    ib_arg_mmp['run_requirements_paths'] = list(set(ib_arg_mmp['run_requirements_paths']))
+    ib_arg_mmp['dev_requirements_paths'] = list(set(ib_arg_mmp['dev_requirements_paths']))
 
     return ib_arg_mmp
 

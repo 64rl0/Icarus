@@ -300,30 +300,46 @@ def initialize_parser() -> argparse.ArgumentParser:
     # ===================
     # Builder subcommands
     # ===================
-    builder_par.add_argument(
-        '--exec',
-        required=False,
-        nargs='+',
-        metavar='CMD',
-        default='',
-        help='run a command inside the runtime environment',
-    )
-    builder_exec = builder_sub.add_parser(
-        name='exec',
-        help='run a command inside the runtime environment',
+    builder_flag_par = builder_sub.add_parser(
+        name='flag',
+        help='the flag to specify the tool',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
-    builder_exec.add_argument(
-        'exec',
+    builder_flag_par.add_argument(
+        '--exec-tool',
+        required=False,
         nargs='+',
         metavar='CMD',
         default='',
-        help='command to run inside the runtime environment',
+        help='run a command inside the tool.runtimefarm environment',
     )
-
-    builder_par.add_argument(
+    builder_flag_par.add_argument(
+        '--exec-run',
+        required=False,
+        nargs='+',
+        metavar='CMD',
+        default='',
+        help='run a command inside the run.runtimefarm environment',
+    )
+    builder_flag_par.add_argument(
+        '--exec-dev',
+        required=False,
+        nargs='+',
+        metavar='CMD',
+        default='',
+        help='run a command inside the devrun.runtimefarm environment',
+    )
+    builder_flag_par.add_argument(
+        '--merge',
+        required=False,
+        action='store_const',
+        const='--merge',
+        default='',
+        help='merge user-space installed tools into runtimefarms exposed by builder path',
+    )
+    builder_flag_par.add_argument(
         '--build',
         required=False,
         action='store_const',
@@ -331,6 +347,151 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='create/re-create the project runtime environment',
     )
+    builder_flag_par.add_argument(
+        '--clean',
+        required=False,
+        action='store_const',
+        const='--clean',
+        default='',
+        help='clean the project runtime environment',
+    )
+    builder_flag_par.add_argument(
+        '--release',
+        required=False,
+        action='store_const',
+        const='--release',
+        default='',
+        help='run the full “release” pipeline',
+    )
+    builder_flag_par.add_argument(
+        '--format',
+        required=False,
+        action='store_const',
+        const='--format',
+        default='',
+        help='run the formatting tools',
+    )
+    builder_flag_par.add_argument(
+        '--test',
+        required=False,
+        action='store_const',
+        const='--test',
+        default='',
+        help='run the automated test suite',
+    )
+    builder_flag_par.add_argument(
+        '--docs',
+        required=False,
+        action='store_const',
+        const='--docs',
+        default='',
+        help='generate user documentation',
+    )
+    builder_flag_par.add_argument(
+        '--isort',
+        required=False,
+        action='store_const',
+        const='--isort',
+        default='',
+        help='sort python imports with isort',
+    )
+    builder_flag_par.add_argument(
+        '--black',
+        required=False,
+        action='store_const',
+        const='--black',
+        default='',
+        help='re-format python code with black',
+    )
+    builder_flag_par.add_argument(
+        '--flake8',
+        required=False,
+        action='store_const',
+        const='--flake8',
+        default='',
+        help='run static analysis with flake8',
+    )
+    builder_flag_par.add_argument(
+        '--mypy',
+        required=False,
+        action='store_const',
+        const='--mypy',
+        default='',
+        help='type-check the codebase with mypy',
+    )
+    builder_flag_par.add_argument(
+        '--shfmt',
+        required=False,
+        action='store_const',
+        const='--shfmt',
+        default='',
+        help='format shell scripts with shfmt',
+    )
+    builder_flag_par.add_argument(
+        '--whitespaces',
+        required=False,
+        action='store_const',
+        const='--whitespaces',
+        default='',
+        help='normalize mixed or excessive whitespace',
+    )
+    builder_flag_par.add_argument(
+        '--trailing',
+        required=False,
+        action='store_const',
+        const='--trailing',
+        default='',
+        help='remove trailing whitespace',
+    )
+    builder_flag_par.add_argument(
+        '--eofnewline',
+        required=False,
+        action='store_const',
+        const='--eofnewline',
+        default='',
+        help='ensure files end with a single newline',
+    )
+    builder_flag_par.add_argument(
+        '--eolnorm',
+        required=False,
+        action='store_const',
+        const='--eolnorm',
+        default='',
+        help='normalize line endings to LF',
+    )
+    builder_flag_par.add_argument(
+        '--gitleaks',
+        required=False,
+        action='store_const',
+        const='--gitleaks',
+        default='',
+        help='scan for secrets with gitleaks',
+    )
+    builder_flag_par.add_argument(
+        '--pytest',
+        required=False,
+        action='store_const',
+        const='--pytest',
+        default='',
+        help='execute the unit/integration-test suite via pytest',
+    )
+    builder_flag_par.add_argument(
+        '--sphinx',
+        required=False,
+        action='store_const',
+        const='--sphinx',
+        default='',
+        help='generate user documentation with sphinx',
+    )
+    builder_flag_par.add_argument(
+        '--readthedocs',
+        required=False,
+        action='store_const',
+        const='--readthedocs',
+        default='',
+        help='generate readthedocs requirements',
+    )
+
     builder_build = builder_sub.add_parser(
         name='build',
         help='create/re-create the project runtime environment',
@@ -340,31 +501,6 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_build.set_defaults(build='--build')
 
-    builder_par.add_argument(
-        '--clean',
-        required=False,
-        action='store_const',
-        const='--clean',
-        default='',
-        help='clean the project runtime environment',
-    )
-    builder_clean = builder_sub.add_parser(
-        name='clean',
-        help='clean the project runtime environment',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_clean.set_defaults(clean='--clean')
-
-    builder_par.add_argument(
-        '--release',
-        required=False,
-        action='store_const',
-        const='--release',
-        default='',
-        help='run the full “release” pipeline',
-    )
     builder_release = builder_sub.add_parser(
         name='release',
         help='run the full “release” pipeline',
@@ -374,14 +510,6 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_release.set_defaults(release='--release')
 
-    builder_par.add_argument(
-        '--format',
-        required=False,
-        action='store_const',
-        const='--format',
-        default='',
-        help='run the formatting tools',
-    )
     builder_format = builder_sub.add_parser(
         name='format',
         help='run the formatting tools',
@@ -391,31 +519,6 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_format.set_defaults(format='--format')
 
-    builder_par.add_argument(
-        '--test',
-        required=False,
-        action='store_const',
-        const='--test',
-        default='',
-        help='run the automated test suite',
-    )
-    builder_test = builder_sub.add_parser(
-        name='test',
-        help='run the automated test suite',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_test.set_defaults(test='--test')
-
-    builder_par.add_argument(
-        '--docs',
-        required=False,
-        action='store_const',
-        const='--docs',
-        default='',
-        help='generate user documentation',
-    )
     builder_docs = builder_sub.add_parser(
         name='docs',
         help='generate user documentation',
@@ -425,109 +528,209 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_docs.set_defaults(docs='--docs')
 
-    builder_par.add_argument(
-        '--isort',
-        required=False,
-        action='store_const',
-        const='--isort',
-        default='',
-        help='sort python imports with isort',
+    builder_test = builder_sub.add_parser(
+        name='test',
+        help='run the automated test suite',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--black',
-        required=False,
-        action='store_const',
-        const='--black',
-        default='',
-        help='re-format python code with black',
+    builder_test.set_defaults(test='--test')
+
+    builder_clean = builder_sub.add_parser(
+        name='clean',
+        help='clean the project runtime environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--flake8',
-        required=False,
-        action='store_const',
-        const='--flake8',
-        default='',
-        help='run static analysis with flake8',
+    builder_clean.set_defaults(clean='--clean')
+
+    builder_merge = builder_sub.add_parser(
+        name='merge',
+        help='merge user-space installed tools into runtimefarms exposed by builder path',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--mypy',
-        required=False,
-        action='store_const',
-        const='--mypy',
-        default='',
-        help='type-check the codebase with mypy',
+    builder_merge.set_defaults(merge='--merge')
+
+    builder_exec_tool = builder_sub.add_parser(
+        name='exec-tool',
+        help='run a command inside the tool.runtimefarm environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--shfmt',
-        required=False,
-        action='store_const',
-        const='--shfmt',
+    builder_exec_tool.add_argument(
+        'exec-tool',
+        nargs='+',
+        metavar='CMD',
         default='',
-        help='format shell scripts with shfmt',
+        help='command to run inside the tool.runtimefarm environment',
     )
-    builder_par.add_argument(
-        '--whitespaces',
-        required=False,
-        action='store_const',
-        const='--whitespaces',
-        default='',
-        help='normalize mixed or excessive whitespace',
+
+    builder_exec_run = builder_sub.add_parser(
+        name='exec-run',
+        help='run a command inside the run.runtimefarm environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--trailing',
-        required=False,
-        action='store_const',
-        const='--trailing',
+    builder_exec_run.add_argument(
+        'exec-run',
+        nargs='+',
+        metavar='CMD',
         default='',
-        help='remove trailing whitespace',
+        help='command to run inside the run.runtimefarm environment',
     )
-    builder_par.add_argument(
-        '--eofnewline',
-        required=False,
-        action='store_const',
-        const='--eofnewline',
-        default='',
-        help='ensure files end with a single newline',
+
+    builder_exec_dev = builder_sub.add_parser(
+        name='exec-dev',
+        help='run a command inside the devrun.runtimefarm environment',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--eolnorm',
-        required=False,
-        action='store_const',
-        const='--eolnorm',
+    builder_exec_dev.add_argument(
+        'exec-dev',
+        nargs='+',
+        metavar='CMD',
         default='',
-        help='normalize line endings to LF',
+        help='command to run inside the devrun.runtimefarm environment',
     )
-    builder_par.add_argument(
-        '--gitleaks',
-        required=False,
-        action='store_const',
-        const='--gitleaks',
-        default='',
-        help='scan for secrets with gitleaks',
+
+    builder_path_par = builder_sub.add_parser(
+        name='path',
+        help=(
+            'creates build variables from a graph of dependencies defined by the graph portion of a'
+            ' path-name'
+        ),
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
-    builder_par.add_argument(
-        '--pytest',
+    builder_path_par.add_argument(
+        '--list',
         required=False,
         action='store_const',
-        const='--pytest',
+        const='--list',
         default='',
-        help='execute the unit/integration-test suite via pytest',
+        help='list all the available path names',
     )
-    builder_par.add_argument(
-        '--sphinx',
+    builder_path_cmd_par = builder_path_par.add_subparsers(
+        title='path-name',
+        dest='path_name',
+        help='the path name',
         required=False,
-        action='store_const',
-        const='--sphinx',
-        default='',
-        help='generate user documentation with sphinx',
     )
-    builder_par.add_argument(
-        '--readthedocs',
-        required=False,
-        action='store_const',
-        const='--readthedocs',
-        default='',
-        help='generate readthedocs requirements',
+    builder_path_cmd_par.add_parser(
+        name='platform-identifier',
+        help='returns the name of the current platform',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='package-name-pascal',
+        help='returns the name of the current package in PascalCase',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='package-name-snake',
+        help='returns the name of the current package in snake_case',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='package-name-dashed',
+        help='returns the name of the current package in dashed-case',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='package-language',
+        help='returns the language of the current package',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='workspace-root',
+        help='returns the path to the current workspace root',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='package-src-root',
+        help='returns the path to the current package source directory',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='package-build-root',
+        help='returns the path to the current package build directory',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='runtime-user-space-root',
+        help='returns the path to the runtime user-space prefix directory',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='tool.runtimefarm',
+        help='creates build variables for the build-tools dependencies',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.runtimefarm',
+        help='creates build variables for only the current package',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run.runtimefarm',
+        help='creates build variables for the runtime dependencies',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run.runtimefarm_excluderoot',
+        help='creates build variables for the runtime dependencies excluding the current package',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun.runtimefarm',
+        help='creates build variables for the runtime and development dependencies',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun.runtimefarm_excluderoot',
+        help=(
+            'creates build variables for the runtime and development dependencies excluding the'
+            ' current package'
+        ),
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
     )
 
     builder_create = builder_sub.add_parser(
@@ -695,6 +898,14 @@ def initialize_parser() -> argparse.ArgumentParser:
     provision_sub.add_parser(
         name='dotfiles-update',
         help='update dotfiles from their specified repository',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+
+    provision_sub.add_parser(
+        name='envroot',
+        help='install envroot in /opt/icarus',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,

@@ -19,7 +19,7 @@ libexec_dir="${project_root_dir_abs}/libexec/icarus"
 declare -r libexec_dir
 
 host_os="$(uname -s)"
-host_arch="$(uname -m)"
+host_arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
 
 case "${host_arch}" in
 arm64 | aarch64)

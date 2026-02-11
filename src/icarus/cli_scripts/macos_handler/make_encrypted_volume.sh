@@ -55,7 +55,7 @@ macos_make_encrypted_volume() {
     /usr/sbin/diskutil apfs addVolume "${disk_name}" 'Case-sensitive APFS' "${volume_name}" -stdinpassphrase "${vol_quota}" <<<"${volume_passphrase}"
     echo -e "Your volume password is: ${volume_passphrase}\n"
 
-    local vol_info_file="/${tmp_root_sudo}/macos/${volume_name}.plist"
+    local vol_info_file="${tmp_root_sudo}/macos/${volume_name}.plist"
     /usr/sbin/diskutil info -plist "${volume_name}" >"${vol_info_file}" || {
         echo "Wrong volume: \"${volume_name}\". Exiting."
         exit 1

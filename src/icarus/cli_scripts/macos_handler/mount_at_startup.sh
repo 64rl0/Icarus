@@ -55,7 +55,7 @@ macos_install_mount_volume_launchd() {
     echo -e "Mount point set to: ${mount_point}"
     echo -e "Full command to add to launchd daemon set to: ${mount_script_path} -n ${volume_name} -p ${mount_point}\n"
 
-    local vol_info_file="/${tmp_root_sudo}/macos/${volume_name}.plist"
+    local vol_info_file="${tmp_root_sudo}/macos/${volume_name}.plist"
 
     echo -e "Retrieving diskutil info for ${volume_name}"
     /usr/sbin/diskutil info -plist "${volume_name}" >"${vol_info_file}" || {
@@ -90,9 +90,9 @@ macos_install_mount_volume_launchd() {
         <!-- Logging std out/err is useful for debugging. -->
         <!--
         <key>StandardOutPath</key>
-        <string>/${tmp_root_sudo}/log/mount-volume-${volume_name}-stdout.log</string>
+        <string>${tmp_root_sudo}/log/mount-volume-${volume_name}-stdout.log</string>
         <key>StandardErrorPath</key>
-        <string>/${tmp_root_sudo}/log/mount-volume-${volume_name}-stderr.log</string>
+        <string>${tmp_root_sudo}/log/mount-volume-${volume_name}-stderr.log</string>
         -->
     </dict>
 </plist>

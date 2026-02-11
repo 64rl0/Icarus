@@ -88,15 +88,30 @@ declare -r this_cli_fullpath="${HOME}/.icarus/bin/${cli_name}"
 declare -r tmp_root="/tmp/${cli_name}"
 declare -r tmp_root_sudo="/tmp/${cli_name}-root"
 
+function is_subshell() {
+    if [[ -n "${BASH_VERSION-}" ]]; then
+        ((BASH_SUBSHELL > 0))
+    elif [ -n "${ZSH_VERSION-}" ]; then
+        ((ZSH_SUBSHELL > 0))
+    elif [ -n "${KSH_VERSION-}" ]; then
+        eval '(( ${.sh.subshell:-0} > 0 ))'
+    else
+        # Unknown shell
+        return 2
+    fi
+}
+
 function echo_error() {
     local message="${1}"
     local errexit="${2}"
 
-    echo
-    echo -e "${bold_black}${bg_red} ERROR! ${end}"
-    echo -e " [$(date '+%Y-%m-%d %T %Z')]"
-    echo -e " ${message}"
-    echo
+    {
+        echo
+        echo -e "${bold_black}${bg_red} ERROR! ${end}"
+        echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+        echo -e " ${message}"
+        echo
+    } 1>&2
 
     if [[ "${errexit}" == "errexit" ]]; then
         return 1
@@ -109,11 +124,13 @@ function echo_warning() {
     local message="${1}"
     local errexit="${2}"
 
-    echo
-    echo -e "${bold_black}${bg_yellow} WARNING! ${end}"
-    echo -e " [$(date '+%Y-%m-%d %T %Z')]"
-    echo -e " ${message}"
-    echo
+    {
+        echo
+        echo -e "${bold_black}${bg_yellow} WARNING! ${end}"
+        echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+        echo -e " ${message}"
+        echo
+    } 1>&2
 
     if [[ "${errexit}" == "errexit" ]]; then
         return 1
@@ -133,4 +150,14 @@ function echo_need_sudo() {
     echo -e "If prompted, please enter your user password."
     sudo -v
     echo
+}
+
+function validate_command() {
+    local command_to_validate
+
+    command_to_validate="${1}"
+
+    if [[ -z "$(command -v "${command_to_validate}" 2>/dev/null)" ]]; then
+        echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH" "errexit"
+    fi
 }

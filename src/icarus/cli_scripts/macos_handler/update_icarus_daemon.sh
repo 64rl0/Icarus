@@ -64,10 +64,10 @@ icarus_update_install_launchd() {
         </dict>
 
         <key>StandardOutPath</key>
-        <string>/${tmp_root}/log/${agent_label}.log</string>
+        <string>${tmp_root}/log/${agent_label}.log</string>
 
         <key>StandardErrorPath</key>
-        <string>/${tmp_root}/log/${agent_label}.log</string>
+        <string>${tmp_root}/log/${agent_label}.log</string>
 
         <key>ProgramArguments</key>
         <array>

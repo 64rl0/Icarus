@@ -15,6 +15,8 @@ declare -r cli_scripts_dir_abs
 
 this_script_filename="$(basename -- "${BASH_SOURCE[0]}")"
 declare -r this_script_filename
+builder_path_script_abs="${cli_scripts_dir_abs}/builder_handler/builder_path.sh"
+declare -r builder_path_script_abs
 
 # Sourcing base file
 . "${cli_scripts_dir_abs}/base.sh" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
@@ -26,20 +28,8 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 ####################################################################################################
 # SYSTEM
 ####################################################################################################
-function validate_command() {
-    local command_to_validate
-
-    command_to_validate=$1
-
-    if [[ -z "$(command -v "${command_to_validate}" 2>/dev/null)" ]]; then
-        echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH" "errexit"
-    fi
-}
-
 function validate_prerequisites() {
     validate_command "bc"
-
-    echo
 }
 
 function echo_title() {
@@ -84,9 +74,27 @@ function echo_running_hooks() {
     echo
 }
 
+function echo_icarus_python3_project_info() {
+    if [[ -z "${FARMHOME}" ]]; then
+        echo_error "Unable to resolve runtimefarm."
+    fi
+
+    # Display Project info
+    echo -e "${bold_green}${green_circle} Workspace Root:${end}"
+    echo "${project_root_dir_abs}"
+    echo
+
+    # Display env info
+    echo -e "${bold_green}${green_circle} Runtime Environment:${end}"
+    echo -e "Runtimefarm: ${FARMHOME}"
+    echo -e "Platform ID: ${platform_identifier}"
+    echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
+    echo
+}
+
 function echo_summary() {
     local execution_time execution_time_total execution_time_partial total_execution_time
-    local python_versions_pretty python_version_composite hook tool
+    local python_versions_pretty python_version_composite hook tool path_called_hook
     local -a all_running_hooks_name
 
     execution_time=""
@@ -96,8 +104,8 @@ function echo_summary() {
     total_execution_time=""
     python_versions_pretty=""
 
-    if [[ "${linkfarm_hook}" == true ]]; then
-        all_running_hooks_name=("index" "linkfarm" "${running_hooks_name[@]}")
+    if [[ "${path_called}" == "Y" ]]; then
+        all_running_hooks_name=("index" "path" "${running_hooks_name[@]}")
     else
         all_running_hooks_name=("index" "${running_hooks_name[@]}")
     fi
@@ -160,13 +168,17 @@ function echo_summary() {
 # CONSTANTS
 ####################################################################################################
 function should_ignore_path() {
-    local path="${1}"
-    local rel_path="${2}"
-
-    local normalized_path ignored pat anchored dir_only anywhere need_anywhere p
+    local path rel_path normalized_path ignored pat anchored dir_only anywhere need_anywhere p
     local -a patterns
 
+    path="${1}"
+    rel_path="${2}"
     normalized_path="${rel_path%/}"
+
+    if [[ -z "${path}" || -z "${rel_path}" ]]; then
+        echo_error "should_ignore_path() requires two arguments: path and rel_path" "errexit"
+        exit 1
+    fi
 
     for ignored in "${icarus_ignore_array[@]}"; do
         pat="${ignored#./}"
@@ -221,11 +233,18 @@ function should_ignore_path() {
 }
 
 function set_constants() {
-    echo_title "Analyzing icarus.cfg"
+    local pat anchored dir_only has_glob path rel_path
+    local -a find_cmd prune_patterns prune_expr
 
     echo -e "Reading constants"
     eval "${@}"
 
+    # Capturing argv as array so we can use it to call the builder_path.
+    # Do NOT quote $@ otherwise will be captured as a whole string
+    argv=(${@})
+    declare -r -g -a argv
+
+    declare -r -g verbose
     declare -r -g all_hooks
     declare -r -g icarus_config_filename
     declare -r -g icarus_config_filepath
@@ -239,10 +258,14 @@ function set_constants() {
     declare -r -g build_root_dir
     declare -r -g python_version_default_for_icarus
     declare -r -g python_versions_for_icarus
-    declare -r -g requirements_paths
+    declare -r -g tool_requirements_paths
+    declare -r -g run_requirements_paths
+    declare -r -g dev_requirements_paths
     declare -r -g icarus_ignore_array
     declare -r -g build
     declare -r -g is_only_build_hook
+    declare -r -g is_release
+    declare -r -g merge
     declare -r -g clean
     declare -r -g isort
     declare -r -g black
@@ -257,26 +280,49 @@ function set_constants() {
     declare -r -g pytest
     declare -r -g sphinx
     declare -r -g readthedocs
-    declare -r -g exec
+    declare -r -g exectool
+    declare -r -g execrun
+    declare -r -g execdev
     declare -r -g initial_command_received
-    declare -r -g initial_exec_command_received
+    declare -r -g initial_exectool_command_received
+    declare -r -g initial_execrun_command_received
+    declare -r -g initial_execdev_command_received
     declare -r -g running_hooks_name
     declare -r -g running_hooks_count
     declare -r -g python_default_version
     declare -r -g python_default_full_version
     declare -r -g python_versions
+    declare -r -g path_name
+    declare -r -g list_paths
 
     exit_code=0
 
     passed="${bold_black}${bg_green} PASS ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
     warned="${bold_black}${bg_yellow} WARN ${end}"
+    declare -g -r passed
+    declare -g -r failed
+    declare -g -r warned
 
-    linkfarm_hook=false
+    tool_runtimefarm_name="tool.runtimefarm"
+    pkg_runtimefarm_name="pkg.runtimefarm"
+    run_runtimefarm_name="run.runtimefarm"
+    devrun_runtimefarm_name="devrun.runtimefarm"
+    devrun_excluderoot_runtimefarm_name="devrun_excluderoot.runtimefarm"
+    path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
+    declare -g -r tool_runtimefarm_name
+    declare -g -r pkg_runtimefarm_name
+    declare -g -r run_runtimefarm_name
+    declare -g -r devrun_runtimefarm_name
+    declare -g -r devrun_excluderoot_runtimefarm_name
+    declare -g -r path_to_path_root
+
+    path_called="N"
 
     index_summary_status="${passed}"
-    linkfarm_summary_status="${passed}"
+    path_summary_status="${passed}"
     build_summary_status="${passed}"
+    merge_summary_status="${passed}"
     clean_summary_status="${passed}"
     isort_summary_status="${passed}"
     black_summary_status="${passed}"
@@ -291,11 +337,14 @@ function set_constants() {
     pytest_summary_status="${passed}"
     sphinx_summary_status="${passed}"
     readthedocs_summary_status="${passed}"
-    exec_summary_status="${passed}"
+    exectool_summary_status="${passed}"
+    execrun_summary_status="${passed}"
+    execdev_summary_status="${passed}"
 
     index_execution_time=0
-    linkfarm_execution_time=0
+    path_execution_time=0
     build_execution_time=0
+    merge_execution_time=0
     clean_execution_time=0
     isort_execution_time=0
     black_execution_time=0
@@ -310,7 +359,9 @@ function set_constants() {
     pytest_execution_time=0
     sphinx_execution_time=0
     readthedocs_execution_time=0
-    exec_execution_time=0
+    exectool_execution_time=0
+    execrun_execution_time=0
+    execdev_execution_time=0
 
     declare -a -g active_dirs_d1=()
     declare -a -g active_py_files_d1=()
@@ -319,9 +370,6 @@ function set_constants() {
     declare -a -g active_files_all=()
 
     echo -e "Walking package root"
-
-    local pat anchored dir_only has_glob path rel_path
-    local -a find_cmd prune_patterns prune_expr
 
     # We do a partial prune on safe ignore without any * to speed up find
     # and exclude big excluded dirs
@@ -415,42 +463,6 @@ function set_constants() {
     echo
 }
 
-function ensure_icarus_build_root_env() {
-    local dir
-    local -a root_tree
-
-    # Cache stays in the system tmp
-    path_to_cache_root="/${tmp_root}/builder/cache"
-
-    path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
-    path_to_env_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env"
-
-    root_tree=(
-        "${path_to_cache_root}"
-        "${path_to_runtime_root}"
-        "${path_to_env_root}"
-    )
-
-    for dir in "${root_tree[@]}"; do
-        mkdir -p "${dir}" || {
-            echo_error "Failed to create '${dir}'."
-            index_summary_status="${failed}"
-            exit_code=1
-        }
-    done
-
-    # Link cache to local build root
-    ln -f -s -n "${path_to_cache_root}" "${project_root_dir_abs}/${build_root_dir}/cache" || {
-        echo_error "Failed to create symlink to '${path_to_cache_root}'."
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-    }
-
-    declare -g -r path_to_cache_root
-    declare -g -r path_to_runtime_root
-    declare -g -r path_to_env_root
-}
-
 function set_icarus_python3_constants() {
     # We cannot lock these vars to GLOBAL READONLY because the for loop to
     # run multi-python versions needs to modify them.
@@ -458,13 +470,15 @@ function set_icarus_python3_constants() {
     python_version="$(echo "${1}" | cut -d ':' -f 1)"
     python_full_version="$(echo "${1}" | cut -d ':' -f 2)"
 
-    python_bin="${path_to_runtime_root}/CPython/${python_full_version}/bin/python${python_version}"
+    only_with_python_default=false
+
+    if [[ "${python_full_version}" == "${python_default_full_version}" ]]; then
+        is_python_default=true
+    else
+        is_python_default=false
+    fi
 
     path_to_dist_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/${package_name_snake_case}/CPython/${python_full_version}"
-
-    python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
-    python_pkg_full_name="${python_pkg_name}.tar.gz"
-    python_pkg_download_url="https://github.com/64rl0/PythonRuntime/releases/download/${python_pkg_name}/${python_pkg_full_name}"
 }
 
 function set_icarus_cdk_constants() {
@@ -681,7 +695,7 @@ function run_eofnewline() {
                         ((counter = counter + 1))
                     fi
                     truncate -s -1 -- "${el}" || {
-                        eofnewline_summary_status="failed"
+                        eofnewline_summary_status="${failed}"
                         exit_code=1
                     }
                 else
@@ -777,7 +791,7 @@ function run_eolnorm() {
         tmp=$(mktemp --tmpdir="$(dirname "${el}")" "$(basename "${el}").XXXX")
         { sed 's/\r$//' "${el}" | tr '\r' '\n'; } >"${tmp}" && mv "${tmp}" "${el}" || {
             echo_error "Failed to normalize EOLs in ${el}"
-            eolnorm_summary_status="$failed"
+            eolnorm_summary_status="${failed}"
             exit_code=1
         }
     done
@@ -845,7 +859,7 @@ function run_readthedocs() {
     filename="requirements-read-the-docs.txt"
     filepath="${project_root_dir_abs}/${filename}"
 
-    local_packages="$("${python_bin}" -m pip freeze | sed -n '/ @ file:\/\//{p;G;}')" || {
+    local_packages="$("${PYTHONBIN}" -m pip freeze | sed -n '/ @ file:\/\//{p;G;}')" || {
         echo_error "Failed to scan for local packages."
         readthedocs_summary_status="${failed}"
         exit_code=1
@@ -858,21 +872,24 @@ function run_readthedocs() {
     fi
 
     # Creating requirements for Read the Docs
-    cat <<EOF >"${filepath}"
-#
-# This file is autogenerated by ${cli_name} with Python ${python_version}
-# by the following command:
-#
-#    python${python_version} -m pip freeze
-#
-# These packages are not runtime requirements for the project.
-# They are listed here only so Read the Docs can build a
-# reproducible environment.
-#
+    printf '%s\n\n' \
+        '#' \
+        "# This file is autogenerated by ${cli_name} with Python ${python_version}" \
+        '# by the following command:' \
+        '#' \
+        "#    python${python_version} -m pip freeze" \
+        '#' \
+        '# These packages are not runtime requirements for the project.' \
+        '# They are listed here only so Read the Docs can build a' \
+        '# reproducible environment.' \
+        '#' \
+        >"${filepath}" || {
+        echo_error "Failed to create '${filepath}'."
+        readthedocs_summary_status="${failed}"
+        exit_code=1
+    }
 
-EOF
-
-    "${python_bin}" -m pip freeze | sed '/ @ file:\/\//d' >>"${filepath}" || {
+    "${PYTHONBIN}" -m pip freeze | sed '/ @ file:\/\//d' >>"${filepath}" || {
         echo_error "Failed to generate '${filepath}'."
         readthedocs_summary_status="${failed}"
         exit_code=1
@@ -925,122 +942,15 @@ function run_documentation_sphinx() {
     echo
 }
 
-function install_python_runtime() {
-    local dir compression dest_tar
-    local -a root_tree
+function run_build_icarus_python3() {
+    # Single run status is used to monitor the outcome of a single run in
+    # the for loop of python versions, if a previous run version but the
+    # current succeed we do not wat to show the overall failure but we
+    # want to show the succeed of the single run.
+    build_single_run_status=0
 
-    root_tree=(
-        "${path_to_cache_root}/CPython"
-        "${path_to_runtime_root}/CPython"
-    )
-
-    dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
-
-    for dir in "${root_tree[@]}"; do
-        mkdir -p "${dir}" || {
-            echo_error "Failed to create '${dir}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
-
-    echo -e "${bold_green}${sparkles} Downloading & Installing 'Python${python_full_version}'${end}"
-    if [[ ! -e "${dest_tar}" ]]; then
-        curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
-            echo_error "Failed to download '${python_pkg_name}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-        echo
-    fi
-    # Clean any partial or old dir left there before unpacking
-    rm -rf "${path_to_cache_root}/CPython/${python_full_version}" || {
-        echo_error "Failed to remove '${path_to_cache_root}/CPython/${python_full_version}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    compression="$(file "${dest_tar}" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')" || {
-        echo_error "Failed to detect '${dest_tar}' compression type."
-        exit_code=1
-    }
-    tar -v -x --"${compression}" -f "${dest_tar}" -C "${path_to_cache_root}/CPython" || {
-        echo_error "Failed to unpack '${python_pkg_name}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-
-    # Clean any partial or old dir left there before moving to runtime root
-    rm -rf "${path_to_runtime_root}/CPython/${python_full_version}" || {
-        echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    mv "${path_to_cache_root}/CPython/${python_full_version}" "${path_to_runtime_root}/CPython/${python_full_version}" || {
-        echo_error "Failed to move '${dest_tar}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-
-    # Save the build release info
-    rm -rf "${path_to_runtime_root}/CPython/${python_full_version}/release-info" || {
-        echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}/release-info'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    mkdir -p "${path_to_runtime_root}/CPython/${python_full_version}/release-info" || {
-        echo_error "Failed to create '${path_to_runtime_root}/CPython/${python_full_version}/release-info'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    cat <<EOF >"${path_to_runtime_root}/CPython/${python_full_version}/release-info/build-py${python_version}.txt" || {
-build_timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
-cli_name=${cli_name}
-python_version=${python_version}
-python_full_version=${python_full_version}
-platform_identifier=${platform_identifier}
-python_pkg_name=${python_pkg_name}
-python_pkg_full_name=${python_pkg_full_name}
-python_pkg_download_url=${python_pkg_download_url}
-runtime_root=${path_to_runtime_root}/CPython/${python_full_version}
-EOF
-        echo_error "Failed to create '${path_to_runtime_root}/CPython/${python_full_version}/release-info/build-py${python_version}.txt'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-
-    if [[ "${build_single_run_status}" -eq 0 ]]; then
-        echo -e "done!"
-        echo
-    fi
-}
-
-function install_python_dependencies() {
-    local requirements_path
-
-    # Install build-tools required by icarus builder
-    echo
-    echo -e "${bold_green}${sparkles} Installing build-tools into 'Python${python_full_version}' env...${end}"
-    "${python_bin}" -m pip install --no-warn-script-location --upgrade pip || {
-        echo_error "Failed to update pip."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    "${python_bin}" -m pip install --no-warn-script-location setuptools build twine || {
-        echo_error "Failed to install build-tools."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
+    # We need the tool.runtimefarm to build the pkg
+    resolve_path "${tool_runtimefarm_name}"
 
     # Cleanup silently
     # We are about to rebuild the dist so make sure the env is clean to accommodate the new one
@@ -1048,385 +958,210 @@ function install_python_dependencies() {
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package
-    echo
-    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package...${end}"
-    "${python_bin}" -m build --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
+    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_dashed}' package${end}"
+    "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
     echo
+
     echo -e "${bold_green}${package} Checking package health${end}"
-    "${python_bin}" -m twine check "${path_to_dist_root}/"* || {
+    "${PYTHONBIN}" -m twine check "${path_to_dist_root}/${package_name_dashed}"* || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-
-    # Install requirements
     echo
-    echo -e "${bold_green}${sparkles} Installing requirements into 'Python${python_full_version}' env...${end}"
-    for requirements_path in "${requirements_paths[@]}"; do
-        "${python_bin}" -m pip install --no-warn-script-location --requirement "${project_root_dir_abs}/${requirements_path}" || {
-            echo_error "Failed to install requirements '${requirements_path}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
 
-    # Install local package into env (as last so it will override the same name)
-    echo
-    echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' into 'Python${python_full_version}' env...${end}"
-    "${python_bin}" -m pip install --no-warn-script-location "${path_to_dist_root}/"*.whl || {
-        echo_error "Failed to install '${package_name_snake_case}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-
-    # Save the packages release info
-    "${python_bin}" -m pip freeze >"${path_to_runtime_root}/CPython/${python_full_version}/release-info/packages-py${python_version}.txt" || {
-        echo_error "Failed to create 'release-info-py${python_version}.txt'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-
-    # Cleanup final
-    mv "${project_root_dir_abs}/src/"*".egg-info" "${path_to_dist_root}" || {
+    # Cleanup
+    mv "${project_root_dir_abs}/src/${package_name_dashed}"*".egg-info" "${path_to_dist_root}" || {
         echo_error "Failed to move build dir to env dir."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-}
 
-function ensure_runtime() {
-    local dir
-    local -a root_tree
-
-    # We do not clean the path_to_runtime_root as we do for the farm root because
-    # if the user wants to compile some special programs needed for the application
-    # the place where to compile them would be the runtime local.
-
-    root_tree=(
-        "${path_to_runtime_root}/local/bin"
-        "${path_to_runtime_root}/local/config"
-        "${path_to_runtime_root}/local/include"
-        "${path_to_runtime_root}/local/lib"
-        "${path_to_runtime_root}/local/private"
-        "${path_to_runtime_root}/local/share"
-        "${path_to_runtime_root}/local/src"
-    )
-
-    for dir in "${root_tree[@]}"; do
-        mkdir -p "${dir}" || {
-            echo_error "Failed to create '${dir}'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    done
-
-    # Make lib64 → lib symlink
-    ln -f -s -n "./lib" "${path_to_runtime_root}/local/lib64" || {
-        echo_error "Failed to create '${path_to_runtime_root}/local/lib64' symlink."
+    # This will install the pkg just built in the pkg.runtimefarm
+    echo -e "${bold_green}${sparkles} Installing '${package_name_dashed}' package${end}"
+    if resolve_path "${pkg_runtimefarm_name}"; then
+        echo -e "Installed $(basename "${path_to_dist_root}"/*.whl)"
+        echo
+    else
+        echo_error "Failed to install '${package_name_dashed}' package."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
-    }
-}
-
-function build_runtime_icarus_python3() {
-    # Single run status is used to monitor the outcome of a single run in
-    # the for loop of python versions, if a previous run version but the
-    # current succeed we do not wat to show the overall failure but we
-    # want to show the succeed of the single run.
-    build_single_run_status=0
-
-    ensure_runtime
-    install_python_runtime
-    install_python_dependencies
+    fi
 
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
-        echo
-        echo -e "${bold_green}${green_check_mark} Runtime build Complete!${end}"
+        echo -e "${bold_green}${green_check_mark} Build completed!${end}"
         echo
     else
         # Build failed!
-        echo
-        echo -e "${bold_red}${stop_sign} Runtime build failed!${end}"
+        echo -e "${bold_red}${stop_sign} Build failed!${end}"
         echo
     fi
 }
 
-function link_prefix_to_farm_validate() {
-    local source_prefix dest_prefix
+function exec_tool_cmd() {
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exectool_command_received[*]}"
+    echo
 
-    source_prefix=$1
-    dest_prefix=$2
-
-    if [[ $# -gt 2 ]]; then
-        echo_error "Too many arguments"
-        linkfarm_summary_status="${failed}"
+    "${initial_exectool_command_received[@]}" || {
+        exectool_summary_status="${failed}"
         exit_code=1
-        return 1
+    }
+    echo
+}
+
+function exec_run_cmd() {
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_execrun_command_received[*]}"
+    echo
+
+    "${initial_execrun_command_received[@]}" || {
+        execrun_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function exec_dev_cmd() {
+    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_execdev_command_received[*]}"
+    echo
+
+    "${initial_execdev_command_received[@]}" || {
+        execdev_summary_status="${failed}"
+        exit_code=1
+    }
+    echo
+}
+
+function resolve_path() {
+    local p_name path_response
+    # path_called is a global var DO NOT set as local.
+
+    p_name=$1
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'path_name'"
+        path_summary_status="${failed}"
+        exit_code=1
     fi
 
-    if [[ -z "${source_prefix}" || -z "${dest_prefix}" ]]; then
-        echo_error "Missing arguments: 'source_prefix' and/or 'dest_prefix'"
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-        return 1
-    fi
+    # If there isn't a path, then we incur the risk of using system binaries,
+    # therefore this is a hard stop, using errexit.
 
-    if [[ ! -d "${source_prefix}" ]]; then
-        echo_error "Source prefix does not exist: '${source_prefix}'"
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-        return 1
+    # Clear previous exports
+    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN
+    PATH="${_OLD_PATH}"
+    export PATH
+
+    path_called="Y"
+
+    case "${p_name}" in
+    "${pkg_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${pkg_runtimefarm_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${pkg_runtimefarm_name}." "errexit"
+        }
+        ;;
+    "${tool_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${tool_runtimefarm_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${tool_runtimefarm_name}." "errexit"
+        }
+        ;;
+    "${run_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${run_runtimefarm_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${run_runtimefarm_name}." "errexit"
+        }
+        ;;
+    "${devrun_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${devrun_runtimefarm_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${devrun_runtimefarm_name}." "errexit"
+        }
+        ;;
+    "${devrun_excluderoot_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${pkg_runtimefarm_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${pkg_runtimefarm_name}." "errexit"
+        }
+        pkg_pythonpath="${path_response}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        path_response="$(_internal_icarus_builder_path_cmd "${devrun_excluderoot_runtimefarm_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${devrun_excluderoot_runtimefarm_name}." "errexit"
+        }
+        ;;
+    *)
+        echo_error "Unknown path name: '${p_name}'" "errexit"
+        ;;
+    esac
+
+    set -a
+    # shellcheck disable=SC1090
+    . "${path_response}/farm-info/path-py${python_full_version}" || {
+        echo_error "Failed to resolve path ${p_name}." "errexit"
+    }
+    PATH="${FARMPATH:+${FARMPATH}:}${PATH}"
+    set +a
+
+    # Special handling for devrun.runtimefarm_excluderoot
+    if [[ "${p_name}" == "${devrun_excluderoot_runtimefarm_name}" ]]; then
+        # Prepending to the front of PYTHONPATH in case the path-py${python_full_version}
+        # exports any PYTHONPATH
+        PYTHONPATH="${pkg_pythonpath}${PYTHONPATH:+:${PYTHONPATH}}"
+        export PYTHONPATH
     fi
 }
 
-function link_prefix_to_farm_apply() {
-    local source_prefix dest_prefix rel_path dest_path dest_dir path
+function workspace_merge() (
+    # Using a subshell to avoid mutating existing variables from the ready-* file.
+    local farm_ready p_name
+    local -a farms_to_merge
 
-    source_prefix=$1
-    dest_prefix=$2
-    shift 2
+    farms_to_merge=()
 
-    while IFS= read -r -d '' path; do
-        rel_path="${path#${source_prefix}/}"
-        dest_path="${dest_prefix}/${rel_path}"
-
-        # Directory handling (real directories only).
-        # If the current item is a real directory (not a symlink).
-        if [[ -d "${path}" && ! -L "${path}" ]]; then
-            # If the destination path exists but isn’t a directory.
-            if [[ -e "${dest_path}" && ! -d "${dest_path}" ]]; then
-                rm -rf "${dest_path}" || {
-                    echo_error "Failed to remove '${dest_path}'."
-                    linkfarm_summary_status="${failed}"
-                    exit_code=1
-                }
-            fi
-            mkdir -p "${dest_path}" || {
-                echo_error "Failed to create '${dest_path}'."
-                linkfarm_summary_status="${failed}"
-                exit_code=1
-            }
+    echo -e "Checking workspace"
+    for farm_ready in "${path_to_path_root}/"*"/farm-info/ready-"*; do
+        if [[ ! -e "${farm_ready}" ]]; then
             continue
         fi
-
-        dest_dir="$(dirname "${dest_path}")"
-        # Ensure destination parent is a directory.
-        # If the parent path exists but isn’t a directory (file/symlink),
-        # it removes it and recreates it as a directory.
-        if [[ -e "${dest_dir}" && ! -d "${dest_dir}" ]]; then
-            rm -rf "${dest_dir}" || {
-                echo_error "Failed to remove '${dest_dir}'."
-                linkfarm_summary_status="${failed}"
-                exit_code=1
-            }
-        fi
-        mkdir -p "${dest_dir}" || {
-            echo_error "Failed to create '${dest_dir}'."
-            linkfarm_summary_status="${failed}"
+        # shellcheck disable=SC1090
+        . "${farm_ready}" || {
+            echo_error "Failed to merge workspace."
+            merge_summary_status="${failed}"
             exit_code=1
         }
+        farms_to_merge+=("${farm_name}")
+    done
+    echo -e "Detected farms: ${farms_to_merge[*]}"
 
-        # Remove conflicting directory at destination (for files/symlinks).
-        # If a real directory exists where a file/symlink should go, it deletes it.
-        if [[ -e "${dest_path}" && -d "${dest_path}" && ! -L "${dest_path}" ]]; then
-            rm -rf "${dest_path}" || {
-                echo_error "Failed to remove '${dest_path}'."
-                linkfarm_summary_status="${failed}"
-                exit_code=1
-            }
-        fi
+    echo -e "Merging workspace"
+    rm -rf "${path_to_path_root}" || {
+        echo_error "Failed to merge workspace."
+        merge_summary_status="${failed}"
+        exit_code=1
+    }
 
-        ln -f -s -n "${path}" "${dest_path}" || {
-            echo_error "Failed to create symlink to '${dest_prefix}' for '${dest_path}'."
-            linkfarm_summary_status="${failed}"
-            exit_code=1
-        }
-    done < <(find "${source_prefix}" -mindepth 1 "$@" -print0)
-}
-
-function link_prefix_to_farm_shallow() {
-    local source_prefix dest_prefix filename filepath old_nullglob
-    local -a files_to_link
-
-    source_prefix=$1
-    dest_prefix=$2
-
-    link_prefix_to_farm_validate "${@}" || return 1
-
-    # By default Bash leaves an unmatched glob as a literal *,
-    # so you need to enable nullglob
-    # shopt -p nullglob returns non‑zero when the option is currently off,
-    # even though it still prints the state (shopt -u nullglob).
-    old_nullglob=$(shopt -p nullglob) || :
-    shopt -s nullglob
-
-    files_to_link=(
-        "${source_prefix}/include/"*
-    )
-    for filepath in "${files_to_link[@]}"; do
-        filename="$(basename "${filepath}")"
-        ln -f -s -n "${filepath}" "${dest_prefix}/include/${filename}" || {
-            echo_error "Failed to create symlink to '${dest_prefix}' for '${filename}'."
-            linkfarm_summary_status="${failed}"
-            exit_code=1
-        }
+    for p_name in "${farms_to_merge[@]}"; do
+        resolve_path "${p_name}"
     done
 
-    files_to_link=(
-        "${source_prefix}/lib/"*
-    )
-    for filepath in "${files_to_link[@]}"; do
-        filename="$(basename "${filepath}")"
-        ln -f -s -n "${filepath}" "${dest_prefix}/lib/${filename}" || {
-            echo_error "Failed to create symlink to '${dest_prefix}' for '${filename}'."
-            linkfarm_summary_status="${failed}"
-            exit_code=1
-        }
-    done
-
-    eval "${old_nullglob}"
-
-    link_prefix_to_farm_apply "${source_prefix}" "${dest_prefix}" \
-        "(" -path "${source_prefix}/lib" -o \
-        -path "${source_prefix}/lib/*" -o \
-        -path "${source_prefix}/lib64" -o \
-        -path "${source_prefix}/lib64/*" -o \
-        -path "${source_prefix}/include" -o \
-        -path "${source_prefix}/include/*" -o \
-        -path "${source_prefix}/local" -o \
-        -path "${source_prefix}/local/*" ")" -prune -o
-}
-
-function link_prefix_to_farm_deep() {
-    local source_prefix dest_prefix
-
-    source_prefix=$1
-    dest_prefix=$2
-
-    link_prefix_to_farm_validate "${@}" || return 1
-
-    link_prefix_to_farm_apply "${source_prefix}" "${dest_prefix}" \
-        "(" -path "${source_prefix}/lib64" -o \
-        -path "${source_prefix}/lib64/*" ")" -prune -o
-}
-
-function ensure_farm() {
-    local dir farm_path
-    local -a root_tree
-
-    farm_path=$1
-
-    if [[ -z "${farm_path}" ]]; then
-        echo_error "Missing argument: 'farm_path'"
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-    fi
-
-    # Ensure the farm path always points to the exact runtime we just built.
-    # (1) remove any existing farm root (old symlink or directory)
-    # (2) recreate it
-    # (3) create the env dirs.
-    # This keeps the path deterministic and avoids stale/partial environments from
-    # previous runs.
-
-    rm -rf "${farm_path}" || {
-        echo_error "Failed to remove '${farm_path}'."
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-    }
-    mkdir -p "${farm_path}" || {
-        echo_error "Failed to create '${farm_path}'."
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-    }
-
-    root_tree=(
-        "${farm_path}/bin"
-        "${farm_path}/config"
-        "${farm_path}/include"
-        "${farm_path}/lib"
-        "${farm_path}/private"
-        "${farm_path}/share"
-        "${farm_path}/src"
-    )
-
-    for dir in "${root_tree[@]}"; do
-        mkdir -p "${dir}" || {
-            echo_error "Failed to create '${dir}'."
-            linkfarm_summary_status="${failed}"
-            exit_code=1
-        }
-    done
-
-    # Make lib64 → lib symlink
-    ln -f -s -n "./lib" "${farm_path}/lib64" || {
-        echo_error "Failed to create '${farm_path}/lib64' symlink."
-        linkfarm_summary_status="${failed}"
-        exit_code=1
-    }
-}
-
-function activate_runtimefarm_path() {
-    local runtimefarm runtimefarm_failed
-
-    runtimefarm_failed=false
-    runtimefarm="${path_to_env_root}/runtimefarm"
-
-    ensure_farm "${runtimefarm}"
-
-    # Create a symlink farm.
-    # If there are some user custom install bin in the runtime local they will override
-    # the ones installed by python or requirements that it is the desire outcome.
-    link_prefix_to_farm_shallow "${path_to_runtime_root}/CPython/${python_full_version}" "${runtimefarm}" || {
-        runtimefarm_failed=true
-        exit_code=1
-    }
-    link_prefix_to_farm_deep "${path_to_runtime_root}/local" "${runtimefarm}" || {
-        runtimefarm_failed=true
-        exit_code=1
-    }
-
-    # If there isn't a symlink farm, then we incur the risk of using system binaries,
-    # therefore this is a hard stop.
-    if [[ "${runtimefarm_failed}" == true ]]; then
-        echo_error "Failed to create runtimefarm. \n Try \`${cli_name} builder build\` and re-run the command." "errexit"
-    fi
-
-    # Adding runtimefarm bin to path
-    OLD_PATH="${PATH}"
-    export PATH="${runtimefarm}/bin:${OLD_PATH}"
-
-    # Display Project info
-    echo -e "${bold_green}${green_circle} Project Root:${end}"
-    echo "${project_root_dir_abs}"
+    echo -e "Done!"
     echo
-
-    # Display env info
-    echo -e "${bold_green}${green_circle} Runtime Environment:${end}"
-    echo -e "Runtimefarm: $(command -v "python${python_version}")"
-    echo -e "Platform ID: ${platform_identifier}"
-    echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
-    echo
-}
-
-function deactivate_runtimefarm_path() {
-    export PATH="${OLD_PATH}"
-    echo -e "Environment deactivated!"
-    echo
-}
+)
 
 function clean_icarus_root() {
     local path
@@ -1552,44 +1287,282 @@ function clean_icarus_cdk() {
     fi
 }
 
-function exec_cmd() {
-    echo -e "${bold_blue}Executing command:${end}\n--| ${initial_exec_command_received[*]}"
-    echo
+function store_paths() {
+    _OLD_PATH="${PATH}"
+    # Locking entry path to prevent overwrite
+    declare -g -r _OLD_PATH
+}
 
-    "${initial_exec_command_received[@]}" || {
-        exec_summary_status="${failed}"
+function restore_paths() {
+    export PATH="${_OLD_PATH}"
+}
+
+function _internal_icarus_builder_path_cmd() {
+    local p_name response path_response stderr_target
+    local -a new_argv
+
+    p_name="${1}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'path_name'"
+        path_summary_status="${failed}"
         exit_code=1
+        return 1
+    fi
+
+    # The builder.sh receives the same args from the python cli parser
+    # and path_name is an empty string as default. We need to remove it
+    # from the original argv and replace it with the passed in path_name.
+
+    # We also need to force a single run for a specific python version,
+    # preventing to build the path for the whole python versions loop.
+    # So to do it, we need to override the python_versions array passed
+    # in by the cli.
+
+    # Overwrite values MUST be at the end so that they can overwrite any
+    # previous value!
+    new_argv=("${argv[@]}")
+    new_argv+=("path_name='${p_name}'")
+    new_argv+=("python_versions=( '${python_version}:${python_full_version}' )")
+
+    if [[ "${verbose}" == "Y" ]]; then
+        stderr_target="/dev/stderr"
+    else
+        stderr_target="/dev/null"
+    fi
+
+    bash "${builder_path_script_abs}" "${new_argv[@]}" 2>"${stderr_target}" || {
+        response="${?}"
+        if [[ "${response}" == 1 ]]; then
+            path_summary_status="${failed}"
+            exit_code=1
+            return 1
+        elif [[ "${response}" == 2 ]]; then
+            path_summary_status="${warned}"
+        fi
     }
-    echo
 }
 
 ####################################################################################################
 # DISPATCHERS
 ####################################################################################################
-function dispatch_icarus_python3() {
+function dispatch_icarus_python3_before_plugins() {
+    local start_block end_block
+    echo_title "Before Plugins [GLOBAL]"
+    # Global plugins python-default is NOT set yet!
+    echo -e "${bold_yellow}[plugins] Executing commands for: before-all${end}"
+    echo -e "running: store_paths"
+    store_paths
+    echo
+}
+
+function dispatch_icarus_python3_after_plugins() {
+    echo_title "After Plugins [GLOBAL]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: after-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+    echo -e "${bold_yellow}[plugins] Executing commands for: after-all${end}"
+    echo -e "running: restore_paths"
+    restore_paths
+    echo
+}
+
+function dispatch_icarus_python3_before_build_plugins() {
+    local start_block end_block
+    echo_title "Before Plugins [BUILD]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+    echo -e "${bold_yellow}[plugins] Executing commands for: before-all${end}"
+    start_block=$(date +%s.%N)
+    echo -e "running: resolve_path ${tool_runtimefarm_name}"
+    resolve_path "${tool_runtimefarm_name}"
+    end_block=$(date +%s.%N)
+    path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+    echo
+}
+
+function dispatch_icarus_python3_after_build_plugins() {
+    echo_title "After Plugins [BUILD]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: after-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+    echo -e "${bold_yellow}[plugins] Executing commands for: after-all${end}"
+    echo -e "nothing to do here - skipping"
+    echo
+}
+
+function dispatch_icarus_python3_before_exectool_plugins() {
+    local start_block end_block
+    echo_title "Before Plugins [EXEC-TOOL]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
+        start_block=$(date +%s.%N)
+        echo -e "running: resolve_path ${tool_runtimefarm_name}"
+        resolve_path "${tool_runtimefarm_name}"
+        end_block=$(date +%s.%N)
+        path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+        echo
+
+        echo_title "Project & Env info"
+        echo_icarus_python3_project_info
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+}
+
+function dispatch_icarus_python3_after_exectool_plugins() {
+    echo_title "After Plugins [EXEC-TOOL]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: after-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+}
+
+function dispatch_icarus_python3_before_execrun_plugins() {
+    local start_block end_block
+    echo_title "Before Plugins [EXEC-RUN]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
+        start_block=$(date +%s.%N)
+        echo -e "running: resolve_path ${run_runtimefarm_name}"
+        resolve_path "${run_runtimefarm_name}"
+        end_block=$(date +%s.%N)
+        path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+        echo
+
+        echo_title "Project & Env info"
+        echo_icarus_python3_project_info
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+}
+
+function dispatch_icarus_python3_after_execrun_plugins() {
+    echo_title "After Plugins [EXEC-RUN]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: after-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+}
+
+function dispatch_icarus_python3_before_execdev_plugins() {
+    local start_block end_block
+    echo_title "Before Plugins [EXEC-DEV]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
+        start_block=$(date +%s.%N)
+        echo -e "running: resolve_path ${devrun_runtimefarm_name}"
+        resolve_path "${devrun_runtimefarm_name}"
+        end_block=$(date +%s.%N)
+        path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+        echo
+
+        echo_title "Project & Env info"
+        echo_icarus_python3_project_info
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+}
+
+function dispatch_icarus_python3_after_execdev_plugins() {
+    echo_title "After Plugins [EXEC-DEV]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: after-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+}
+
+function dispatch_icarus_python3_before_tools_plugins() {
+    local start_block end_block
+    echo_title "Before Plugins [TOOLS]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+    echo -e "${bold_yellow}[plugins] Executing commands for: before-all${end}"
+    start_block=$(date +%s.%N)
+    echo -e "running: resolve_path ${devrun_excluderoot_runtimefarm_name}"
+    resolve_path "${devrun_excluderoot_runtimefarm_name}"
+    end_block=$(date +%s.%N)
+    path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+    echo
+
+    echo_title "Project & Env info"
+    echo_icarus_python3_project_info
+}
+
+function dispatch_icarus_python3_after_tools_plugins() {
+    echo_title "After Plugins [TOOLS]"
+    if [[ "${is_python_default}" == true ]]; then
+        echo -e "${bold_yellow}[plugins] Executing commands for: after-default${end}"
+        echo -e "nothing to do here - skipping"
+        echo
+    else
+        # This is only entered for NON python-default version
+        :
+    fi
+    echo -e "${bold_yellow}[plugins] Executing commands for: after-all${end}"
+    echo -e "nothing to do here - skipping"
+    echo
+}
+
+function dispatch_icarus_python3_tools() {
     local start_block end_block
 
-    if [[ "${build}" == "Y" ]]; then
+    if [[ "${merge}" == "Y" ]]; then
+        only_with_python_default=true
+
         start_block=$(date +%s.%N)
-
-        echo_title "Building Env"
-        build_runtime_icarus_python3
-
+        echo_title "Merging Workspace"
+        workspace_merge
         end_block=$(date +%s.%N)
-        build_execution_time=$(echo "${build_execution_time}" + "${end_block} - ${start_block}" | bc)
+        merge_execution_time=$(echo "${merge_execution_time}" + "${end_block} - ${start_block}" | bc)
 
-        # Stop here if the only hook was build
-        if [[ "${is_only_build_hook}" == "Y" ]]; then
-            return
-        fi
+        # Merge always runs alone!
+        return
     fi
 
     if [[ "${clean}" == "Y" ]]; then
+        only_with_python_default=true
+
         start_block=$(date +%s.%N)
-
-        echo_title "Cleaning Env"
+        echo_title "Cleaning"
         clean_icarus_python3
-
         end_block=$(date +%s.%N)
         clean_execution_time=$(echo "${clean_execution_time}" + "${end_block} - ${start_block}" | bc)
 
@@ -1597,199 +1570,249 @@ function dispatch_icarus_python3() {
         return
     fi
 
-    # Tools that are run as composite and need build env access
-    linkfarm_hook=true
-    start_block=$(date +%s.%N)
-    echo_title "Project & Env info"
-    activate_runtimefarm_path
-    end_block=$(date +%s.%N)
-    linkfarm_execution_time=$(echo "${exec_execution_time}" + "${end_block} - ${start_block}" | bc)
+    if [[ "${exectool}" == "Y" ]]; then
+        only_with_python_default=true
 
-    if [[ "${exec}" == "Y" ]]; then
+        dispatch_icarus_python3_before_exectool_plugins
+
         start_block=$(date +%s.%N)
-
-        echo_title "Running exec"
-        exec_cmd
-
+        echo_title "Running exec ${tool_runtimefarm_name}"
+        exec_tool_cmd
         end_block=$(date +%s.%N)
-        exec_execution_time=$(echo "${exec_execution_time}" + "${end_block} - ${start_block}" | bc)
+        exectool_execution_time=$(echo "${exectool_execution_time}" + "${end_block} - ${start_block}" | bc)
 
-        # exec always runs alone but we can't return here as we need to deactivate the env
-        # so we let the block run until the end
+        dispatch_icarus_python3_after_exectool_plugins
+
+        # Exec always runs alone!
+        return
     fi
+
+    if [[ "${execrun}" == "Y" ]]; then
+        only_with_python_default=true
+
+        dispatch_icarus_python3_before_execrun_plugins
+
+        start_block=$(date +%s.%N)
+        echo_title "Running exec ${run_runtimefarm_name}"
+        exec_run_cmd
+        end_block=$(date +%s.%N)
+        execrun_execution_time=$(echo "${execrun_execution_time}" + "${end_block} - ${start_block}" | bc)
+
+        dispatch_icarus_python3_after_execrun_plugins
+
+        # Exec always runs alone!
+        return
+    fi
+
+    if [[ "${execdev}" == "Y" ]]; then
+        only_with_python_default=true
+
+        dispatch_icarus_python3_before_execdev_plugins
+
+        start_block=$(date +%s.%N)
+        echo_title "Running exec ${devrun_runtimefarm_name}"
+        exec_dev_cmd
+        end_block=$(date +%s.%N)
+        execdev_execution_time=$(echo "${execdev_execution_time}" + "${end_block} - ${start_block}" | bc)
+
+        dispatch_icarus_python3_after_execdev_plugins
+
+        # Exec always runs alone!
+        return
+    fi
+
+    if [[ "${build}" == "Y" ]]; then
+        dispatch_icarus_python3_before_build_plugins
+
+        start_block=$(date +%s.%N)
+        echo_title "Building"
+        run_build_icarus_python3
+        end_block=$(date +%s.%N)
+        build_execution_time=$(echo "${build_execution_time}" + "${end_block} - ${start_block}" | bc)
+
+        dispatch_icarus_python3_after_build_plugins
+
+        # Stop here if the only hook was build
+        if [[ "${is_only_build_hook}" == "Y" ]]; then
+            return
+        fi
+    fi
+
+    dispatch_icarus_python3_before_tools_plugins
 
     if [[ "${isort}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running iSort"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_isort
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         isort_execution_time=$(echo "${isort_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${black}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running Black"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_black
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         black_execution_time=$(echo "${black_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${flake8}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running Flake8"
         run_flake8
-
         end_block=$(date +%s.%N)
         flake8_execution_time=$(echo "${flake8_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${mypy}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running mypy"
         run_mypy
-
         end_block=$(date +%s.%N)
         mypy_execution_time=$(echo "${mypy_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${shfmt}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running shfmt (bash formatter)"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_shfmt
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         shfmt_execution_time=$(echo "${shfmt_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${eolnorm}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running eol-norm (convert CR and CRLF to LF)"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_eolnorm
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         eolnorm_execution_time=$(echo "${eolnorm_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${whitespaces}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Replacing non-breaking-space (NBSP) characters"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_char_replacement
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         whitespaces_execution_time=$(echo "${whitespaces_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${trailing}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running trailing-whitespaces"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_trailingwhitespaces
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         trailing_execution_time=$(echo "${trailing_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${eofnewline}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running eof-newline"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_eofnewline
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         eofnewline_execution_time=$(echo "${eofnewline_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${gitleaks}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running gitleaks"
         run_gitleaks
-
         end_block=$(date +%s.%N)
         gitleaks_execution_time=$(echo "${gitleaks_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${pytest}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running pytest"
         run_pytest
-
         end_block=$(date +%s.%N)
         pytest_execution_time=$(echo "${pytest_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${sphinx}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Generating documentation"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_documentation_sphinx
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         sphinx_execution_time=$(echo "${sphinx_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     if [[ "${readthedocs}" == "Y" ]]; then
         start_block=$(date +%s.%N)
-
         echo_title "Running ReadTheDocs"
-        if [[ "${python_full_version}" != "${python_default_full_version}" ]]; then
-            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
-        else
+        if [[ "${is_python_default}" == true ]]; then
             run_readthedocs
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
         fi
-
         end_block=$(date +%s.%N)
         readthedocs_execution_time=$(echo "${readthedocs_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
-    echo_title "Deactivating Environment"
-    deactivate_runtimefarm_path
+    dispatch_icarus_python3_after_tools_plugins
 }
 
-function dispatch_icarus_cdk() {
+function dispatch_icarus_cdk_before_plugins() {
     :
+}
+
+function dispatch_icarus_cdk_after_plugins() {
+    :
+}
+
+function dispatch_icarus_cdk_tools() {
+    :
+}
+
+function dispatch_set_constants() {
+    local start_block end_block elapsed_time
+
+    # Setting constants, indexing workspace and benchmarking the execution.
+    start_block=$(date +%s.%N)
+
+    echo_title "Indexing workspace"
+    set_constants "${@}"
+
+    end_block=$(date +%s.%N)
+    elapsed_time=$(echo "${end_block} - ${start_block}" | bc)
+
+    # Indexing time greater than 5 seconds is considered slow.
+    if [[ $(echo "${elapsed_time} > 5" | bc) -eq 1 ]]; then
+        index_summary_status="${warned}"
+    fi
+
+    index_execution_time=$(echo "${index_execution_time}" + "${elapsed_time}" | bc)
 }
 
 function dispatch_build_system() {
@@ -1798,21 +1821,23 @@ function dispatch_build_system() {
     echo_running_hooks
 
     if [[ "${build_system_in_use}" == "icarus-python3" ]]; then
-        if [[ "${clean}" == "Y" ]]; then
-            set_icarus_python3_constants "${python_default_version}:${python_default_full_version}"
-            dispatch_icarus_python3
-        elif [[ "${exec}" == "Y" ]]; then
-            set_icarus_python3_constants "${python_default_version}:${python_default_full_version}"
-            dispatch_icarus_python3
-        else
-            for python_version_composite in "${python_versions[@]}"; do
-                set_icarus_python3_constants "${python_version_composite}"
-                echo_title "Running tools for: Python${python_version}" "header"
-                dispatch_icarus_python3
-            done
-        fi
+        dispatch_icarus_python3_before_plugins
+        for python_version_composite in "${python_versions[@]}"; do
+            set_icarus_python3_constants "${python_version_composite}"
+            echo_title "Running tools for: Python${python_version}" "header"
+            dispatch_icarus_python3_tools
+            if [[ "${only_with_python_default}" == true ]]; then
+                # Those command that set only_with_python_default, only runs
+                # with the python-default which is the first in the loop.
+                break
+            fi
+        done
+        dispatch_icarus_python3_after_plugins
     elif [[ "${build_system_in_use}" == "icarus-cdk" ]]; then
-        dispatch_icarus_cdk
+        set_icarus_cdk_constants
+        dispatch_icarus_cdk_before_plugins
+        dispatch_icarus_cdk_tools
+        dispatch_icarus_cdk_after_plugins
     fi
 
     echo_summary
@@ -1822,21 +1847,9 @@ function dispatch_build_system() {
 # MAIN
 ####################################################################################################
 function main() {
-    local start_block end_block elapsed_time
-
     validate_prerequisites
 
-    # Setting constants, indexing workspace and benchmarking the execution
-    start_block=$(date +%s.%N)
-    set_constants "${@}"
-    ensure_icarus_build_root_env
-    end_block=$(date +%s.%N)
-    elapsed_time=$(echo "${end_block} - ${start_block}" | bc)
-    if [[ $(echo "${elapsed_time} > 5" | bc) -eq 1 ]]; then
-        index_summary_status="${warned}"
-    fi
-    index_execution_time=$(echo "${index_execution_time}" + "${elapsed_time}" | bc)
-
+    dispatch_set_constants "${@}"
     dispatch_build_system "${@}"
 
     return "${exit_code}"

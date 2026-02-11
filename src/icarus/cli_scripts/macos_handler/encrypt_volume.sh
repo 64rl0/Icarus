@@ -39,7 +39,7 @@ macos_encrypt_volume() {
     local volume_passphrase="$(dd if=/dev/urandom bs=64 count=1 2>/dev/null | base64 | tr -d '\n')"
     echo -e "Your volume passphrase is: ${volume_passphrase}"
 
-    local vol_info_file="/${tmp_root_sudo}/macos/${volume_name}.plist"
+    local vol_info_file="${tmp_root_sudo}/macos/${volume_name}.plist"
     /usr/sbin/diskutil info -plist "${volume_name}" >"${vol_info_file}" || {
         echo "Wrong volume: \"${volume_name}\". Exiting."
         exit 1

@@ -67,34 +67,44 @@ def handle_builder_command(args: argparse.Namespace) -> int:
     :raise ValueError: If an unknown `builder_command` is provided.
     """
 
-    builder_args: dict[str, Union[str, list[str]]] = {
-        'build': args.build,
-        'clean': args.clean,
-        'isort': args.isort,
-        'black': args.black,
-        'flake8': args.flake8,
-        'mypy': args.mypy,
-        'shfmt': args.shfmt,
-        'eolnorm': args.eolnorm,
-        'whitespaces': args.whitespaces,
-        'trailing': args.trailing,
-        'eofnewline': args.eofnewline,
-        'gitleaks': args.gitleaks,
-        'pytest': args.pytest,
-        'sphinx': args.sphinx,
-        'readthedocs': args.readthedocs,
-        'exec': args.exec,
-        'release': args.release,
-        'format': args.format,
-        'test': args.test,
-        'docs': args.docs,
+    base_args: dict[str, Union[int]] = {
+        'verbose': args.verbose,
+    }
+    builder_only_args: dict[str, Union[str, list[str]]] = {
+        'build': getattr(args, 'build', ''),
+        'release': getattr(args, 'release', ''),
+        'format': getattr(args, 'format', ''),
+        'docs': getattr(args, 'docs', ''),
+        'test': getattr(args, 'test', ''),
+        'clean': getattr(args, 'clean', ''),
+        'isort': getattr(args, 'isort', ''),
+        'black': getattr(args, 'black', ''),
+        'flake8': getattr(args, 'flake8', ''),
+        'mypy': getattr(args, 'mypy', ''),
+        'shfmt': getattr(args, 'shfmt', ''),
+        'eolnorm': getattr(args, 'eolnorm', ''),
+        'whitespaces': getattr(args, 'whitespaces', ''),
+        'trailing': getattr(args, 'trailing', ''),
+        'eofnewline': getattr(args, 'eofnewline', ''),
+        'gitleaks': getattr(args, 'gitleaks', ''),
+        'pytest': getattr(args, 'pytest', ''),
+        'sphinx': getattr(args, 'sphinx', ''),
+        'readthedocs': getattr(args, 'readthedocs', ''),
+        'merge': getattr(args, 'merge', ''),
+        'exectool': getattr(args, 'exec-tool', '') or getattr(args, 'exec_tool', ''),
+        'execrun': getattr(args, 'exec-run', '') or getattr(args, 'exec_run', ''),
+        'execdev': getattr(args, 'exec-dev', '') or getattr(args, 'exec_dev', ''),
     }
     singleton_args = {
+        'path',
         'create',
         'build-runtime',
     }
 
-    if args.builder_command == 'create' and not any(builder_args.values()):
+    if args.builder_command in singleton_args and any(builder_only_args.values()):
+        raise utils.IcarusParserException("too many arguments")
+
+    if args.builder_command == 'create':
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'create.sh'
@@ -104,7 +114,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command == 'build-runtime' and not any(builder_args.values()):
+    elif args.builder_command == 'build-runtime':
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'build_runtime.sh'
@@ -114,8 +124,69 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command not in singleton_args and any(builder_args.values()):
+    elif args.builder_command == 'path':
         module_logger.debug(f"Running {args.builder_command=}")
+
+        builder_path_only_args: dict[str, Union[str, list[str]]] = {
+            'path_name': args.path_name,
+            'list_paths': args.list,
+        }
+
+        if sum(1 for a in builder_path_only_args.values() if a) > 1:
+            raise utils.IcarusParserException("too many arguments")
+
+        if not any(builder_path_only_args.values()):
+            raise utils.IcarusParserException('the following arguments are required: <subcommand>')
+
+        builder_path_args = {**base_args, **builder_only_args, **builder_path_only_args}
+
+        builder_helper.ensure_builder_control_plane()
+        builder_lock = builder_helper.acquire_builder_lock()
+
+        try:
+            script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder_path.sh'
+            script_args = [builder_helper.get_argv(ib_args=builder_path_args)]
+
+            return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+        finally:
+            builder_helper.release_builder_lock(builder_lock)
+
+        return return_code
+
+    elif args.builder_command not in singleton_args:
+        module_logger.debug(f"Running {args.builder_command=}")
+
+        total_builder_only_args = sum(1 for el in builder_only_args.values() if el)
+
+        if builder_only_args.get('clean') and total_builder_only_args > 1:
+            raise utils.IcarusParserException(
+                '--clean is a standalone argument and must be used alone'
+            )
+
+        if builder_only_args.get('merge') and total_builder_only_args > 1:
+            raise utils.IcarusParserException(
+                '--merge is a standalone argument and must be used alone'
+            )
+
+        if builder_only_args.get('exectool') and total_builder_only_args > 1:
+            raise utils.IcarusParserException(
+                '--exec-tool is a standalone argument and must be used alone'
+            )
+
+        if builder_only_args.get('execrun') and total_builder_only_args > 1:
+            raise utils.IcarusParserException(
+                '--exec-run is a standalone argument and must be used alone'
+            )
+
+        if builder_only_args.get('execdev') and total_builder_only_args > 1:
+            raise utils.IcarusParserException(
+                '--exec-dev is a standalone argument and must be used alone'
+            )
+
+        if not any(builder_only_args.values()):
+            raise utils.IcarusParserException('the following arguments are required: <subcommand>')
+
+        builder_args = {**base_args, **builder_only_args}
 
         builder_helper.ensure_builder_control_plane()
         builder_lock = builder_helper.acquire_builder_lock()

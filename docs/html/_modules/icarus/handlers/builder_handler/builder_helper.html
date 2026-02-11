@@ -159,6 +159,7 @@
     <span class="n">icarus_ignore_array</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="n">build</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">is_only_build_hook</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">is_release</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">clean</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">isort</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">black</span><span class="p">:</span> <span class="nb">str</span>
@@ -173,11 +174,16 @@
     <span class="n">pytest</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">sphinx</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">readthedocs</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">exec</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">exectool</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">execrun</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">execdev</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">initial_command_received</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">initial_exec_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">initial_exectool_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">initial_execrun_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">initial_execdev_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="n">running_hooks_name</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="n">running_hooks_count</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">all_hooks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;clean&#39;</span><span class="p">],</span>
@@ -194,11 +200,15 @@
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;pytest&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;sphinx&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;readthedocs&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">],</span>
     <span class="p">]</span>
     <span class="n">python_default_version</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">python_default_full_version</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">python_versions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">path_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">list_paths</span><span class="p">:</span> <span class="nb">str</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">BuildSystems</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
@@ -368,7 +378,7 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_initialize_ib_arg_mmp</span><span class="p">(</span><span class="n">ib_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">IbArgMmp</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_initialize_ib_arg_mmp</span><span class="p">(</span><span class="n">ib_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">IbArgMmp</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initialize the IbbArgMmp dictionary with default values.</span>
 
@@ -378,6 +388,7 @@
 
     <span class="c1"># Initialize the IbbArgMmp dictionary with default values</span>
     <span class="n">ib_arg_mmp</span><span class="p">:</span> <span class="n">IbArgMmp</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;all_hooks&#39;</span><span class="p">:</span> <span class="p">(</span>
             <span class="s1">&#39;build&#39;</span><span class="p">,</span>
             <span class="s1">&#39;clean&#39;</span><span class="p">,</span>
@@ -394,7 +405,9 @@
             <span class="s1">&#39;pytest&#39;</span><span class="p">,</span>
             <span class="s1">&#39;sphinx&#39;</span><span class="p">,</span>
             <span class="s1">&#39;readthedocs&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;exec&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;exectool&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;execrun&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;execdev&#39;</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s1">&#39;icarus_config_filename&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="s1">&#39;icarus_config_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
@@ -411,7 +424,6 @@
         <span class="s1">&#39;requirements_paths&#39;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s1">&#39;icarus_ignore_array&#39;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s1">&#39;build&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;build&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;is_only_build_hook&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clean&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;isort&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;isort&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
@@ -426,14 +438,22 @@
         <span class="s1">&#39;pytest&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pytest&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;sphinx&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sphinx&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;readthedocs&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;readthedocs&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;exec&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exec&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;exectool&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exectool&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;execrun&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execrun&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;execdev&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execdev&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;initial_command_received&#39;</span><span class="p">:</span> <span class="s1">&#39;icarus builder&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;initial_exec_command_received&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;initial_exectool_command_received&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;initial_execrun_command_received&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;initial_execdev_command_received&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;is_only_build_hook&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;is_release&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="s1">&#39;running_hooks_name&#39;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s1">&#39;running_hooks_count&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="s1">&#39;python_default_version&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="s1">&#39;python_default_full_version&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="s1">&#39;python_versions&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;path_name&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;list_paths&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span> <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;list_paths&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">ib_arg_mmp</span>
@@ -450,17 +470,7 @@
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Initial validations</span>
-    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clean&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">el</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;--clean is a standalone argument and must be used alone&#39;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exec&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">el</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;--exec is a standalone argument and must be used alone&#39;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">ib_args</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">CLI_NAME</span><span class="si">}</span><span class="s1"> builder requires at least one argument&#39;</span>
-        <span class="p">)</span>
+    <span class="c1"># Initial validations placeholder</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_process_ib_args</span><span class="p">(</span><span class="n">ib_arg_mmp</span><span class="p">:</span> <span class="n">IbArgMmp</span><span class="p">,</span> <span class="n">ib_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">IbArgMmp</span><span class="p">:</span>
@@ -472,21 +482,53 @@
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exec&#39;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">initial_exec_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
-            <span class="n">initial_exec_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;verbose&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;verbose&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
+
+    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exectool&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">initial_exectool_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="n">initial_exectool_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;Invalid --exec argument&#39;</span><span class="p">)</span>
-        <span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;initial_exec_command_received&#39;</span><span class="p">:</span> <span class="n">initial_exec_command_received</span><span class="p">})</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;Invalid --exec-tool argument&#39;</span><span class="p">)</span>
+        <span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;initial_exectool_command_received&#39;</span><span class="p">:</span> <span class="n">initial_exectool_command_received</span><span class="p">})</span>
         <span class="c1"># altering the exec value so it can be used from the for loop</span>
         <span class="c1"># here below to make up the initial_command_received look pretty</span>
-        <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exec&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec-tool </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execrun&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">initial_execrun_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="n">initial_execrun_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;Invalid --exec-run argument&#39;</span><span class="p">)</span>
+        <span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;initial_execrun_command_received&#39;</span><span class="p">:</span> <span class="n">initial_execrun_command_received</span><span class="p">})</span>
+        <span class="c1"># altering the exec value so it can be used from the for loop</span>
+        <span class="c1"># here below to make up the initial_command_received look pretty</span>
+        <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec-run </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execdev&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">initial_execdev_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="n">initial_execdev_command_received</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;Invalid --exec-dev argument&#39;</span><span class="p">)</span>
+        <span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;initial_execdev_command_received&#39;</span><span class="p">:</span> <span class="n">initial_execdev_command_received</span><span class="p">})</span>
+        <span class="c1"># altering the exec value so it can be used from the for loop</span>
+        <span class="c1"># here below to make up the initial_command_received look pretty</span>
+        <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;--exec-dev </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="c1"># RELEASE target</span>
     <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;release&#39;</span><span class="p">):</span>
+        <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;is_release&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
         <span class="k">if</span> <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build_system_in_use&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">BuildSystems</span><span class="o">.</span><span class="n">ICARUS_PYTHON3</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
             <span class="n">ib_arg_mmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
                 <span class="s1">&#39;build&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
@@ -579,9 +621,14 @@
                 <span class="s1">&#39; build systems&#39;</span>
             <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
-            <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;initial_command_received&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">arg_name</span><span class="p">,</span> <span class="n">arg_value</span> <span class="ow">in</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">arg_name</span> <span class="o">==</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg_value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">arg_value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;initial_command_received&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s2">&quot; -v&quot;</span>
+                <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">arg_value</span><span class="p">:</span>
+            <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;initial_command_received&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">arg_value</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;all_hooks&#39;</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="n">hook</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span>
@@ -591,6 +638,10 @@
 
     <span class="k">if</span> <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="ow">and</span> <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;running_hooks_count&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;is_only_build_hook&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
+
+    <span class="k">if</span> <span class="n">ib_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;path_name&#39;</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;path_name&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="n">ib_arg_mmp</span><span class="p">[</span><span class="s1">&#39;path_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ib_args</span><span class="p">[</span><span class="s1">&#39;path_name&#39;</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">ib_arg_mmp</span>
 

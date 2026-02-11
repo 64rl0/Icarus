@@ -52,7 +52,7 @@ macos_find_unencrypted_volumes() {
         done
     }
 
-    local vol_list_path="/${tmp_root}/macos/volumes.plist"
+    local vol_list_path="${tmp_root}/macos/volumes.plist"
     diskutil apfs list -plist >"${vol_list_path}"
 
     local unencrypted_volume_count=0

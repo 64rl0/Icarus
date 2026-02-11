@@ -1,5 +1,6 @@
 #
-# Lists “library” (AKA “direct”) dependencies for your package.
+# Lists development dependencies for your package.
+#
 # Your package doesn’t need these packages at runtime,
 # but they are needed at development time.
 #
