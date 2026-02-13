@@ -115,9 +115,9 @@ function set_constants() {
         exit_code=1
     fi
 
-    python_builds="/${tmp_root_sudo}/builder/build_runtime/python_builds"
+    python_builds="${tmp_root_sudo}/builder/build_runtime/python_builds"
 
-    python_build_root="${python_builds}/build-workspace"
+    python_build_root="${python_builds}/build_workspace"
     python_version_build_root="${python_build_root}/${python_full_version}"
     path_to_cache_root="${python_build_root}/cache"
     path_to_log_root="${python_version_build_root}/log"
@@ -133,9 +133,9 @@ function set_constants() {
     python_pkg_full_name="${python_pkg_name}.tar.gz"
 }
 
-function clean_workspace() {
+function clean_workspace_shallow() {
     echo_time
-    echo -e "${bold_green}${sparkles} Cleaning Workspace for fresh build${end}"
+    echo -e "${bold_green}${sparkles} Cleaning Workspace SHALLOW for fresh build${end}"
 
     rm -rf "${path_to_python_home}" || {
         echo_error "Failed to remove '${path_to_python_home}'."
@@ -144,7 +144,29 @@ function clean_workspace() {
 
     echo -e "done!"
     echo
+}
 
+function clean_workspace_deep() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Cleaning Workspace DEEP for fresh build${end}"
+
+    rm -rf "${path_to_runtime_root}" || {
+        echo_error "Failed to remove '${path_to_runtime_root}'."
+        exit_code=1
+    }
+
+    rm -rf "${path_to_tmpwork_root}" || {
+        echo_error "Failed to remove '${path_to_tmpwork_root}'."
+        exit_code=1
+    }
+
+    rm -rf "${path_to_log_root}" || {
+        echo_error "Failed to remove '${path_to_log_root}'."
+        exit_code=1
+    }
+
+    echo -e "done!"
+    echo
 }
 
 function prepare_workspace() {
@@ -176,7 +198,7 @@ function prepare_local() {
     done
 
     # Make lib64 → lib symlink
-    ln -sf "lib" "${path_to_local}/lib64"
+    ln -sf "./lib" "${path_to_local}/lib64"
 
     echo -e "done!"
     echo
@@ -980,7 +1002,7 @@ function build_linux_base_dependencies() {
 }
 
 function build_python_runtime() {
-    local prefix enable_workaround
+    local flags enable_workaround
 
     # Export the below to compile the python dependencies
     if [[ $(uname) == "Darwin" ]]; then
@@ -1047,7 +1069,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1081,7 +1103,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1116,7 +1138,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1153,7 +1175,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1190,7 +1212,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1227,7 +1249,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1264,7 +1286,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1301,7 +1323,7 @@ function build_python_runtime() {
             exit_code=1
         fi
 
-        prefix="--prefix=${path_to_python_home} \
+        flags="--prefix=${path_to_python_home} \
                :--enable-optimizations \
                :--with-lto \
                :--with-computed-gotos \
@@ -1394,7 +1416,19 @@ function build_python_runtime() {
         "Python-${python_full_version}" \
         "Python-${python_full_version}" \
         "https://www.python.org/ftp/python/${python_full_version}/Python-${python_full_version}.tgz" \
-        "${prefix}"
+        "${flags}"
+
+    # Make lib64 → lib symlink
+    ln -sf "./lib" "${path_to_python_home}/lib64" || {
+        echo_error "Failed to create lib64 symlink."
+        exit_code=1
+    }
+
+    # Create .envroot file
+    touch "${path_to_python_home}/.envroot" || {
+        echo_error "Failed to create .envroot file."
+        exit_code=1
+    }
 }
 
 function create_compiler_wrapper() {
@@ -1905,6 +1939,57 @@ PY
     echo
 }
 
+function check_hardcoded_paths() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Checking for hardcoded paths${end}"
+
+    local file keyword
+    local hardcoded_paths_found=0
+    local -a keywords=(
+        "build_runtime"
+        "python_builds"
+        "build-workspace"
+        "carlogtt"
+        "carlo"
+        "ec2-user"
+        "/Users/carlogtt"
+        "/home/carlogtt"
+        "/Users/carlo"
+        "/home/carlo"
+        "/Users/ec2-user"
+        "/home/ec2-user"
+    )
+
+    while IFS= read -r -d '' file; do
+        if [[ ! -r "${file}" ]]; then
+            continue
+        fi
+
+        for keyword in "${keywords[@]}"; do
+            if LC_ALL=C grep --text -F --quiet -- "${keyword}" "${file}" 2>/dev/null; then
+                echo -e "'${file}' contains hardcoded keyword '${keyword}'"
+                hardcoded_paths_found=1
+                exit_code=1
+                break
+            fi
+        done
+    done < <(
+        find "${path_to_python_home}" \
+            \( -path "${path_to_python_home}/local" -o -path "${path_to_python_home}/lib" \) -prune -o \
+            \( -type f -o -type l \) \
+            ! -path "${path_to_python_home}/bin/python3" \
+            ! -path "${path_to_python_home}/bin/python${python_version}" \
+            -print0
+    )
+
+    if [[ "${hardcoded_paths_found}" -eq 1 ]]; then
+        echo_error "Hardcoded paths found in '${path_to_python_home}'."
+    fi
+
+    echo -e "done!"
+    echo
+}
+
 function check_broken_links() {
     echo_time
     echo -e "${bold_green}${sparkles} Checking for broken links${end}"
@@ -1928,53 +2013,60 @@ function check_broken_links() {
     echo
 }
 
-function fix_python_runtime_bin_dir() {
+function fix_shebang() {
     echo_time
-    echo -e "${bold_green}${sparkles} Fixing Python runtime bin dir${end}"
+    echo -e "${bold_green}${sparkles} Fixing shebang #!...${end}"
 
-    local pybin_dir="${path_to_python_home}/bin"
+    local filepath first_line
 
-    rm -rf "${pybin_dir:?}/idle"* || {
-        echo_error "Failed to remove 'idle*'."
-        exit_code=1
-    }
-    rm -rf "${pybin_dir:?}/2to3"* || {
-        echo_error "Failed to remove '2to3*'."
-        exit_code=1
-    }
-    rm -rf "${pybin_dir:?}/pydoc"* || {
-        echo_error "Failed to remove 'pydoc*'."
-        exit_code=1
-    }
-    rm -rf "${pybin_dir:?}/python"*"-config" || {
-        echo_error "Failed to remove 'python*-config'."
-        exit_code=1
-    }
-    cp "${pybin_dir}/pip3" "${pybin_dir}/pip" || {
+    cp "${path_to_python_home}/bin/pip3" "${path_to_python_home}/bin/pip" || {
         echo_error "Failed to copy 'pip3'."
         exit_code=1
     }
 
-    if [[ $(uname -s) == "Darwin" ]]; then
-        sed -i '' "1s|.*|#!/usr/bin/env python${python_version}|" \
-            "${pybin_dir}/pip" \
-            "${pybin_dir}/pip3" \
-            "${pybin_dir}/pip${python_version}" || {
-            echo_error "Failed to update shebang line."
+    while IFS= read -r -d '' filepath; do
+        if [[ ! -e "${filepath}" ]]; then
+            continue
+        fi
+        if ! grep -Iq . "${filepath}" 2>/dev/null; then
+            continue
+        fi
+
+        IFS= read -r first_line <"${filepath}" || {
+            echo_error "Failed to read ${filepath}."
             exit_code=1
         }
-    elif [[ $(uname -s) == "Linux" ]]; then
-        sed -i "1s|.*|#!/usr/bin/env python${python_version}|" \
-            "${pybin_dir}/pip" \
-            "${pybin_dir}/pip3" \
-            "${pybin_dir}/pip${python_version}" || {
-            echo_error "Failed to update shebang line."
+
+        if [[ "${first_line}" != "#!/"* ]]; then
+            continue
+        fi
+        if [[ "${first_line}" != *"python3"* ]]; then
+            continue
+        fi
+
+        tmp="${filepath}.shim"
+        shebang="#!/${cli_name}/bin/envroot \"\$ENVROOT/bin/python${python_version}\""
+
+        echo -e "Fixing ${filepath} \n--| from: $(head -n 1 "${filepath}") \n--| to: ${shebang}"
+
+        {
+            printf '%s\n' "${shebang}"
+            tail -n +2 "${filepath}"
+        } >"${tmp}" || {
+            echo_error "Failed to update shebang for '${filepath}'."
             exit_code=1
         }
-    else
-        echo_error "Unsupported platform: $(uname -s)"
-        exit_code=1
-    fi
+
+        cat "${tmp}" >"${filepath}" || {
+            echo_error "Failed to update shebang for '${filepath}'."
+            exit_code=1
+        }
+
+        rm -rf "${tmp}" || {
+            echo_error "Failed to remove '${tmp}'."
+            exit_code=1
+        }
+    done < <(find "${path_to_python_home}" -type f -print0)
 
     echo -e "done!"
     echo
@@ -2058,7 +2150,7 @@ function push_gh_release() {
     echo -e "Pushing release…"
     gh release create \
         "${python_pkg_name}" \
-        --latest=false \
+        --latest=true \
         --repo "64rl0/PythonRuntime" \
         --title "" \
         --notes "" \
@@ -2097,10 +2189,12 @@ function read_build_versions() {
         # PYTHON 3.15
         # "3.15.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
         # PYTHON 3.14
+        # "3.14.3:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
         # "3.14.2:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
         # "3.14.1:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
         # "3.14.0:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1:1.5.7"
         # PYTHON 3.13
+        # "3.13.12:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.11:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.10:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
         # "3.13.9:3.5.0:8.6.16:5.8.1:1.24:3.49.2:3490200:8.2:6.5:3.4.8:2.0.1"
@@ -2236,7 +2330,8 @@ function read_build_versions() {
 }
 
 function build_version() {
-    local version_string
+    local version_string clean_after
+
     version_string="${1}"
     shift # Removes $1
 
@@ -2247,7 +2342,7 @@ function build_version() {
     local title="Building Python ${python_full_version} runtime"
     echo -e "\n${bold_black}${bg_white}${left_pad} ${title} ${right_pad}${end}\n"
 
-    clean_workspace
+    clean_workspace_shallow
     prepare_workspace
     prepare_sysroot
     prepare_local
@@ -2275,10 +2370,19 @@ function build_version() {
     optimize_space=true
     clean_build
 
+    fix_shebang
+
     check_broken_links
-    fix_python_runtime_bin_dir
+    check_hardcoded_paths
     check_python_runtime
+
     make_tar
+
+    # Optimize space deleting the whole python home after making the tar
+    clean_after=false
+    if [[ "${clean_after}" == true ]]; then
+        clean_workspace_deep
+    fi
 
     if [[ "${exit_code}" -eq 0 ]]; then
         push_gh_release
