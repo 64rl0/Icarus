@@ -983,7 +983,7 @@ def _find_project_root_dir() -> str:
 
     raise utils.IcarusParserException(
         f'No `{config.ICARUS_CFG_FILENAME}` file found!\n               You are not in an'
-        ' icarus build enabled directory.\n               To enable icarus build create a'
+        ' icarus builder enabled directory.\n               To enable icarus builder create a'
         f' `{config.ICARUS_CFG_FILENAME}` in the project root directory.'
     )
 
