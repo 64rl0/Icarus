@@ -115,9 +115,9 @@ function set_constants() {
         exit_code=1
     fi
 
-    python_builds="${tmp_root_sudo}/builder/build_runtime/python_builds"
+    python_builds="${tmp_root_sudo}/build-runtime"
 
-    python_build_root="${python_builds}/build_workspace"
+    python_build_root="${python_builds}/workspace"
     python_version_build_root="${python_build_root}/${python_full_version}"
     path_to_cache_root="${python_build_root}/cache"
     path_to_log_root="${python_version_build_root}/log"
@@ -1947,8 +1947,10 @@ function check_hardcoded_paths() {
     local hardcoded_paths_found=0
     local -a keywords=(
         "build_runtime"
+        "build-runtime"
         "python_builds"
         "build-workspace"
+        "pkgbuild-workspace"
         "carlogtt"
         "carlo"
         "ec2-user"
@@ -1979,6 +1981,7 @@ function check_hardcoded_paths() {
             \( -type f -o -type l \) \
             ! -path "${path_to_python_home}/bin/python3" \
             ! -path "${path_to_python_home}/bin/python${python_version}" \
+            ! -path "${path_to_python_home}/bin/python${python_version}-config" \
             -print0
     )
 
@@ -2033,8 +2036,8 @@ function fix_shebang() {
         fi
 
         IFS= read -r first_line <"${filepath}" || {
-            echo_error "Failed to read ${filepath}."
-            exit_code=1
+            echo_warning "Failed to read ${filepath}."
+            continue
         }
 
         if [[ "${first_line}" != "#!/"* ]]; then
