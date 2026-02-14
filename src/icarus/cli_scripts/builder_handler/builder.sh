@@ -20,6 +20,7 @@ declare -r builder_path_script_abs
 
 # Sourcing base file
 . "${cli_scripts_dir_abs}/base.sh" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source base.sh"
+. "${cli_scripts_dir_abs}/builder_handler/builder_base.sh" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source builder_base.sh"
 
 # Script Options
 set -o errexit  # Exit immediately if a command exits with a non-zero status
@@ -304,20 +305,9 @@ function set_constants() {
     declare -g -r failed
     declare -g -r warned
 
-    tool_runtimefarm_name="tool.runtimefarm"
-    pkg_runtimefarm_name="pkg.runtimefarm"
-    run_runtimefarm_name="run.runtimefarm"
-    devrun_runtimefarm_name="devrun.runtimefarm"
-    devrun_excluderoot_runtimefarm_name="devrun_excluderoot.runtimefarm"
-    path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
-    declare -g -r tool_runtimefarm_name
-    declare -g -r pkg_runtimefarm_name
-    declare -g -r run_runtimefarm_name
-    declare -g -r devrun_runtimefarm_name
-    declare -g -r devrun_excluderoot_runtimefarm_name
-    declare -g -r path_to_path_root
-
     path_called="N"
+    path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
+    declare -g -r path_to_path_root
 
     index_summary_status="${passed}"
     path_summary_status="${passed}"
@@ -950,7 +940,7 @@ function run_build_icarus_python3() {
     build_single_run_status=0
 
     # We need the tool.runtimefarm to build the pkg
-    resolve_path "${tool_runtimefarm_name}"
+    resolve_path "${path_tool_runtimefarm_name}"
 
     # Cleanup silently
     # We are about to rebuild the dist so make sure the env is clean to accommodate the new one
@@ -986,7 +976,7 @@ function run_build_icarus_python3() {
 
     # This will install the pkg just built in the pkg.runtimefarm
     echo -e "${bold_green}${sparkles} Installing '${package_name_dashed}' package${end}"
-    if resolve_path "${pkg_runtimefarm_name}"; then
+    if resolve_path "${path_pkg_runtimefarm_name}"; then
         echo -e "Installed $(basename "${path_to_dist_root}"/*.whl)"
         echo
     else
@@ -1063,45 +1053,45 @@ function resolve_path() {
     path_called="Y"
 
     case "${p_name}" in
-    "${pkg_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${pkg_runtimefarm_name}")" || {
+    "${path_pkg_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${pkg_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
         }
         ;;
-    "${tool_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${tool_runtimefarm_name}")" || {
+    "${path_tool_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${path_tool_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${tool_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_tool_runtimefarm_name}." "errexit"
         }
         ;;
-    "${run_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${run_runtimefarm_name}")" || {
+    "${path_run_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${path_run_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${run_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_run_runtimefarm_name}." "errexit"
         }
         ;;
-    "${devrun_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${devrun_runtimefarm_name}")" || {
+    "${path_devrun_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${path_devrun_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${devrun_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_devrun_runtimefarm_name}." "errexit"
         }
         ;;
-    "${devrun_excluderoot_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${pkg_runtimefarm_name}")" || {
+    "${path_devrun_excluderoot_runtimefarm_name}")
+        path_response="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${pkg_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
         }
         pkg_pythonpath="${path_response}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
-        path_response="$(_internal_icarus_builder_path_cmd "${devrun_excluderoot_runtimefarm_name}")" || {
+        path_response="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${devrun_excluderoot_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_devrun_excluderoot_runtimefarm_name}." "errexit"
         }
         ;;
     *)
@@ -1118,7 +1108,7 @@ function resolve_path() {
     set +a
 
     # Special handling for devrun.runtimefarm_excluderoot
-    if [[ "${p_name}" == "${devrun_excluderoot_runtimefarm_name}" ]]; then
+    if [[ "${p_name}" == "${path_devrun_excluderoot_runtimefarm_name}" ]]; then
         # Prepending to the front of PYTHONPATH in case the path-py${python_full_version}
         # exports any PYTHONPATH
         PYTHONPATH="${pkg_pythonpath}${PYTHONPATH:+:${PYTHONPATH}}"
@@ -1385,8 +1375,8 @@ function dispatch_icarus_python3_before_build_plugins() {
     fi
     echo -e "${bold_yellow}[plugins] Executing commands for: before-all${end}"
     start_block=$(date +%s.%N)
-    echo -e "running: resolve_path ${tool_runtimefarm_name}"
-    resolve_path "${tool_runtimefarm_name}"
+    echo -e "running: resolve_path ${path_tool_runtimefarm_name}"
+    resolve_path "${path_tool_runtimefarm_name}"
     end_block=$(date +%s.%N)
     path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
     echo
@@ -1413,8 +1403,8 @@ function dispatch_icarus_python3_before_exectool_plugins() {
     if [[ "${is_python_default}" == true ]]; then
         echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
         start_block=$(date +%s.%N)
-        echo -e "running: resolve_path ${tool_runtimefarm_name}"
-        resolve_path "${tool_runtimefarm_name}"
+        echo -e "running: resolve_path ${path_tool_runtimefarm_name}"
+        resolve_path "${path_tool_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
         echo
@@ -1445,8 +1435,8 @@ function dispatch_icarus_python3_before_execrun_plugins() {
     if [[ "${is_python_default}" == true ]]; then
         echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
         start_block=$(date +%s.%N)
-        echo -e "running: resolve_path ${run_runtimefarm_name}"
-        resolve_path "${run_runtimefarm_name}"
+        echo -e "running: resolve_path ${path_run_runtimefarm_name}"
+        resolve_path "${path_run_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
         echo
@@ -1477,8 +1467,8 @@ function dispatch_icarus_python3_before_execdev_plugins() {
     if [[ "${is_python_default}" == true ]]; then
         echo -e "${bold_yellow}[plugins] Executing commands for: before-default${end}"
         start_block=$(date +%s.%N)
-        echo -e "running: resolve_path ${devrun_runtimefarm_name}"
-        resolve_path "${devrun_runtimefarm_name}"
+        echo -e "running: resolve_path ${path_devrun_runtimefarm_name}"
+        resolve_path "${path_devrun_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
         echo
@@ -1516,8 +1506,8 @@ function dispatch_icarus_python3_before_tools_plugins() {
     fi
     echo -e "${bold_yellow}[plugins] Executing commands for: before-all${end}"
     start_block=$(date +%s.%N)
-    echo -e "running: resolve_path ${devrun_excluderoot_runtimefarm_name}"
-    resolve_path "${devrun_excluderoot_runtimefarm_name}"
+    echo -e "running: resolve_path ${path_devrun_excluderoot_runtimefarm_name}"
+    resolve_path "${path_devrun_excluderoot_runtimefarm_name}"
     end_block=$(date +%s.%N)
     path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
     echo
@@ -1576,7 +1566,7 @@ function dispatch_icarus_python3_tools() {
         dispatch_icarus_python3_before_exectool_plugins
 
         start_block=$(date +%s.%N)
-        echo_title "Running exec ${tool_runtimefarm_name}"
+        echo_title "Running exec ${path_tool_runtimefarm_name}"
         exec_tool_cmd
         end_block=$(date +%s.%N)
         exectool_execution_time=$(echo "${exectool_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1593,7 +1583,7 @@ function dispatch_icarus_python3_tools() {
         dispatch_icarus_python3_before_execrun_plugins
 
         start_block=$(date +%s.%N)
-        echo_title "Running exec ${run_runtimefarm_name}"
+        echo_title "Running exec ${path_run_runtimefarm_name}"
         exec_run_cmd
         end_block=$(date +%s.%N)
         execrun_execution_time=$(echo "${execrun_execution_time}" + "${end_block} - ${start_block}" | bc)
@@ -1610,7 +1600,7 @@ function dispatch_icarus_python3_tools() {
         dispatch_icarus_python3_before_execdev_plugins
 
         start_block=$(date +%s.%N)
-        echo_title "Running exec ${devrun_runtimefarm_name}"
+        echo_title "Running exec ${path_devrun_runtimefarm_name}"
         exec_dev_cmd
         end_block=$(date +%s.%N)
         execdev_execution_time=$(echo "${execdev_execution_time}" + "${end_block} - ${start_block}" | bc)

@@ -632,56 +632,56 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='package-name-pascal',
+        name='pkg.name-pascal',
         help='returns the name of the current package in PascalCase',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='package-name-snake',
+        name='pkg.name-snake',
         help='returns the name of the current package in snake_case',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='package-name-dashed',
+        name='pkg.name-dashed',
         help='returns the name of the current package in dashed-case',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='package-language',
+        name='pkg.language',
         help='returns the language of the current package',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='workspace-root',
+        name='workspace.root',
         help='returns the path to the current workspace root',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='package-src-root',
-        help='returns the path to the current package source directory',
+        name='workspace.src-root',
+        help='returns the path to the current workspace source directory',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='package-build-root',
-        help='returns the path to the current package build directory',
+        name='workspace.build-root',
+        help='returns the path to the current workspace build directory',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='runtime-user-space-root',
+        name='workspace.user-space-root',
         help='returns the path to the runtime user-space prefix directory',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -695,8 +695,22 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
+        name='tool.pythonhome',
+        help='creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
         name='pkg.runtimefarm',
-        help='creates build variables for only the current package',
+        help='creates build variables for the current package',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.pythonhome',
+        help='creates colon-delimited list of PYTHONHOME paths for the current package',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
@@ -709,8 +723,25 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='run.runtimefarm_excluderoot',
+        name='run.pythonhome',
+        help='creates colon-delimited list of PYTHONHOME paths for the runtime dependencies',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run_excluderoot.runtimefarm',
         help='creates build variables for the runtime dependencies excluding the current package',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run_excluderoot.pythonhome',
+        help=(
+            'creates colon-delimited list of PYTHONHOME paths for the runtime dependencies'
+            ' excluding the current package'
+        ),
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
@@ -723,10 +754,30 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='devrun.runtimefarm_excluderoot',
+        name='devrun.pythonhome',
+        help=(
+            'creates colon-delimited list of PYTHONHOME paths for the runtime and development'
+            ' dependencies'
+        ),
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun_excluderoot.runtimefarm',
         help=(
             'creates build variables for the runtime and development dependencies excluding the'
             ' current package'
+        ),
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun_excluderoot.pythonhome',
+        help=(
+            'creates colon-delimited list of PYTHONHOME paths for the runtime and development'
+            ' dependencies excluding the current package'
         ),
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
