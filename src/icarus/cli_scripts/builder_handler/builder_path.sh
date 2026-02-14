@@ -766,44 +766,44 @@ function pip_target_package() {
     p_ver="py-${python_full_version}"
 
     report_path="${path_to_path_cache_root}/${package_name_dashed}_${p_graph}_${p_recipe}_${p_ver}"
-    pkg=("${path_to_dist_root}/${package_name_dashed}"*.whl)
+    pkg=("${path_to_dist_root}/${package_name_snake_case}"*.whl)
 
     if [[ ! -f "${pkg[0]}" ]]; then
-        echo_error "Package '${package_name_dashed}' not found."
+        echo_error "Package '${package_name_snake_case}' not found."
         exit_code=1
         return
     fi
     if [[ "${#pkg[@]}" -gt 1 ]]; then
-        echo_error "Multiple wheels found for '${package_name_dashed}'."
+        echo_error "Multiple wheels found for '${package_name_snake_case}'."
         exit_code=1
         return
     fi
 
-    echo -e "${bold_green}${sparkles} Caching [${installation_type}] [target:${package_name_dashed}] dependencies graph${end}"
+    echo -e "${bold_green}${sparkles} Caching [${installation_type}] [target:${package_name_snake_case}] dependencies graph${end}"
     "${PYTHONBIN}" -m pip install \
         --no-deps \
         --dry-run \
         --ignore-installed \
         --report "${report_path}.${installation_type}" \
-        "${path_to_dist_root}/${package_name_dashed}"*.whl || {
+        "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
         echo_error "Failed to cache [${installation_type}] dependencies graph."
         exit_code=1
     }
     echo
 
     if [[ "${installation_type}" == "build" ]]; then
-        echo -e "${bold_green}${sparkles} Installing ${package_name_dashed}${end}"
+        echo -e "${bold_green}${sparkles} Installing ${package_name_snake_case}${end}"
         "${PYTHONBIN}" -m pip install \
             --force-reinstall \
             --no-deps \
             --no-compile \
             --no-warn-script-location \
-            "${path_to_dist_root}/${package_name_dashed}"*.whl || {
-            echo_error "Failed to install ${package_name_dashed}."
+            "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
+            echo_error "Failed to install ${package_name_snake_case}."
             exit_code=1
         }
     elif [[ "${installation_type}" == "sync" ]]; then
-        echo -e "${bold_green}${sparkles} Syncing ${package_name_dashed}${end}"
+        echo -e "${bold_green}${sparkles} Syncing ${package_name_snake_case}${end}"
         if [[ ! -f "${report_path}.build" ]]; then
             echo_warning "No [build] dependencies graph found."
             pip_target_package "${p_name}" "build"
@@ -899,15 +899,15 @@ function pip_run_dependencies() {
     p_ver="py-${python_full_version}"
 
     report_path="${path_to_path_cache_root}/run_${p_graph}_${p_recipe}_${p_ver}"
-    pkg=("${path_to_dist_root}/${package_name_dashed}"*.whl)
+    pkg=("${path_to_dist_root}/${package_name_snake_case}"*.whl)
 
     if [[ ! -f "${pkg[0]}" ]]; then
-        echo_error "Package '${package_name_dashed}' not found."
+        echo_error "Package '${package_name_snake_case}' not found."
         exit_code=1
         return
     fi
     if [[ "${#pkg[@]}" -gt 1 ]]; then
-        echo_error "Multiple wheels found for '${package_name_dashed}'."
+        echo_error "Multiple wheels found for '${package_name_snake_case}'."
         exit_code=1
         return
     fi
@@ -917,7 +917,7 @@ function pip_run_dependencies() {
         --dry-run \
         --ignore-installed \
         --report "${report_path}.${installation_type}" \
-        "${path_to_dist_root}/${package_name_dashed}"*.whl || {
+        "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
         echo_error "Failed to cache [${installation_type}] dependencies graph."
         exit_code=1
     }
@@ -961,13 +961,13 @@ function pip_run_dependencies() {
     "${PYTHONBIN}" "${report_path}.${installation_type}.py"
 
     if [[ "${installation_type}" == "build" ]]; then
-        echo -e "${bold_green}${sparkles} Installing ${package_name_dashed}${end}"
+        echo -e "${bold_green}${sparkles} Installing ${package_name_snake_case}${end}"
         "${PYTHONBIN}" -m pip install \
             --force-reinstall \
             --no-compile \
             --no-warn-script-location \
-            "${path_to_dist_root}/${package_name_dashed}"*.whl || {
-            echo_error "Failed to install ${package_name_dashed}."
+            "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
+            echo_error "Failed to install ${package_name_snake_case}."
             exit_code=1
         }
         # pip uninstall <pkg> removes only that package and leaves all dependencies installed.
@@ -976,7 +976,7 @@ function pip_run_dependencies() {
             exit_code=1
         }
     elif [[ "${installation_type}" == "sync" ]]; then
-        echo -e "${bold_green}${sparkles} Syncing ${package_name_dashed}${end}"
+        echo -e "${bold_green}${sparkles} Syncing ${package_name_snake_case}${end}"
         if [[ ! -f "${report_path}.build" ]]; then
             echo_warning "No [build] dependencies graph found."
             pip_run_dependencies "${p_name}" "build"

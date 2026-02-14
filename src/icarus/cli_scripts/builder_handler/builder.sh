@@ -948,7 +948,7 @@ function run_build_icarus_python3() {
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package
-    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_dashed}' package${end}"
+    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package${end}"
     "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
@@ -958,7 +958,7 @@ function run_build_icarus_python3() {
     echo
 
     echo -e "${bold_green}${package} Checking package health${end}"
-    "${PYTHONBIN}" -m twine check "${path_to_dist_root}/${package_name_dashed}"* || {
+    "${PYTHONBIN}" -m twine check "${path_to_dist_root}/${package_name_snake_case}"* || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -967,7 +967,7 @@ function run_build_icarus_python3() {
     echo
 
     # Cleanup
-    mv "${project_root_dir_abs}/src/${package_name_dashed}"*".egg-info" "${path_to_dist_root}" || {
+    mv "${project_root_dir_abs}/src/${package_name_snake_case}"*".egg-info" "${path_to_dist_root}" || {
         echo_error "Failed to move build dir to env dir."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -975,12 +975,12 @@ function run_build_icarus_python3() {
     }
 
     # This will install the pkg just built in the pkg.runtimefarm
-    echo -e "${bold_green}${sparkles} Installing '${package_name_dashed}' package${end}"
+    echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' package${end}"
     if resolve_path "${path_pkg_runtimefarm_name}"; then
         echo -e "Installed $(basename "${path_to_dist_root}"/*.whl)"
         echo
     else
-        echo_error "Failed to install '${package_name_dashed}' package."
+        echo_error "Failed to install '${package_name_snake_case}' package."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
@@ -1136,6 +1136,11 @@ function workspace_merge() (
         }
         farms_to_merge+=("${farm_name}")
     done
+
+    if (("${#farms_to_merge[@]}" == 0)); then
+        farms_to_merge[0]="[NONE]"
+    fi
+
     echo -e "Detected farms: ${farms_to_merge[*]}"
 
     echo -e "Merging workspace"
