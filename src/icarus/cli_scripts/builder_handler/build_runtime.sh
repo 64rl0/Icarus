@@ -1981,6 +1981,7 @@ function check_hardcoded_paths() {
             \( -type f -o -type l \) \
             ! -path "${path_to_python_home}/bin/python3" \
             ! -path "${path_to_python_home}/bin/python${python_version}" \
+            ! -path "${path_to_python_home}/bin/python3-config" \
             ! -path "${path_to_python_home}/bin/python${python_version}-config" \
             -print0
     )
