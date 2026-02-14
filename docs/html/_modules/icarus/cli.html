@@ -406,6 +406,14 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run a command inside the devrun.runtimefarm environment&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_flag_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--merge&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;--merge&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;merge user-space installed tools into runtimefarms exposed by builder path&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_flag_par</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--build&#39;</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_const&#39;</span><span class="p">,</span>
@@ -612,6 +620,15 @@
     <span class="p">)</span>
     <span class="n">builder_clean</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">clean</span><span class="o">=</span><span class="s1">&#39;--clean&#39;</span><span class="p">)</span>
 
+    <span class="n">builder_merge</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;merge&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;merge user-space installed tools into runtimefarms exposed by builder path&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_merge</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">merge</span><span class="o">=</span><span class="s1">&#39;--merge&#39;</span><span class="p">)</span>
+
     <span class="n">builder_exec_tool</span> <span class="o">=</span> <span class="n">builder_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;exec-tool&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run a command inside the tool.runtimefarm environment&#39;</span><span class="p">,</span>
@@ -689,50 +706,57 @@
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;package-name-pascal&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.name-pascal&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the name of the current package in PascalCase&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;package-name-snake&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.name-snake&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the name of the current package in snake_case&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;package-name-dashed&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.name-dashed&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the name of the current package in dashed-case&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;package-language&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.language&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the language of the current package&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace-root&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.root&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current workspace root&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;package-src-root&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current package source directory&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.src-root&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current workspace source directory&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;package-build-root&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current package build directory&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.build-root&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current workspace build directory&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.user-space-root&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the runtime user-space prefix directory&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -745,8 +769,22 @@
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.pythonhome&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.runtimefarm&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates build variables for only the current package&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates build variables for the current package&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.pythonhome&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the current package&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -759,8 +797,25 @@
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.runtimefarm_excluderoot&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.pythonhome&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the runtime dependencies&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.runtimefarm&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates build variables for the runtime dependencies excluding the current package&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.pythonhome&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the runtime dependencies&#39;</span>
+            <span class="s1">&#39; excluding the current package&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -773,10 +828,30 @@
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.runtimefarm_excluderoot&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.pythonhome&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the runtime and development&#39;</span>
+            <span class="s1">&#39; dependencies&#39;</span>
+        <span class="p">),</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.runtimefarm&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates build variables for the runtime and development dependencies excluding the&#39;</span>
             <span class="s1">&#39; current package&#39;</span>
+        <span class="p">),</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.pythonhome&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the runtime and development&#39;</span>
+            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
