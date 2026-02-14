@@ -2,7 +2,7 @@
 name = "icarus"
 description = "CLI toolkit for environment provisioning and workflow automation"
 readme = "README.md"
-version = "2.8.1"
+version = "2.8.2"
 license = "MIT"
 authors = [
     {name = "Carlo Gatti", email = "carlo.gatti@me.com"}

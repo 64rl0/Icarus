@@ -1138,7 +1138,10 @@ function workspace_merge() (
     done
 
     if (("${#farms_to_merge[@]}" == 0)); then
-        farms_to_merge[0]="[NONE]"
+        echo -e "Detected farms: [NONE]"
+        echo -e "Done!"
+        echo
+        return
     fi
 
     echo -e "Detected farms: ${farms_to_merge[*]}"
