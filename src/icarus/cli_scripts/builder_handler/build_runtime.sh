@@ -1980,8 +1980,10 @@ function check_hardcoded_paths() {
             \( -path "${path_to_python_home}/local" -o -path "${path_to_python_home}/lib" \) -prune -o \
             \( -type f -o -type l \) \
             ! -path "${path_to_python_home}/bin/python3" \
+            ! -path "${path_to_python_home}/bin/python3.7m" \
             ! -path "${path_to_python_home}/bin/python${python_version}" \
             ! -path "${path_to_python_home}/bin/python3-config" \
+            ! -path "${path_to_python_home}/bin/python3.7m-config" \
             ! -path "${path_to_python_home}/bin/python${python_version}-config" \
             -print0
     )
