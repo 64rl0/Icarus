@@ -35,7 +35,7 @@ from typing import Union
 
 # Local Application Imports
 from icarus import config, utils
-from icarus.handlers.builder_handler import builder_helper
+from icarus.handlers.builder_handler import builder_helper, create_helper
 
 # END IMPORTS
 # ======================================================================
@@ -108,7 +108,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'create.sh'
-        script_args = [args.n, args.l]
+        script_args = create_helper.get_argv(package_name=args.n, package_language=args.l)
 
         return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 

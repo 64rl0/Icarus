@@ -44,6 +44,10 @@ function set_constants() {
     declare -r -g package_name_snake_case
     declare -r -g package_name_dashed
     declare -r -g package_language
+    declare -r -g package_version_full
+    declare -r -g package_version_major
+    declare -r -g package_version_minor
+    declare -r -g package_version_patch
     declare -r -g build_system_in_use
     declare -r -g platform_identifier
     declare -r -g build_root_dir
@@ -51,6 +55,7 @@ function set_constants() {
     declare -r -g python_versions_for_icarus
     declare -r -g tool_requirements_paths
     declare -r -g run_requirements_paths
+    declare -r -g run_requirements_pyproject_toml
     declare -r -g dev_requirements_paths
     declare -r -g icarus_ignore_array
     declare -r -g build
@@ -735,12 +740,12 @@ function pip_pip() {
         if [[ ! -f "${report_path}.build" ]]; then
             echo_warning "No [build] dependencies graph found."
             pip_pip "${p_name}" "build"
-        fi
-        if ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
+        elif ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
             echo_warning "Requirements changed."
             pip_pip "${p_name}" "build"
+        else
+            echo -e "Sync complete!"
         fi
-        echo -e "Sync complete!"
     else
         echo_error "Unknown installation type: '${installation_type}'"
         exit_code=1
@@ -769,7 +774,7 @@ function pip_target_package() {
     pkg=("${path_to_dist_root}/${package_name_snake_case}"*.whl)
 
     if [[ ! -f "${pkg[0]}" ]]; then
-        echo_error "Package '${package_name_snake_case}' not found."
+        echo_error "Package '${package_name_snake_case}' not found! Have you built it?."
         exit_code=1
         return
     fi
@@ -803,16 +808,7 @@ function pip_target_package() {
             exit_code=1
         }
     elif [[ "${installation_type}" == "sync" ]]; then
-        echo -e "${bold_green}${sparkles} Syncing ${package_name_snake_case}${end}"
-        if [[ ! -f "${report_path}.build" ]]; then
-            echo_warning "No [build] dependencies graph found."
-            pip_target_package "${p_name}" "build"
-        fi
-        if ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
-            echo_warning "Requirements changed."
-            pip_target_package "${p_name}" "build"
-        fi
-        echo -e "Sync complete!"
+        echo_error "Sync unavailable for target packages."
     else
         echo_error "Unknown installation type: '${installation_type}'"
         exit_code=1
@@ -867,12 +863,12 @@ function pip_tool_dependencies() {
             if [[ ! -f "${report_path}.build" ]]; then
                 echo_warning "No [build] dependencies graph found."
                 pip_tool_dependencies "${p_name}" "build"
-            fi
-            if ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
+            elif ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
                 echo_warning "Requirements changed."
                 pip_tool_dependencies "${p_name}" "build"
+            else
+                echo -e "Sync complete!"
             fi
-            echo -e "Sync complete!"
         else
             echo_error "Unknown installation type: '${installation_type}'"
             exit_code=1
@@ -899,93 +895,39 @@ function pip_run_dependencies() {
     p_ver="py-${python_full_version}"
 
     report_path="${path_to_path_cache_root}/run_${p_graph}_${p_recipe}_${p_ver}"
-    pkg=("${path_to_dist_root}/${package_name_snake_case}"*.whl)
-
-    if [[ ! -f "${pkg[0]}" ]]; then
-        echo_error "Package '${package_name_snake_case}' not found."
-        exit_code=1
-        return
-    fi
-    if [[ "${#pkg[@]}" -gt 1 ]]; then
-        echo_error "Multiple wheels found for '${package_name_snake_case}'."
-        exit_code=1
-        return
-    fi
 
     echo -e "${bold_green}${sparkles} Caching [${installation_type}] [run] dependencies graph${end}"
     "${PYTHONBIN}" -m pip install \
         --dry-run \
         --ignore-installed \
         --report "${report_path}.${installation_type}" \
-        "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
+        "${run_requirements_pyproject_toml[@]}" || {
         echo_error "Failed to cache [${installation_type}] dependencies graph."
         exit_code=1
     }
     echo
 
-    printf '%s\n' \
-        "# The path command creates build variables from a graph of dependencies defined in package." \
-        "# It is strongly recommended that you use the ${cli_name} builder path command to manage" \
-        "# your environments." \
-        "" \
-        "# HACK: 'pip --report' includes the project wheel itself. Its hash changes on every" \
-        "# 'icarus builder build', which causes false-positive report diffs (\"requirements changed\")." \
-        "# In this excluderoot farm we uninstall the project package, so we remove it from the" \
-        "# report and compare only dependency changes." \
-        "" \
-        "import json" \
-        "" \
-        "package_name_dashed = '${package_name_dashed}'" \
-        "" \
-        "with open(" \
-        "    '"${report_path}.${installation_type}"'," \
-        "    'r'," \
-        ") as fh:" \
-        "    data = json.load(fh)" \
-        "" \
-        "data['install'] = [" \
-        "    install" \
-        "    for install in data.get('install', [])" \
-        "    if install.get('metadata', {}).get('name') != package_name_dashed" \
-        "]" \
-        "" \
-        "with open(" \
-        "    '"${report_path}.${installation_type}"'," \
-        "    'w'," \
-        ") as fh:" \
-        "    json.dump(data, fh, indent=2)" \
-        >"${report_path}.${installation_type}.py" || {
-        echo_error "Failed to cache [${installation_type}] dependencies graph."
-        exit_code=1
-    }
-    "${PYTHONBIN}" "${report_path}.${installation_type}.py"
-
     if [[ "${installation_type}" == "build" ]]; then
-        echo -e "${bold_green}${sparkles} Installing ${package_name_snake_case}${end}"
+        echo -e "${bold_green}${sparkles} Installing run dependencies${end}"
         "${PYTHONBIN}" -m pip install \
             --force-reinstall \
             --no-compile \
             --no-warn-script-location \
-            "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
-            echo_error "Failed to install ${package_name_snake_case}."
-            exit_code=1
-        }
-        # pip uninstall <pkg> removes only that package and leaves all dependencies installed.
-        "${PYTHONBIN}" -m pip uninstall --yes "${package_name_dashed}" || {
-            echo_error "Failed to uninstall ${package_name_dashed}."
+            "${run_requirements_pyproject_toml[@]}" || {
+            echo_error "Failed to install run dependencies."
             exit_code=1
         }
     elif [[ "${installation_type}" == "sync" ]]; then
-        echo -e "${bold_green}${sparkles} Syncing ${package_name_snake_case}${end}"
+        echo -e "${bold_green}${sparkles} Syncing run dependencies${end}"
         if [[ ! -f "${report_path}.build" ]]; then
             echo_warning "No [build] dependencies graph found."
             pip_run_dependencies "${p_name}" "build"
-        fi
-        if ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
+        elif ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
             echo_warning "Requirements changed."
             pip_run_dependencies "${p_name}" "build"
+        else
+            echo -e "Sync complete!"
         fi
-        echo -e "Sync complete!"
     else
         echo_error "Unknown installation type: '${installation_type}'"
         exit_code=1
@@ -1040,12 +982,12 @@ function pip_run_dependencies_legacy() {
             if [[ ! -f "${report_path}.build" ]]; then
                 echo_warning "No [build] dependencies graph found."
                 pip_run_dependencies_legacy "${p_name}" "build"
-            fi
-            if ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
+            elif ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
                 echo_warning "Requirements changed."
                 pip_run_dependencies_legacy "${p_name}" "build"
+            else
+                echo -e "Sync complete!"
             fi
-            echo -e "Sync complete!"
         else
             echo_error "Unknown installation type: '${installation_type}'"
             exit_code=1
@@ -1101,12 +1043,12 @@ function pip_dev_dependencies() {
             if [[ ! -f "${report_path}.build" ]]; then
                 echo_warning "No [build] dependencies graph found."
                 pip_dev_dependencies "${p_name}" "build"
-            fi
-            if ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
+            elif ! diff -q "${report_path}.build" "${report_path}.sync" >/dev/null 2>&1; then
                 echo_warning "Requirements changed."
                 pip_dev_dependencies "${p_name}" "build"
+            else
+                echo -e "Sync complete!"
             fi
-            echo -e "Sync complete!"
         else
             echo_error "Unknown installation type: '${installation_type}'"
             exit_code=1
@@ -1257,6 +1199,22 @@ function build_path_icarus_python3() {
         only_with_python_default=true
         response="${package_language}"
         ;;
+    "${path_pkg_version_full_name}")
+        only_with_python_default=true
+        response="${package_version_full}"
+        ;;
+    "${path_pkg_version_major_name}")
+        only_with_python_default=true
+        response="${package_version_major}"
+        ;;
+    "${path_pkg_version_minor_name}")
+        only_with_python_default=true
+        response="${package_version_minor}"
+        ;;
+    "${path_pkg_version_patch_name}")
+        only_with_python_default=true
+        response="${package_version_patch}"
+        ;;
     "${path_ws_root_name}")
         only_with_python_default=true
         response="${project_root_dir_abs}"
@@ -1312,8 +1270,8 @@ function build_path_icarus_python3() {
         pip_pip "${path_pkg_runtimefarm_name}" "${installation_type}"
         pip_target_package "${path_pkg_runtimefarm_name}" "build" # We never sync pkg_only
         write_python_packages_release_info
-        mark_farm_ready_icarus_python3 "${pkg_runtimefarm_root}" "${installation_type}"
         fix_shebang_shim "${pkg_runtimefarm_root}"
+        mark_farm_ready_icarus_python3 "${pkg_runtimefarm_root}" "${installation_type}"
         deactivate_farm_icarus_python3
         response="${pkg_runtimefarm_root}"
         ;;

@@ -18,6 +18,10 @@ path_pkg_name_pascal_name="pkg.name-pascal"
 path_pkg_name_snake_name="pkg.name-snake"
 path_pkg_name_dashed_name="pkg.name-dashed"
 path_pkg_language_name="pkg.language"
+path_pkg_version_full_name="pkg.version"
+path_pkg_version_major_name="pkg.version-major"
+path_pkg_version_minor_name="pkg.version-minor"
+path_pkg_version_patch_name="pkg.version-patch"
 path_pkg_runtimefarm_name="pkg.runtimefarm"
 path_pkg_pythonhome_name="pkg.pythonhome"
 
@@ -42,6 +46,10 @@ path_all_names=(
     "${path_pkg_name_snake_name}"
     "${path_pkg_name_dashed_name}"
     "${path_pkg_language_name}"
+    "${path_pkg_version_full_name}"
+    "${path_pkg_version_major_name}"
+    "${path_pkg_version_minor_name}"
+    "${path_pkg_version_patch_name}"
     "${path_ws_root_name}"
     "${path_ws_src_root_name}"
     "${path_ws_build_root_name}"
@@ -65,6 +73,10 @@ declare -g -r path_pkg_name_pascal_name
 declare -g -r path_pkg_name_snake_name
 declare -g -r path_pkg_name_dashed_name
 declare -g -r path_pkg_language_name
+declare -g -r path_pkg_version_full_name
+declare -g -r path_pkg_version_major_name
+declare -g -r path_pkg_version_minor_name
+declare -g -r path_pkg_version_patch_name
 declare -g -r path_ws_root_name
 declare -g -r path_ws_src_root_name
 declare -g -r path_ws_build_root_name

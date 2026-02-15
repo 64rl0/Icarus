@@ -254,6 +254,10 @@ function set_constants() {
     declare -r -g package_name_snake_case
     declare -r -g package_name_dashed
     declare -r -g package_language
+    declare -r -g package_version_full
+    declare -r -g package_version_major
+    declare -r -g package_version_minor
+    declare -r -g package_version_patch
     declare -r -g build_system_in_use
     declare -r -g platform_identifier
     declare -r -g build_root_dir
@@ -261,6 +265,7 @@ function set_constants() {
     declare -r -g python_versions_for_icarus
     declare -r -g tool_requirements_paths
     declare -r -g run_requirements_paths
+    declare -r -g run_requirements_pyproject_toml
     declare -r -g dev_requirements_paths
     declare -r -g icarus_ignore_array
     declare -r -g build
@@ -1129,7 +1134,7 @@ function workspace_merge() (
             continue
         fi
         # shellcheck disable=SC1090
-        . "${farm_ready}" || {
+        . <(head -n 11 "${farm_ready}") || {
             echo_error "Failed to merge workspace."
             merge_summary_status="${failed}"
             exit_code=1

@@ -40,6 +40,7 @@ import os
 import pathlib
 import re
 import time
+import tomllib
 from typing import IO, Literal, Optional, TypedDict, Union
 
 # Third Party Library Imports
@@ -78,6 +79,10 @@ class IbArgMmp(TypedDict):
     package_name_snake_case: str
     package_name_dashed: str
     package_language: str
+    package_version_full: str
+    package_version_major: str
+    package_version_minor: str
+    package_version_patch: str
     build_system_in_use: str
     platform_identifier: str
     build_root_dir: str
@@ -85,6 +90,7 @@ class IbArgMmp(TypedDict):
     python_versions_for_icarus: list[str]
     tool_requirements_paths: list[str]
     run_requirements_paths: list[str]
+    run_requirements_pyproject_toml: list[str]
     dev_requirements_paths: list[str]
     icarus_ignore_array: list[str]
     build: str
@@ -285,6 +291,7 @@ def get_argv(ib_args: dict[str, Union[int, str, list[str]]]) -> str:
     ib_arg_mmp = _initialize_ib_arg_mmp(ib_args=ib_args)
     ib_arg_mmp = _read_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
     ib_arg_mmp = _parse_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = _parse_pyproject_toml(ib_arg_mmp=ib_arg_mmp)
     ib_arg_mmp = _validate_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
     ib_arg_mmp = _process_ib_args(ib_arg_mmp=ib_arg_mmp, ib_args=ib_args)
     ib_arg_mmp = _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
@@ -334,6 +341,10 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> Ib
         'package_name_snake_case': '',
         'package_name_dashed': '',
         'package_language': '',
+        'package_version_full': '',
+        'package_version_major': '',
+        'package_version_minor': '',
+        'package_version_patch': '',
         'build_system_in_use': '',
         'platform_identifier': utils.platform_id(),
         'build_root_dir': '',
@@ -341,6 +352,7 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> Ib
         'python_versions_for_icarus': [],
         'tool_requirements_paths': [],
         'run_requirements_paths': [],
+        'run_requirements_pyproject_toml': [],
         'dev_requirements_paths': [],
         'icarus_ignore_array': [],
         'merge': 'Y' if ib_args.get('merge') else 'N',
@@ -589,6 +601,33 @@ def _read_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     return ib_arg_mmp
 
 
+def _parse_pyproject_toml(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+    """
+    Parse the pyproject.toml file.
+
+    :param ib_arg_mmp:
+    :return:
+    """
+
+    pyproject_toml_filepath = os.path.join(ib_arg_mmp['project_root_dir_abs'], 'pyproject.toml')
+
+    try:
+        with open(pyproject_toml_filepath, 'rb') as pyproject_toml:
+            pyproject_toml_data = tomllib.load(pyproject_toml)
+    except Exception:
+        # This is an optional requirement we do not raise.
+        pass
+
+    try:
+        ib_arg_mmp['run_requirements_pyproject_toml'] = pyproject_toml_data.get('project', {}).get(
+            'dependencies', []
+        )
+    except Exception:
+        pass
+
+    return ib_arg_mmp
+
+
 def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     """
     Parse the icarus build config file.
@@ -618,6 +657,11 @@ def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
 
     try:
         ib_arg_mmp['package_language'] = [d['language'] for d in pkg if d.get('language')][0]
+    except Exception:
+        pass
+
+    try:
+        ib_arg_mmp['package_version_full'] = [d['version'] for d in pkg if d.get('version')][0]
     except Exception:
         pass
 
@@ -699,6 +743,21 @@ def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         if not isinstance(ib_arg_mmp.get('package_language'), str):
             raise utils.IcarusParserException(
                 f'language in package {config.ICARUS_CFG_FILENAME} must be a string'
+            )
+
+    if not ib_arg_mmp.get('package_version_full'):
+        raise utils.IcarusParserException(
+            f'No version specified in package {config.ICARUS_CFG_FILENAME}'
+        )
+    else:
+        if not isinstance(ib_arg_mmp.get('package_version_full'), str):
+            raise utils.IcarusParserException(
+                f'version in package {config.ICARUS_CFG_FILENAME} must be a string'
+            )
+        if len(ib_arg_mmp.get('package_version_full', '').split('.')) not in {3}:
+            raise utils.IcarusParserException(
+                f'Invalid version in package {config.ICARUS_CFG_FILENAME}, version must follow'
+                ' Semantic Versioning (SemVer): MAJOR.MINOR.PATCH (see https://semver.org).'
             )
 
     if not ib_arg_mmp.get('build_system_in_use'):
@@ -885,6 +944,11 @@ def _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgM
         ib_arg_mmp['package_name_dashed'] = ib_arg_mmp['package_name_snake_case'].replace("_", "-")
     except Exception:
         raise utils.IcarusParserException(f"Invalid package name in {config.ICARUS_CFG_FILENAME}")
+
+    # Add pkg version
+    ib_arg_mmp['package_version_major'] = ib_arg_mmp['package_version_full'].split('.')[0]
+    ib_arg_mmp['package_version_minor'] = ib_arg_mmp['package_version_full'].split('.')[1]
+    ib_arg_mmp['package_version_patch'] = ib_arg_mmp['package_version_full'].split('.')[2]
 
     # Remove duplicates and sort from newest to oldest version
     ib_arg_mmp['python_versions_for_icarus'] = sorted(

@@ -660,6 +660,34 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
+        name='pkg.version',
+        help='returns the version of the current package in SemVer format AKA MAJOR.MINOR.PATCH',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version-major',
+        help='returns the major version of the current package in SemVer format',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version-minor',
+        help='returns the minor version of the current package in SemVer format',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version-patch',
+        help='returns the patch version of the current package in SemVer format',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
         name='workspace.root',
         help='returns the path to the current workspace root',
         description='',
