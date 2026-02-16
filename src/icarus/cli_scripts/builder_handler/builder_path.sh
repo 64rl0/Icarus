@@ -896,7 +896,7 @@ function pip_run_dependencies() {
 
     report_path="${path_to_path_cache_root}/run_${p_graph}_${p_recipe}_${p_ver}"
 
-    echo -e "${bold_green}${sparkles} Caching [${installation_type}] [run] dependencies graph${end}"
+    echo -e "${bold_green}${sparkles} Caching [${installation_type}] [run:pyproject.toml] dependencies graph${end}"
     "${PYTHONBIN}" -m pip install \
         --dry-run \
         --ignore-installed \
@@ -908,17 +908,17 @@ function pip_run_dependencies() {
     echo
 
     if [[ "${installation_type}" == "build" ]]; then
-        echo -e "${bold_green}${sparkles} Installing run dependencies${end}"
+        echo -e "${bold_green}${sparkles} Installing pyproject.toml dependencies${end}"
         "${PYTHONBIN}" -m pip install \
             --force-reinstall \
             --no-compile \
             --no-warn-script-location \
             "${run_requirements_pyproject_toml[@]}" || {
-            echo_error "Failed to install run dependencies."
+            echo_error "Failed to install pyproject.toml dependencies."
             exit_code=1
         }
     elif [[ "${installation_type}" == "sync" ]]; then
-        echo -e "${bold_green}${sparkles} Syncing run dependencies${end}"
+        echo -e "${bold_green}${sparkles} Syncing pyproject.toml dependencies${end}"
         if [[ ! -f "${report_path}.build" ]]; then
             echo_warning "No [build] dependencies graph found."
             pip_run_dependencies "${p_name}" "build"
