@@ -95,7 +95,7 @@ function echo_icarus_python3_project_info() {
 
 function echo_summary() {
     local execution_time execution_time_total execution_time_partial total_execution_time
-    local python_versions_pretty python_version_composite hook tool path_called_hook
+    local python_versions_pretty python_version_composite hook tool
     local -a all_running_hooks_name
 
     execution_time=""
@@ -118,6 +118,8 @@ function echo_summary() {
     echo_title "Icarus Builder Summary"
 
     echo -e "${bold_blue}${cli_name} builder:${end}"
+    # We need to unset everything to get the real icarus running in the os
+    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
     echo -e "$("${this_cli_fullpath}" --version)"
     echo
 
@@ -1094,7 +1096,7 @@ function resolve_path() {
     # therefore this is a hard stop, using errexit.
 
     # Clear previous exports
-    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN
+    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
     PATH="${_OLD_PATH}"
     export PATH
 
@@ -1435,7 +1437,6 @@ function dispatch_icarus_python3_before_build_plugins() {
     resolve_path "${path_tool_runtimefarm_name}"
     end_block=$(date +%s.%N)
     path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
-    echo
 }
 
 function dispatch_icarus_python3_after_build_plugins() {
@@ -1463,7 +1464,6 @@ function dispatch_icarus_python3_before_exectool_plugins() {
         resolve_path "${path_tool_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
-        echo
 
         echo_title "Project & Env info"
         echo_icarus_python3_project_info
@@ -1495,7 +1495,6 @@ function dispatch_icarus_python3_before_execrun_plugins() {
         resolve_path "${path_run_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
-        echo
 
         echo_title "Project & Env info"
         echo_icarus_python3_project_info
@@ -1527,7 +1526,6 @@ function dispatch_icarus_python3_before_execdev_plugins() {
         resolve_path "${path_devrun_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
-        echo
 
         echo_title "Project & Env info"
         echo_icarus_python3_project_info
@@ -1566,7 +1564,6 @@ function dispatch_icarus_python3_before_tools_plugins() {
     resolve_path "${path_devrun_excluderoot_runtimefarm_name}"
     end_block=$(date +%s.%N)
     path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
-    echo
 
     echo_title "Project & Env info"
     echo_icarus_python3_project_info

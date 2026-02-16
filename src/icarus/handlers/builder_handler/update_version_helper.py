@@ -64,7 +64,7 @@ def update_version_file(ib_arg_mmp: IbArgMmp) -> None:
     print("", flush=True)
 
     # Parse the command line
-    version_option = input('Enter the version type (major, minor or [patch]): ')
+    version_option = input('Enter the release type (major, minor or [patch]): ')
     if version_option not in ('major', 'minor', 'patch', ''):
         raise utils.IcarusParserException("Version option must be 'major', 'minor' or 'patch'")
 

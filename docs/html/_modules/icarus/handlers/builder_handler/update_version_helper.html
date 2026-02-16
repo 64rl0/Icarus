@@ -138,7 +138,7 @@
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Parse the command line</span>
-    <span class="n">version_option</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Enter the version type (major, minor or [patch]): &#39;</span><span class="p">)</span>
+    <span class="n">version_option</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Enter the release type (major, minor or [patch]): &#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">version_option</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="s1">&#39;patch&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s2">&quot;Version option must be &#39;major&#39;, &#39;minor&#39; or &#39;patch&#39;&quot;</span><span class="p">)</span>
 

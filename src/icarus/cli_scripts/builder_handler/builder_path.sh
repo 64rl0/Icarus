@@ -746,13 +746,12 @@ function pip_pip() {
             pip_pip "${p_name}" "build"
         else
             echo -e "Sync complete!"
+            echo
         fi
     else
         echo_error "Unknown installation type: '${installation_type}'"
         exit_code=1
     fi
-
-    echo
 }
 
 function pip_target_package() {
@@ -869,14 +868,13 @@ function pip_tool_dependencies() {
                 pip_tool_dependencies "${p_name}" "build"
             else
                 echo -e "Sync complete!"
+                echo
             fi
         else
             echo_error "Unknown installation type: '${installation_type}'"
             exit_code=1
         fi
     done
-
-    echo
 }
 
 function pip_run_dependencies() {
@@ -928,13 +926,12 @@ function pip_run_dependencies() {
             pip_run_dependencies "${p_name}" "build"
         else
             echo -e "Sync complete!"
+            echo
         fi
     else
         echo_error "Unknown installation type: '${installation_type}'"
         exit_code=1
     fi
-
-    echo
 }
 
 function pip_run_dependencies_legacy() {
@@ -988,14 +985,13 @@ function pip_run_dependencies_legacy() {
                 pip_run_dependencies_legacy "${p_name}" "build"
             else
                 echo -e "Sync complete!"
+                echo
             fi
         else
             echo_error "Unknown installation type: '${installation_type}'"
             exit_code=1
         fi
     done
-
-    echo
 }
 
 function pip_dev_dependencies() {
@@ -1049,14 +1045,13 @@ function pip_dev_dependencies() {
                 pip_dev_dependencies "${p_name}" "build"
             else
                 echo -e "Sync complete!"
+                echo
             fi
         else
             echo_error "Unknown installation type: '${installation_type}'"
             exit_code=1
         fi
     done
-
-    echo
 }
 
 function write_python_packages_release_info() {
@@ -1162,7 +1157,7 @@ function activate_farm_icarus_python3() {
 }
 
 function deactivate_farm_icarus_python3() {
-    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN
+    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
 }
 
 ####################################################################################################
