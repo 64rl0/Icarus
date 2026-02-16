@@ -1437,6 +1437,7 @@ function dispatch_icarus_python3_before_build_plugins() {
     resolve_path "${path_tool_runtimefarm_name}"
     end_block=$(date +%s.%N)
     path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+    echo
 }
 
 function dispatch_icarus_python3_after_build_plugins() {
@@ -1464,6 +1465,7 @@ function dispatch_icarus_python3_before_exectool_plugins() {
         resolve_path "${path_tool_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+        echo
 
         echo_title "Project & Env info"
         echo_icarus_python3_project_info
@@ -1495,6 +1497,7 @@ function dispatch_icarus_python3_before_execrun_plugins() {
         resolve_path "${path_run_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+        echo
 
         echo_title "Project & Env info"
         echo_icarus_python3_project_info
@@ -1526,6 +1529,7 @@ function dispatch_icarus_python3_before_execdev_plugins() {
         resolve_path "${path_devrun_runtimefarm_name}"
         end_block=$(date +%s.%N)
         path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+        echo
 
         echo_title "Project & Env info"
         echo_icarus_python3_project_info
@@ -1564,6 +1568,7 @@ function dispatch_icarus_python3_before_tools_plugins() {
     resolve_path "${path_devrun_excluderoot_runtimefarm_name}"
     end_block=$(date +%s.%N)
     path_execution_time=$(echo "${path_execution_time}" + "${end_block} - ${start_block}" | bc)
+    echo
 
     echo_title "Project & Env info"
     echo_icarus_python3_project_info

@@ -736,6 +736,7 @@ function pip_pip() {
             echo_error "Failed to install pip."
             exit_code=1
         }
+        echo
     elif [[ "${installation_type}" == "sync" ]]; then
         echo -e "${bold_green}${sparkles} Syncing pip${end}"
         if [[ ! -f "${report_path}.build" ]]; then
@@ -807,14 +808,13 @@ function pip_target_package() {
             echo_error "Failed to install ${package_name_snake_case}."
             exit_code=1
         }
+        echo
     elif [[ "${installation_type}" == "sync" ]]; then
         echo_error "Sync unavailable for target packages."
     else
         echo_error "Unknown installation type: '${installation_type}'"
         exit_code=1
     fi
-
-    echo
 }
 
 function pip_tool_dependencies() {
@@ -858,6 +858,7 @@ function pip_tool_dependencies() {
                 echo_error "Failed to install requirements ${requirements_path_basename}."
                 exit_code=1
             }
+            echo
         elif [[ "${installation_type}" == "sync" ]]; then
             echo -e "${bold_green}${sparkles} Syncing ${requirements_path_basename}${end}"
             if [[ ! -f "${report_path}.build" ]]; then
@@ -916,6 +917,7 @@ function pip_run_dependencies() {
             echo_error "Failed to install pyproject.toml dependencies."
             exit_code=1
         }
+        echo
     elif [[ "${installation_type}" == "sync" ]]; then
         echo -e "${bold_green}${sparkles} Syncing pyproject.toml dependencies${end}"
         if [[ ! -f "${report_path}.build" ]]; then
@@ -975,6 +977,7 @@ function pip_run_dependencies_legacy() {
                 echo_error "Failed to install requirements ${requirements_path_basename}."
                 exit_code=1
             }
+            echo
         elif [[ "${installation_type}" == "sync" ]]; then
             echo -e "${bold_green}${sparkles} Syncing ${requirements_path_basename}${end}"
             if [[ ! -f "${report_path}.build" ]]; then
@@ -1035,6 +1038,7 @@ function pip_dev_dependencies() {
                 echo_error "Failed to install requirements ${requirements_path_basename}."
                 exit_code=1
             }
+            echo
         elif [[ "${installation_type}" == "sync" ]]; then
             echo -e "${bold_green}${sparkles} Syncing ${requirements_path_basename}${end}"
             if [[ ! -f "${report_path}.build" ]]; then
