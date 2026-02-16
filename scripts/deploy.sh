@@ -76,16 +76,15 @@ script_dir_abs="$(realpath -- "$(dirname -- "${BASH_SOURCE[0]}")")"
 declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
-update_version="${script_dir_abs}/update_version.sh"
-declare -r update_version
 build_runtime="${script_dir_abs}/build_runtime.sh"
 declare -r build_runtime
+cli_version_file="${project_root_dir_abs}/src/icarus/config/constants.py"
+declare -r cli_version_file
 
 if ! command -v gh >/dev/null 2>&1; then
     echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] GitHub CLI (gh) is not installed or not in PATH."
     exit 1
 fi
-
 if [[ -z "${GH_TOKEN}" ]]; then
     echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] GH_TOKEN environment variable is not set."
     exit 1
@@ -93,31 +92,49 @@ fi
 
 pushd "${project_root_dir_abs}" >/dev/null 2>&1
 git fetch
+echo
 
 # Making fresh runtime
 bash "${build_runtime}"
+echo
 
 # Running icarus builder build tool
 "${project_root_dir_abs}"/bin/icarus builder release
+echo
 
+# Update version
 echo -e "${bold_green}Select release type${end}"
-. "${update_version}" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source update_version.sh"
+"${project_root_dir_abs}"/bin/icarus builder hook --bumpver || {
+    echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to update version"
+}
+echo
+
+# Write the new version to the file
+today=$(date +%m/%d/%Y)
+new_cli_version="CLI_VERSION = f'build {_SEMANTIC_VERSION} built on ${today}'"
+sed -i '' "s|^CLI_VERSION = .*|${new_cli_version}|" "${cli_version_file}"
+
+new_version=$("${project_root_dir_abs}"/bin/icarus builder path 'pkg.version')
+echo -e "${bold_green}New version: build ${new_version} built on ${today}${end}"
+echo
 
 echo -e "${bold_green}Pushing changes to git${end}"
 git add .
-git commit -m "publish build ${new_major}.${new_minor}.${new_patch} (${today})"
+git commit -m "publish build ${new_version} (${today})"
 git push
-
 echo
+
 echo -e "${bold_green}Creating github release${end}"
-gh release create "v${new_major}.${new_minor}.${new_patch}" --latest=true --repo "64rl0/Icarus" --title "" --notes ""
+gh release create "v${new_version}" --latest=true --repo "64rl0/Icarus" --title "" --notes ""
+echo
 
 pushd "${HOME}" >/dev/null 2>&1
-
 echo
+
 echo -e "${bold_green}Updating local version of icarus${end}"
 icarus --update || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to update icarus"
-
 echo
+
 echo -e "${bold_green}Updating local version of icarus${end}"
 icarus --update || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to update icarus"
+echo

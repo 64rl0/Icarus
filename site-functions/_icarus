@@ -124,7 +124,7 @@ _icarus() {
                 'exec-tool:run a command inside the tool.runtimefarm environment'
                 'exec-run:run a command inside the run.runtimefarm environment'
                 'exec-dev:run a command inside the devrun.runtimefarm environment'
-                'flag:the flag to specify the tool'
+                'hook:the hook(s) for the builder'
                 '--help:show help message'
                 '-h:show help message'
             )
@@ -229,7 +229,7 @@ _icarus() {
             ;;
         builder)
             case "${action}" in
-            flag)
+            hook)
                 completions+=(
                     '--build:create/re-create the project runtime environment'
                     '--release:run the full “release” pipeline'
@@ -254,6 +254,7 @@ _icarus() {
                     '--exec-tool:run a command inside the tool.runtimefarm environment'
                     '--exec-run:run a command inside the run.runtimefarm environment'
                     '--exec-dev:run a command inside the devrun.runtimefarm environment'
+                    '--bumpver:interactively bump package version (major, minor, or patch)'
                     '--help:show help message'
                     '-h:show help message'
                 )

@@ -11,6 +11,10 @@
 set -o errexit  # Exit immediately if a command exits with a non-zero status
 set -o pipefail # Exit status of a pipeline is the status of the last cmd to exit with non-zero
 
+# NOTE:
+# This script is intended to be used only by `build_runtime.sh` and must not be
+# invoked directly or by any other script.
+
 # sanitize: replace any character not in [A-Za-z0-9.-] with a dash
 sanitize() {
     local raw="$1"

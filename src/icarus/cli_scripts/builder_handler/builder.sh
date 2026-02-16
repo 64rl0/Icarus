@@ -289,6 +289,7 @@ function set_constants() {
     declare -r -g exectool
     declare -r -g execrun
     declare -r -g execdev
+    declare -r -g bumpver
     declare -r -g initial_command_received
     declare -r -g initial_exectool_command_received
     declare -r -g initial_execrun_command_received
@@ -952,6 +953,32 @@ function run_build_icarus_python3() {
     rm -rf "${path_to_dist_root}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
+    # Store any customer MANIFEST.in
+    if [[ -f "${project_root_dir_abs}/MANIFEST.in" ]]; then
+        mv "${project_root_dir_abs}/MANIFEST.in" "${project_root_dir_abs}/MANIFEST.in.bak" || {
+            echo_error "Failed to backup customer 'MANIFEST.in'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    fi
+
+    # Preparing the MANIFEST.in
+    printf "include icarus.cfg\ninclude README.md\n" >"${project_root_dir_abs}/MANIFEST.in" || {
+        echo_error "Failed to create 'MANIFEST.in'."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    if [[ -f "${project_root_dir_abs}/MANIFEST.in.bak" ]]; then
+        cat "${project_root_dir_abs}/MANIFEST.in.bak" >>"${project_root_dir_abs}/MANIFEST.in" || {
+            echo_error "Failed to create 'MANIFEST.in'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    fi
+
     # Building local package
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package${end}"
     "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
@@ -973,11 +1000,27 @@ function run_build_icarus_python3() {
 
     # Cleanup
     mv "${project_root_dir_abs}/src/${package_name_snake_case}"*".egg-info" "${path_to_dist_root}" || {
-        echo_error "Failed to move build dir to env dir."
+        echo_error "Failed to move egg-info dir to dist dir."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
+    mv "${project_root_dir_abs}/MANIFEST.in" "${path_to_dist_root}" || {
+        echo_error "Failed to move MANIFEST.in to dist dir."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+
+    # Restore any customer MANIFEST.in
+    if [[ -f "${project_root_dir_abs}/MANIFEST.in.bak" ]]; then
+        mv "${project_root_dir_abs}/MANIFEST.in.bak" "${project_root_dir_abs}/MANIFEST.in" || {
+            echo_error "Failed to restore customer 'MANIFEST.in'."
+            build_summary_status="${failed}"
+            build_single_run_status=1
+            exit_code=1
+        }
+    fi
 
     # This will install the pkg just built in the pkg.runtimefarm
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' package${end}"

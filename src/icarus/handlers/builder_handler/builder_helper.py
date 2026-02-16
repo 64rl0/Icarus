@@ -41,7 +41,7 @@ import pathlib
 import re
 import time
 import tomllib
-from typing import IO, Literal, Optional, TypedDict, Union
+from typing import IO, Optional, Union
 
 # Third Party Library Imports
 import requests
@@ -52,6 +52,7 @@ import carlogtt_python_library as mylib
 
 # Local Application Imports
 from icarus import config, utils
+from icarus.handlers.builder_handler.types import IbArgMmp
 
 # END IMPORTS
 # ======================================================================
@@ -60,6 +61,7 @@ from icarus import config, utils
 # List of public names in the module
 __all__ = [
     'get_argv',
+    'get_arg_mmp',
     'ensure_builder_control_plane',
     'acquire_builder_lock',
     'release_builder_lock',
@@ -68,85 +70,6 @@ __all__ = [
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)
-
-
-# Type aliases
-class IbArgMmp(TypedDict):
-    icarus_config_filename: str
-    icarus_config_filepath: str
-    project_root_dir_abs: str
-    package_name_pascal_case: str
-    package_name_snake_case: str
-    package_name_dashed: str
-    package_language: str
-    package_version_full: str
-    package_version_major: str
-    package_version_minor: str
-    package_version_patch: str
-    build_system_in_use: str
-    platform_identifier: str
-    build_root_dir: str
-    python_version_default_for_icarus: str
-    python_versions_for_icarus: list[str]
-    tool_requirements_paths: list[str]
-    run_requirements_paths: list[str]
-    run_requirements_pyproject_toml: list[str]
-    dev_requirements_paths: list[str]
-    icarus_ignore_array: list[str]
-    build: str
-    is_only_build_hook: str
-    is_release: str
-    merge: str
-    clean: str
-    isort: str
-    black: str
-    flake8: str
-    mypy: str
-    shfmt: str
-    eolnorm: str
-    whitespaces: str
-    trailing: str
-    eofnewline: str
-    gitleaks: str
-    pytest: str
-    sphinx: str
-    readthedocs: str
-    exectool: str
-    execrun: str
-    execdev: str
-    initial_command_received: str
-    initial_exectool_command_received: list[str]
-    initial_execrun_command_received: list[str]
-    initial_execdev_command_received: list[str]
-    running_hooks_name: list[str]
-    running_hooks_count: str
-    verbose: str
-    all_hooks: tuple[
-        Literal['build'],
-        Literal['clean'],
-        Literal['isort'],
-        Literal['black'],
-        Literal['flake8'],
-        Literal['mypy'],
-        Literal['shfmt'],
-        Literal['eolnorm'],
-        Literal['whitespaces'],
-        Literal['trailing'],
-        Literal['eofnewline'],
-        Literal['gitleaks'],
-        Literal['pytest'],
-        Literal['sphinx'],
-        Literal['readthedocs'],
-        Literal['merge'],
-        Literal['exectool'],
-        Literal['execrun'],
-        Literal['execdev'],
-    ]
-    python_default_version: str
-    python_default_full_version: str
-    python_versions: list[str]
-    path_name: str
-    list_paths: str
 
 
 class BuildSystems(enum.Enum):
@@ -278,6 +201,26 @@ def run_bash_script_with_logging(
     return return_code
 
 
+def get_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> IbArgMmp:
+    """
+    Get the IbbArgMmp dictionary.
+
+    :param ib_args: The parsed arguments.
+    :return: The IbbArgMmp dictionary.
+    """
+
+    ib_arg_mmp = _initialize_ib_arg_mmp(ib_args=ib_args)
+    ib_arg_mmp = _read_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = _parse_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = _validate_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = _parse_pyproject_toml(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = _process_ib_args(ib_arg_mmp=ib_arg_mmp, ib_args=ib_args)
+    ib_arg_mmp = _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = _normalize_and_set_python_version(ib_arg_mmp=ib_arg_mmp)
+
+    return ib_arg_mmp
+
+
 def get_argv(ib_args: dict[str, Union[int, str, list[str]]]) -> str:
     """
     Get the arguments for the builder.sh script.
@@ -286,16 +229,7 @@ def get_argv(ib_args: dict[str, Union[int, str, list[str]]]) -> str:
     :return: The arguments for the builder.sh script.
     """
 
-    _validate_build_cli_args_base_rules(ib_args=ib_args)
-
-    ib_arg_mmp = _initialize_ib_arg_mmp(ib_args=ib_args)
-    ib_arg_mmp = _read_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _parse_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _parse_pyproject_toml(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _validate_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _process_ib_args(ib_arg_mmp=ib_arg_mmp, ib_args=ib_args)
-    ib_arg_mmp = _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _normalize_and_set_python_version(ib_arg_mmp=ib_arg_mmp)
+    ib_arg_mmp = get_arg_mmp(ib_args=ib_args)
 
     ib_argv = _convert_ib_arg_mmp_to_ib_argv(ib_arg_mmp=ib_arg_mmp)
 
@@ -333,6 +267,7 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> Ib
             'exectool',
             'execrun',
             'execdev',
+            'bumpver',
         ),
         'icarus_config_filename': '',
         'icarus_config_filepath': '',
@@ -374,6 +309,7 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> Ib
         'exectool': 'Y' if ib_args.get('exectool') else 'N',
         'execrun': 'Y' if ib_args.get('execrun') else 'N',
         'execdev': 'Y' if ib_args.get('execdev') else 'N',
+        'bumpver': 'Y' if ib_args.get('bumpver') else 'N',
         'initial_command_received': 'icarus builder',
         'initial_exectool_command_received': [],
         'initial_execrun_command_received': [],
@@ -390,20 +326,6 @@ def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> Ib
     }
 
     return ib_arg_mmp
-
-
-def _validate_build_cli_args_base_rules(ib_args: dict[str, Union[int, str, list[str]]]) -> None:
-    """
-    Prepare the arguments for the builder.sh script.
-
-    This function takes the parsed arguments and prepares them for the
-    builder.sh script to eval them and set as script variables.
-
-    :param ib_args:
-    :return:
-    """
-
-    # Initial validations placeholder
 
 
 def _process_ib_args(
@@ -601,33 +523,6 @@ def _read_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     return ib_arg_mmp
 
 
-def _parse_pyproject_toml(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
-    """
-    Parse the pyproject.toml file.
-
-    :param ib_arg_mmp:
-    :return:
-    """
-
-    pyproject_toml_filepath = os.path.join(ib_arg_mmp['project_root_dir_abs'], 'pyproject.toml')
-
-    try:
-        with open(pyproject_toml_filepath, 'rb') as pyproject_toml:
-            pyproject_toml_data = tomllib.load(pyproject_toml)
-    except Exception:
-        # This is an optional requirement we do not raise.
-        pass
-
-    try:
-        ib_arg_mmp['run_requirements_pyproject_toml'] = pyproject_toml_data.get('project', {}).get(
-            'dependencies', []
-        )
-    except Exception:
-        pass
-
-    return ib_arg_mmp
-
-
 def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
     """
     Parse the icarus build config file.
@@ -641,7 +536,7 @@ def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
             ibc = yaml.safe_load(icarus_build_config)
     except Exception as e:
         raise utils.IcarusParserException(
-            f"Error parsing {ib_arg_mmp['icarus_config_filepath']}\n               {repr(e)}"
+            f"Error parsing {ib_arg_mmp['icarus_config_filepath']} -- {repr(e)}"
         )
 
     pkg = ibc.get('package', [])
@@ -912,6 +807,33 @@ def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
             raise utils.IcarusParserException(
                 f'Icarus ignore in ignore {config.ICARUS_CFG_FILENAME} must be a list of string'
             )
+
+    return ib_arg_mmp
+
+
+def _parse_pyproject_toml(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+    """
+    Parse the pyproject.toml file.
+
+    :param ib_arg_mmp:
+    :return:
+    """
+
+    pyproject_toml_filepath = os.path.join(ib_arg_mmp['project_root_dir_abs'], 'pyproject.toml')
+
+    try:
+        with open(pyproject_toml_filepath, 'rb') as pyproject_toml:
+            pyproject_toml_data = tomllib.load(pyproject_toml)
+    except Exception:
+        # This is an optional requirement we do not raise.
+        pass
+
+    try:
+        ib_arg_mmp['run_requirements_pyproject_toml'] = pyproject_toml_data.get('project', {}).get(
+            'dependencies', []
+        )
+    except Exception:
+        pass
 
     return ib_arg_mmp
 

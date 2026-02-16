@@ -79,6 +79,7 @@ function set_constants() {
     declare -r -g exectool
     declare -r -g execrun
     declare -r -g execdev
+    declare -r -g bumpver
     declare -r -g initial_command_received
     declare -r -g initial_exectool_command_received
     declare -r -g initial_execrun_command_received

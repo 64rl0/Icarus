@@ -35,7 +35,7 @@ from typing import Union
 
 # Local Application Imports
 from icarus import config, utils
-from icarus.handlers.builder_handler import builder_helper, create_helper
+from icarus.handlers.builder_handler import builder_helper, create_helper, update_version_helper
 
 # END IMPORTS
 # ======================================================================
@@ -94,6 +94,7 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         'exectool': getattr(args, 'exec-tool', '') or getattr(args, 'exec_tool', ''),
         'execrun': getattr(args, 'exec-run', '') or getattr(args, 'exec_run', ''),
         'execdev': getattr(args, 'exec-dev', '') or getattr(args, 'exec_dev', ''),
+        'bumpver': getattr(args, 'bumpver', ''),
     }
     singleton_args = {
         'path',
@@ -183,6 +184,11 @@ def handle_builder_command(args: argparse.Namespace) -> int:
                 '--exec-dev is a standalone argument and must be used alone'
             )
 
+        if builder_only_args.get('bumpver') and total_builder_only_args > 1:
+            raise utils.IcarusParserException(
+                '--bumpver is a standalone argument and must be used alone'
+            )
+
         if not any(builder_only_args.values()):
             raise utils.IcarusParserException('the following arguments are required: <subcommand>')
 
@@ -192,12 +198,16 @@ def handle_builder_command(args: argparse.Namespace) -> int:
         builder_lock = builder_helper.acquire_builder_lock()
 
         try:
-            script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
-            script_args = [builder_helper.get_argv(ib_args=builder_args)]
+            if builder_only_args.get('bumpver'):
+                ib_arg_mmp = builder_helper.get_arg_mmp(ib_args=builder_args)
+                return_code = update_version_helper.update_version_file(ib_arg_mmp=ib_arg_mmp)
+            else:
+                script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
+                script_args = [builder_helper.get_argv(ib_args=builder_args)]
 
-            return_code = builder_helper.run_bash_script_with_logging(
-                script_path=script_path, script_args=script_args
-            )
+                return_code = builder_helper.run_bash_script_with_logging(
+                    script_path=script_path, script_args=script_args
+                )
         finally:
             builder_helper.release_builder_lock(builder_lock)
 

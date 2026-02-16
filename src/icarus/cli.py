@@ -300,14 +300,22 @@ def initialize_parser() -> argparse.ArgumentParser:
     # ===================
     # Builder subcommands
     # ===================
-    builder_flag_par = builder_sub.add_parser(
-        name='flag',
-        help='the flag to specify the tool',
+    builder_hook_par = builder_sub.add_parser(
+        name='hook',
+        help='the hook(s) for the builder',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
+        '--bumpver',
+        required=False,
+        action='store_const',
+        const='--bumpver',
+        default='',
+        help='interactively bump package version (major, minor, or patch)',
+    )
+    builder_hook_par.add_argument(
         '--exec-tool',
         required=False,
         nargs='+',
@@ -315,7 +323,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run a command inside the tool.runtimefarm environment',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--exec-run',
         required=False,
         nargs='+',
@@ -323,7 +331,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run a command inside the run.runtimefarm environment',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--exec-dev',
         required=False,
         nargs='+',
@@ -331,7 +339,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run a command inside the devrun.runtimefarm environment',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--merge',
         required=False,
         action='store_const',
@@ -339,7 +347,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='merge user-space installed tools into runtimefarms exposed by builder path',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--build',
         required=False,
         action='store_const',
@@ -347,7 +355,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='create/re-create the project runtime environment',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--clean',
         required=False,
         action='store_const',
@@ -355,7 +363,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='clean the project runtime environment',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--release',
         required=False,
         action='store_const',
@@ -363,7 +371,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the full “release” pipeline',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--format',
         required=False,
         action='store_const',
@@ -371,7 +379,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the formatting tools',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--test',
         required=False,
         action='store_const',
@@ -379,7 +387,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run the automated test suite',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--docs',
         required=False,
         action='store_const',
@@ -387,7 +395,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='generate user documentation',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--isort',
         required=False,
         action='store_const',
@@ -395,7 +403,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='sort python imports with isort',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--black',
         required=False,
         action='store_const',
@@ -403,7 +411,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='re-format python code with black',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--flake8',
         required=False,
         action='store_const',
@@ -411,7 +419,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='run static analysis with flake8',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--mypy',
         required=False,
         action='store_const',
@@ -419,7 +427,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='type-check the codebase with mypy',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--shfmt',
         required=False,
         action='store_const',
@@ -427,7 +435,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='format shell scripts with shfmt',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--whitespaces',
         required=False,
         action='store_const',
@@ -435,7 +443,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='normalize mixed or excessive whitespace',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--trailing',
         required=False,
         action='store_const',
@@ -443,7 +451,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='remove trailing whitespace',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--eofnewline',
         required=False,
         action='store_const',
@@ -451,7 +459,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='ensure files end with a single newline',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--eolnorm',
         required=False,
         action='store_const',
@@ -459,7 +467,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='normalize line endings to LF',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--gitleaks',
         required=False,
         action='store_const',
@@ -467,7 +475,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='scan for secrets with gitleaks',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--pytest',
         required=False,
         action='store_const',
@@ -475,7 +483,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='execute the unit/integration-test suite via pytest',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--sphinx',
         required=False,
         action='store_const',
@@ -483,7 +491,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='generate user documentation with sphinx',
     )
-    builder_flag_par.add_argument(
+    builder_hook_par.add_argument(
         '--readthedocs',
         required=False,
         action='store_const',
