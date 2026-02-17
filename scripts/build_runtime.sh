@@ -45,7 +45,8 @@ rm -rf "${project_root_dir_abs}/${venv_name}/cpython.tar.gz"
 # Install requirements
 echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
 "${pybin}" -m pip install --upgrade pip
-"${pybin}" -m pip install "${project_root_dir_abs}"
+ICARUS_PACKAGE_VERSION=$(cat "${project_root_dir_abs}/icarus.cfg" | grep 'version: ' | awk '{ print $3 }') \
+    "${pybin}" -m pip install "${project_root_dir_abs}"
 
 # Cleanup
 rm -rf "${project_root_dir_abs}/build"

@@ -25,7 +25,7 @@ dependencies = [
 Homepage = "https://github.com/64rl0/Icarus"
 
 [project.optional-dependencies]
-dev = []
+# development = []
 
 
 [build-system]

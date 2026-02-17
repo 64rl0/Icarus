@@ -31,7 +31,6 @@ This module ...
 
 # Standard Library Imports
 import os
-import pathlib
 
 # Third Party Library Imports
 from setuptools import setup
@@ -42,26 +41,15 @@ from setuptools import setup
 
 def derive_version() -> str:
     """
-    Derive the version number from the icarus.cfg file.
+    Derive the version number from the environment.
 
     :return: The version number as a string.
     """
 
-    path_to_icarus_cfg = pathlib.Path(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icarus.cfg')
-    )
-    version = None
-
-    with open(path_to_icarus_cfg, 'r') as fh:
-        for line in fh.readlines():
-            if line.startswith('  - version: '):
-                version = line.split(':')[1].strip()
-                if len(version.split('.')) != 3:
-                    continue
-                break
+    version = os.environ.get('ICARUS_PACKAGE_VERSION')
 
     if version is None:
-        raise KeyError('Version not found in icarus.cfg file.')
+        raise KeyError("ICARUS_PACKAGE_VERSION not found in the environment.")
 
     return version
 

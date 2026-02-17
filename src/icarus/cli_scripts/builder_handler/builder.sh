@@ -947,48 +947,25 @@ function run_build_icarus_python3() {
     # want to show the succeed of the single run.
     build_single_run_status=0
 
-    # We need the tool.runtimefarm to build the pkg
+    # We need the tool.runtimefarm to build the pkg.
     resolve_path "${path_tool_runtimefarm_name}"
 
     # Cleanup silently
-    # We are about to rebuild the dist so make sure the env is clean to accommodate the new one
+    # We are about to rebuild the dist so make sure the env is clean to accommodate the new one.
     rm -rf "${path_to_dist_root}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
-    # Store any customer MANIFEST.in
-    if [[ -f "${project_root_dir_abs}/MANIFEST.in" ]]; then
-        mv "${project_root_dir_abs}/MANIFEST.in" "${project_root_dir_abs}/MANIFEST.in.bak" || {
-            echo_error "Failed to backup customer 'MANIFEST.in'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    fi
-
-    # Preparing the MANIFEST.in
-    printf "include icarus.cfg\ninclude README.md\n" >"${project_root_dir_abs}/MANIFEST.in" || {
-        echo_error "Failed to create 'MANIFEST.in'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
-    if [[ -f "${project_root_dir_abs}/MANIFEST.in.bak" ]]; then
-        cat "${project_root_dir_abs}/MANIFEST.in.bak" >>"${project_root_dir_abs}/MANIFEST.in" || {
-            echo_error "Failed to create 'MANIFEST.in'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    fi
-
-    # Building local package
+    # Building local package.
+    # We need to inject the ICARUS_PACKAGE_VERSION var in the env for the setup.py to find it.
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package${end}"
+    export ICARUS_PACKAGE_VERSION="${package_version_full}"
     "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
+    unset ICARUS_PACKAGE_VERSION
     echo
 
     echo -e "${bold_green}${package} Checking package health${end}"
@@ -1000,6 +977,20 @@ function run_build_icarus_python3() {
     }
     echo
 
+    # Unpack sdist
+    mkdir -p "${path_to_dist_root}/sdist" || {
+        echo_error "Failed to create sdist dir."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+    tar -xzf "${path_to_dist_root}/${package_name_snake_case}"*.tar.gz -C "${path_to_dist_root}/sdist" || {
+        echo_error "Failed to unpack sdist."
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+    }
+
     # Cleanup
     mv "${project_root_dir_abs}/src/${package_name_snake_case}"*".egg-info" "${path_to_dist_root}" || {
         echo_error "Failed to move egg-info dir to dist dir."
@@ -1007,24 +998,8 @@ function run_build_icarus_python3() {
         build_single_run_status=1
         exit_code=1
     }
-    mv "${project_root_dir_abs}/MANIFEST.in" "${path_to_dist_root}" || {
-        echo_error "Failed to move MANIFEST.in to dist dir."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    }
 
-    # Restore any customer MANIFEST.in
-    if [[ -f "${project_root_dir_abs}/MANIFEST.in.bak" ]]; then
-        mv "${project_root_dir_abs}/MANIFEST.in.bak" "${project_root_dir_abs}/MANIFEST.in" || {
-            echo_error "Failed to restore customer 'MANIFEST.in'."
-            build_summary_status="${failed}"
-            build_single_run_status=1
-            exit_code=1
-        }
-    fi
-
-    # This will install the pkg just built in the pkg.runtimefarm
+    # This will install the pkg just built in the pkg.runtimefarm.
     echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' package${end}"
     if resolve_path "${path_pkg_runtimefarm_name}"; then
         echo -e "Installed $(basename "${path_to_dist_root}"/*.whl)"
