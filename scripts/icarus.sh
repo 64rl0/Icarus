@@ -22,7 +22,7 @@ declare -r script_dir_abs
 project_root_dir_abs="$(realpath -- "${script_dir_abs}/..")"
 declare -r project_root_dir_abs
 
-python_interpreter_abs="${project_root_dir_abs}/runtime_env/env/bin/python3"
+python_interpreter_abs="${project_root_dir_abs}/runtime/env/bin/python3"
 declare -r python_interpreter_abs
 log_path="${project_root_dir_abs}/log"
 declare -r log_path

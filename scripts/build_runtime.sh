@@ -24,26 +24,26 @@ declare -r project_root_dir_abs
 platform_id="$(bash "${script_dir_abs}/platform_id.sh")"
 declare -r platform_id
 
-declare -r venv_name="runtime_env"
+declare -r venv_name="runtime"
 declare -r python_full_version_for_venv="3.13.11"
 declare -r download_url="https://github.com/64rl0/PythonRuntime/releases/download/cpython-${python_full_version_for_venv}-${platform_id}/cpython-${python_full_version_for_venv}-${platform_id}.tar.gz"
 declare -r pybin="${project_root_dir_abs}/${venv_name}/env/bin/python3"
 
 # Prep env
-echo -e "\n\n${bold_green}${sparkles} Preparing Runtime env...${end}"
+echo -e "\n\n${bold_green}${sparkles} Preparing Runtime${end}"
 rm -rf "${project_root_dir_abs:?}/${venv_name}"
 mkdir -p "${project_root_dir_abs}/${venv_name}"
 echo -e "done!"
 
 # Download Python Runtime
-echo -e "\n\n${bold_green}${sparkles} Downloading Python Runtime...${end}"
+echo -e "\n\n${bold_green}${sparkles} Downloading Python${end}"
 curl -L "${download_url}" -o "${project_root_dir_abs}/${venv_name}/cpython.tar.gz"
 tar -xzf "${project_root_dir_abs}/${venv_name}/cpython.tar.gz" -C "${project_root_dir_abs}/${venv_name}"
 mv "${project_root_dir_abs}/${venv_name}/${python_full_version_for_venv}" "${project_root_dir_abs}/${venv_name}/env"
 rm -rf "${project_root_dir_abs}/${venv_name}/cpython.tar.gz"
 
 # Install requirements
-echo -e "\n\n${bold_green}${sparkles} Installing requirements...${end}"
+echo -e "\n\n${bold_green}${sparkles} Installing Requirements${end}"
 "${pybin}" -m pip install --upgrade pip
 ICARUS_PACKAGE_VERSION=$(cat "${project_root_dir_abs}/icarus.cfg" | grep 'version: ' | awk '{ print $3 }') \
     "${pybin}" -m pip install "${project_root_dir_abs}"
