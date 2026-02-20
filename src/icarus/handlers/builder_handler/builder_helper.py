@@ -251,8 +251,12 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
     builder_hooks_count = sum(1 for el in builder_hooks.values() if el)
 
     cache_hooks: dict[str, Union[str, list[str]]] = {
-        'cache_root': args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'cache-root' else '',
-        'cache_clean': args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'clean' else '',
+        'cache_root': (
+            args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'cache-root' else ''
+        ),
+        'cache_clean': (
+            args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'clean' else ''
+        ),
     }
 
     cache_hooks_count = sum(1 for el in cache_hooks.values() if el)

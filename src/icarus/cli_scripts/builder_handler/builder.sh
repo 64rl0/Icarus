@@ -907,10 +907,8 @@ function pypi() {
     # We need the tool.runtimefarm to upload the pkg artifacts to pypi.
     resolve_path "${path_tool_runtimefarm_name}"
 
-
     # TODO(carlogtt): how do we retrieve the token?
     # TODO(carlogtt): do we need this to run alone?
-
 
     for f in "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
         if [[ ! -e "${f}" ]]; then

@@ -15,5 +15,5 @@ Submodules
    icarus.handlers.builder_handler.builder_helper
    icarus.handlers.builder_handler.builder_parser
    icarus.handlers.builder_handler.create_helper
-   icarus.handlers.builder_handler.types
+   icarus.handlers.builder_handler.model
    icarus.handlers.builder_handler.update_version_helper
