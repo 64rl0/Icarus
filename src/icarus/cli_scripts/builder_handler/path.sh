@@ -4,7 +4,7 @@
 #  (      _ \     /  |     (   | (_ |    |      |
 # \___| _/  _\ _|_\ ____| \___/ \___|   _|     _|
 
-# cli_scripts/builder_handler/builder_path.sh
+# cli_scripts/builder_handler/path.sh
 # Created 5/15/25 - 11:55 PM UK Time (London) by carlogtt
 
 # Script Paths
@@ -35,62 +35,9 @@ function validate_prerequisites() {
 function set_constants() {
     eval "${@}"
 
-    declare -r -g verbose
-    declare -r -g all_hooks
-    declare -r -g icarus_config_filename
-    declare -r -g icarus_config_filepath
-    declare -r -g project_root_dir_abs
-    declare -r -g package_name_pascal_case
-    declare -r -g package_name_snake_case
-    declare -r -g package_name_dashed
-    declare -r -g package_language
-    declare -r -g package_version_full
-    declare -r -g package_version_major
-    declare -r -g package_version_minor
-    declare -r -g package_version_patch
-    declare -r -g build_system_in_use
-    declare -r -g platform_identifier
-    declare -r -g build_root_dir
-    declare -r -g python_version_default_for_icarus
-    declare -r -g python_versions_for_icarus
-    declare -r -g tool_requirements_paths
-    declare -r -g run_requirements_paths
-    declare -r -g run_requirements_pyproject_toml
-    declare -r -g dev_requirements_paths
-    declare -r -g icarus_ignore_array
-    declare -r -g build
-    declare -r -g is_only_build_hook
-    declare -r -g is_release
-    declare -r -g merge
-    declare -r -g clean
-    declare -r -g isort
-    declare -r -g black
-    declare -r -g flake8
-    declare -r -g mypy
-    declare -r -g shfmt
-    declare -r -g whitespaces
-    declare -r -g eolnorm
-    declare -r -g trailing
-    declare -r -g eofnewline
-    declare -r -g gitleaks
-    declare -r -g pytest
-    declare -r -g sphinx
-    declare -r -g readthedocs
-    declare -r -g exectool
-    declare -r -g execrun
-    declare -r -g execdev
-    declare -r -g bumpver
-    declare -r -g initial_command_received
-    declare -r -g initial_exectool_command_received
-    declare -r -g initial_execrun_command_received
-    declare -r -g initial_execdev_command_received
-    declare -r -g running_hooks_name
-    declare -r -g running_hooks_count
-    declare -r -g python_default_version
-    declare -r -g python_default_full_version
-    declare -r -g python_versions
-    declare -r -g path_name
-    declare -r -g list_paths
+    # Declaring global vars from `builder_base`
+    # This must be done after the `eval "${@}"` call
+    declare_global_vars
 
     exit_code=0
     response=''
@@ -99,9 +46,6 @@ function set_constants() {
 function ensure_icarus_build_root_env() {
     local dir
     local -a root_tree
-
-    # Cache stays in the system tmp
-    path_to_cache_root="${tmp_root}/builder/cache"
 
     path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
     path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
@@ -128,7 +72,6 @@ function ensure_icarus_build_root_env() {
     devrun_runtimefarm_root="${path_to_path_root}/${path_devrun_runtimefarm_name}"
     devrun_excluderoot_runtimefarm_root="${path_to_path_root}/${path_devrun_excluderoot_runtimefarm_name}"
 
-    declare -g -r path_to_cache_root
     declare -g -r path_to_runtime_root
     declare -g -r path_to_path_root
     declare -g -r path_to_path_cache_root
@@ -673,7 +616,7 @@ function build_runtimefarm_icarus_python3() {
         "# To specify different values for these, set PYTHONHOME to prefix:exec_prefix." \
         "PYTHONHOME='${path_to_python_farm}'" \
         "" \
-        "# Augment the default search path for module files. The format is the same as the shell’s PATH:" \
+        "# Augment the default search path for module files. The format is the same as the shell's PATH:" \
         "# one or more directory pathnames separated by os.pathsep (e.g. colons on Unix or semicolons on Windows). " \
         "# Non-existent directories are silently ignored." \
         "#" \
@@ -775,7 +718,7 @@ function pip_target_package() {
     pkg=("${path_to_dist_root}/${package_name_snake_case}"*.whl)
 
     if [[ ! -f "${pkg[0]}" ]]; then
-        echo_error "Package '${package_name_snake_case}' not found! Have you built it?."
+        echo_error "Package artifact '${package_name_snake_case}' not found! Have you built it?"
         exit_code=1
         return
     fi

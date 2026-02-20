@@ -117,7 +117,10 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     amazon_sub = amazon_par.add_subparsers(
-        title='subcommands', dest='amazon_command', required=True, metavar='<subcommand>'
+        title='subcommands',
+        dest='amazon_command',
+        required=True,
+        metavar='<subcommand>',
     )
 
     # Builder
@@ -134,7 +137,10 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_sub = builder_par.add_subparsers(
-        title='subcommands', dest='builder_command', required=False, metavar='<subcommand>'
+        title='subcommands',
+        dest='builder_command',
+        required=False,
+        metavar='<subcommand>',
     )
 
     # MacOS
@@ -151,7 +157,10 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     macos_sub = macos_par.add_subparsers(
-        title='subcommands', dest='macos_command', required=True, metavar='<subcommand>'
+        title='subcommands',
+        dest='macos_command',
+        required=True,
+        metavar='<subcommand>',
     )
 
     # Unison
@@ -168,7 +177,10 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     unison_sub = unison_par.add_subparsers(
-        title='subcommands', dest='unison_command', required=True, metavar='<subcommand>'
+        title='subcommands',
+        dest='unison_command',
+        required=True,
+        metavar='<subcommand>',
     )
 
     # Provision
@@ -187,7 +199,10 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     provision_sub = provision_par.add_subparsers(
-        title='subcommands', dest='provision_command', required=True, metavar='<subcommand>'
+        title='subcommands',
+        dest='provision_command',
+        required=True,
+        metavar='<subcommand>',
     )
 
     # ==================
@@ -361,7 +376,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--clean',
         default='',
-        help='clean the project runtime environment',
+        help='remove all build artifacts from the workspace',
     )
     builder_hook_par.add_argument(
         '--release',
@@ -369,7 +384,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         action='store_const',
         const='--release',
         default='',
-        help='run the full “release” pipeline',
+        help='run the full "release" pipeline',
     )
     builder_hook_par.add_argument(
         '--format',
@@ -511,7 +526,7 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     builder_release = builder_sub.add_parser(
         name='release',
-        help='run the full “release” pipeline',
+        help='run the full "release" pipeline',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
@@ -547,7 +562,7 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     builder_clean = builder_sub.add_parser(
         name='clean',
-        help='clean the project runtime environment',
+        help='remove all build artifacts from the workspace',
         description='',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
@@ -608,6 +623,34 @@ def initialize_parser() -> argparse.ArgumentParser:
         help='command to run inside the devrun.runtimefarm environment',
     )
 
+    builder_cache_par = builder_sub.add_parser(
+        name='cache',
+        help='provides utilities to manage the local package cache.',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_cache_cmd_par = builder_cache_par.add_subparsers(
+        title='subcommands',
+        dest='cache_subcommands',
+        required=False,
+        metavar='<subcommand>',
+    )
+    builder_cache_cmd_par.add_parser(
+        name='cache-root',
+        help='returns the path to the package cache root',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_cache_cmd_par.add_parser(
+        name='clean',
+        help='clean up the packages cached on local disk',
+        description='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+
     builder_path_par = builder_sub.add_parser(
         name='path',
         help=(
@@ -629,8 +672,8 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par = builder_path_par.add_subparsers(
         title='path-name',
         dest='path_name',
-        help='the path name',
         required=False,
+        metavar='<subcommand>',
     )
     builder_path_cmd_par.add_parser(
         name='platform-identifier',

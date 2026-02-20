@@ -15,7 +15,7 @@ declare -r cli_scripts_dir_abs
 
 this_script_filename="$(basename -- "${BASH_SOURCE[0]}")"
 declare -r this_script_filename
-builder_path_script_abs="${cli_scripts_dir_abs}/builder_handler/builder_path.sh"
+builder_path_script_abs="${cli_scripts_dir_abs}/builder_handler/path.sh"
 declare -r builder_path_script_abs
 
 # Sourcing base file
@@ -41,7 +41,7 @@ function echo_title() {
     local gap=2
     local title_len=${#title}
 
-    # How many “=” are still available once we subtract the title and the gaps?
+    # How many "=" are still available once we subtract the title and the gaps?
     local free=$((total_width - title_len - gap))
 
     # Split that space into left and right pads
@@ -247,62 +247,9 @@ function set_constants() {
     argv=(${@})
     declare -r -g -a argv
 
-    declare -r -g verbose
-    declare -r -g all_hooks
-    declare -r -g icarus_config_filename
-    declare -r -g icarus_config_filepath
-    declare -r -g project_root_dir_abs
-    declare -r -g package_name_pascal_case
-    declare -r -g package_name_snake_case
-    declare -r -g package_name_dashed
-    declare -r -g package_language
-    declare -r -g package_version_full
-    declare -r -g package_version_major
-    declare -r -g package_version_minor
-    declare -r -g package_version_patch
-    declare -r -g build_system_in_use
-    declare -r -g platform_identifier
-    declare -r -g build_root_dir
-    declare -r -g python_version_default_for_icarus
-    declare -r -g python_versions_for_icarus
-    declare -r -g tool_requirements_paths
-    declare -r -g run_requirements_paths
-    declare -r -g run_requirements_pyproject_toml
-    declare -r -g dev_requirements_paths
-    declare -r -g icarus_ignore_array
-    declare -r -g build
-    declare -r -g is_only_build_hook
-    declare -r -g is_release
-    declare -r -g merge
-    declare -r -g clean
-    declare -r -g isort
-    declare -r -g black
-    declare -r -g flake8
-    declare -r -g mypy
-    declare -r -g shfmt
-    declare -r -g whitespaces
-    declare -r -g eolnorm
-    declare -r -g trailing
-    declare -r -g eofnewline
-    declare -r -g gitleaks
-    declare -r -g pytest
-    declare -r -g sphinx
-    declare -r -g readthedocs
-    declare -r -g exectool
-    declare -r -g execrun
-    declare -r -g execdev
-    declare -r -g bumpver
-    declare -r -g initial_command_received
-    declare -r -g initial_exectool_command_received
-    declare -r -g initial_execrun_command_received
-    declare -r -g initial_execdev_command_received
-    declare -r -g running_hooks_name
-    declare -r -g running_hooks_count
-    declare -r -g python_default_version
-    declare -r -g python_default_full_version
-    declare -r -g python_versions
-    declare -r -g path_name
-    declare -r -g list_paths
+    # Declaring global vars from `builder_base`
+    # This must be done after the `eval "${@}"` call
+    declare_global_vars
 
     exit_code=0
 
@@ -656,7 +603,7 @@ function run_eofnewline() {
     elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
-        # Skip empty files – they already satisfy the “blank line” rule.
+        # Skip empty files – they already satisfy the "blank line" rule.
         if [[ ! -s "${el}" ]]; then
             continue
         fi
@@ -718,7 +665,7 @@ function run_trailingwhitespaces() {
     elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
-        # Skip empty files – they already satisfy the “blank line” rule.
+        # Skip empty files – they already satisfy the "blank line" rule.
         if [[ ! -s "${el}" ]]; then
             continue
         fi
@@ -764,7 +711,7 @@ function run_eolnorm() {
     elements=("${active_files_all[@]}")
 
     for el in "${elements[@]}"; do
-        # Skip empty files – they already satisfy the “blank line” rule.
+        # Skip empty files – they already satisfy the "blank line" rule.
         if [[ ! -s "${el}" ]]; then
             continue
         fi
@@ -852,10 +799,23 @@ function run_pytest() {
 }
 
 function run_readthedocs() {
-    local local_packages filepath filename
+    local local_packages filename filepath
 
-    filename="requirements-read-the-docs.txt"
-    filepath="${project_root_dir_abs}/${filename}"
+    if [[ -z "${read_the_docs_requirements_path}" ]]; then
+        echo_error "read-the-docs requirements in icarus-python3 icarus.cfg must be a set."
+        readthedocs_summary_status="${failed}"
+        exit_code=1
+        return
+    fi
+
+    filepath="${project_root_dir_abs}/${read_the_docs_requirements_path##/}"
+    filename="$(basename "${read_the_docs_requirements_path}")"
+
+    mkdir -p "$(dirname "${filepath}")" || {
+        echo_error "Failed to create '$(dirname "${filepath}")'."
+        readthedocs_summary_status="${failed}"
+        exit_code=1
+    }
 
     local_packages="$("${PYTHONBIN}" -m pip freeze | sed -n '/ @ file:\/\//{p;G;}')" || {
         echo_error "Failed to scan for local packages."
@@ -870,7 +830,7 @@ function run_readthedocs() {
     fi
 
     # Creating requirements for Read the Docs
-    printf '%s\n\n' \
+    printf '%s\n' \
         '#' \
         "# This file is autogenerated by ${cli_name} with Python ${python_version}" \
         '# by the following command:' \
@@ -881,6 +841,7 @@ function run_readthedocs() {
         '# They are listed here only so Read the Docs can build a' \
         '# reproducible environment.' \
         '#' \
+        '' \
         >"${filepath}" || {
         echo_error "Failed to create '${filepath}'."
         readthedocs_summary_status="${failed}"
@@ -937,6 +898,43 @@ function run_documentation_sphinx() {
     echo
     echo "Open the HTML pages"
     echo "${yellow}file://${project_root_dir_abs}/docs/html/index.html${end}"
+    echo
+}
+
+function pypi() {
+    local f
+
+    # We need the tool.runtimefarm to upload the pkg artifacts to pypi.
+    resolve_path "${path_tool_runtimefarm_name}"
+
+
+    # TODO(carlogtt): how do we retrieve the token?
+    # TODO(carlogtt): do we need this to run alone?
+
+
+    for f in "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
+        if [[ ! -e "${f}" ]]; then
+            echo_error "Package artifact '${f}' not found! Have you built it?"
+            pypi_summary_status="${failed}"
+            exit_code=1
+        fi
+    done
+
+    # Upload package artifact to TEST PyPi
+    echo -e "${bold_green}${network_world} Uploading package artifact to TEST PyPi${end}"
+    "${PYTHONBIN}" -m twine upload \
+        --repository testpypi \
+        --username __token__ \
+        --password "${CARLOGTT_SECRET_PYPI_TEST_API_TOKEN}" \
+        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}
+    echo
+
+    # Upload package artifact to PROD PyPi
+    echo -e "${bold_green}${network_world} Uploading package artifact to PROD PyPi${end}"
+    "${PYTHONBIN}" -m twine upload \
+        --username __token__ \
+        --password "${CARLOGTT_SECRET_PYPI_PROD_API_TOKEN}" \
+        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}
     echo
 }
 

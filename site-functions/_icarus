@@ -60,7 +60,7 @@ _icarus() {
     __icarus_debug "lastParam: '${lastParam}'"
     __icarus_debug "lastChar: '${lastChar}'"
 
-    # We’ll decide what to complete based on how many words have been typed
+    # We'll decide what to complete based on how many words have been typed
     #    words[1] is "icarus"
     #    words[2] might be "macos", "amazon", etc. (the "subcommand")
     #    words[3] might be "encrypt-volume", "auth-init", etc. (the "action")
@@ -114,8 +114,9 @@ _icarus() {
                 'create:initiate a new package in the current folder'
                 'build-runtime:build the interpreter runtime'
                 'path:creates build variables from a graph of dependencies defined by the graph portion of a path-name'
+                'cache:provides utilities to manage the local package cache.'
                 'build:create/re-create the project runtime environment'
-                'release:run the full “release” pipeline'
+                'release:run the full "release" pipeline'
                 'format:run the formatting tools'
                 'docs:generate user documentation'
                 'test:run the automated test suite'
@@ -164,7 +165,7 @@ _icarus() {
         esac
 
     # If the user typed `icarus SUBCMD ACTION [TAB]`
-    # This is where you’d define "options" for each sub-subcommand:
+    # This is where you'd define "options" for each sub-subcommand:
     else
         case "${subcmd}" in
         amazon)
@@ -229,14 +230,28 @@ _icarus() {
             ;;
         builder)
             case "${action}" in
+            build-runtime)
+                completions+=(
+                    '--help:show help message'
+                    '-h:show help message'
+                )
+                ;;
+            create)
+                completions+=(
+                    '-n:REQUIRED the package name in PascalCase'
+                    '-l:REQUIRED the package name language'
+                    '--help:show help message'
+                    '-h:show help message'
+                )
+                ;;
             hook)
                 completions+=(
                     '--build:create/re-create the project runtime environment'
-                    '--release:run the full “release” pipeline'
+                    '--release:run the full "release" pipeline'
                     '--format:run the formatting tools'
                     '--docs:generate user documentation'
                     '--test:run the automated test suite'
-                    '--clean:clean the project runtime environment'
+                    '--clean:remove all build artifacts from the workspace'
                     '--isort:sort python imports with isort'
                     '--black:re-format python code with black'
                     '--flake8:run static analysis with flake8'
@@ -255,52 +270,6 @@ _icarus() {
                     '--exec-run:run a command inside the run.runtimefarm environment'
                     '--exec-dev:run a command inside the devrun.runtimefarm environment'
                     '--bumpver:interactively bump package version (major, minor, or patch)'
-                    '--help:show help message'
-                    '-h:show help message'
-                )
-                ;;
-            create)
-                completions+=(
-                    '-n:REQUIRED the package name in PascalCase'
-                    '-l:REQUIRED the package name language'
-                    '--help:show help message'
-                    '-h:show help message'
-                )
-                ;;
-            build-runtime)
-                completions+=(
-                    '--help:show help message'
-                    '-h:show help message'
-                )
-                ;;
-            path)
-                completions+=(
-                    'platform-identifier:returns the name of the current platform'
-                    'pkg.name-pascal:returns the name of the current package in PascalCase'
-                    'pkg.name-snake:returns the name of the current package in snake_case'
-                    'pkg.name-dashed:returns the name of the current package in dashed-case'
-                    'pkg.language:returns the language of the current package'
-                    'pkg.version:returns the version of the current package in SemVer format AKA MAJOR.MINOR.PATCH'
-                    'pkg.version-major:returns the major version of the current package in SemVer format'
-                    'pkg.version-minor:returns the minor version of the current package in SemVer format'
-                    'pkg.version-patch:returns the patch version of the current package in SemVer format'
-                    'workspace.root:returns the path to the current workspace root'
-                    'workspace.src-root:returns the path to the current workspace source directory'
-                    'workspace.build-root:returns the path to the current workspace build directory'
-                    'workspace.user-space-root:returns the path to the runtime user-space prefix directory'
-                    'tool.runtimefarm:creates build variables for the build-tools dependencies'
-                    'tool.pythonhome:creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies'
-                    'pkg.runtimefarm:creates build variables for the current package'
-                    'pkg.pythonhome:creates colon-delimited list of PYTHONHOME paths for the current package'
-                    'run.runtimefarm:creates build variables for the runtime dependencies'
-                    'run.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime dependencies'
-                    'run_excluderoot.runtimefarm:creates build variables for the runtime dependencies excluding the current package'
-                    'run_excluderoot.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime dependencies excluding the current package'
-                    'devrun.runtimefarm:creates build variables for the runtime and development dependencies'
-                    'devrun.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime and development dependencies'
-                    'devrun_excluderoot.runtimefarm:creates build variables for the runtime and development dependencies excluding the current package'
-                    'devrun_excluderoot.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime and development dependencies excluding the current package'
-                    '--list:list all the available path names'
                     '--help:show help message'
                     '-h:show help message'
                 )
@@ -364,6 +333,46 @@ _icarus() {
             exec-dev)
                 completions+=(
                     'EXEC_CMD:REQUIRED command to run inside the devrun.runtimefarm environment'
+                    '--help:show help message'
+                    '-h:show help message'
+                )
+                ;;
+            path)
+                completions+=(
+                    'platform-identifier:returns the name of the current platform'
+                    'pkg.name-pascal:returns the name of the current package in PascalCase'
+                    'pkg.name-snake:returns the name of the current package in snake_case'
+                    'pkg.name-dashed:returns the name of the current package in dashed-case'
+                    'pkg.language:returns the language of the current package'
+                    'pkg.version:returns the version of the current package in SemVer format AKA MAJOR.MINOR.PATCH'
+                    'pkg.version-major:returns the major version of the current package in SemVer format'
+                    'pkg.version-minor:returns the minor version of the current package in SemVer format'
+                    'pkg.version-patch:returns the patch version of the current package in SemVer format'
+                    'workspace.root:returns the path to the current workspace root'
+                    'workspace.src-root:returns the path to the current workspace source directory'
+                    'workspace.build-root:returns the path to the current workspace build directory'
+                    'workspace.user-space-root:returns the path to the runtime user-space prefix directory'
+                    'tool.runtimefarm:creates build variables for the build-tools dependencies'
+                    'tool.pythonhome:creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies'
+                    'pkg.runtimefarm:creates build variables for the current package'
+                    'pkg.pythonhome:creates colon-delimited list of PYTHONHOME paths for the current package'
+                    'run.runtimefarm:creates build variables for the runtime dependencies'
+                    'run.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime dependencies'
+                    'run_excluderoot.runtimefarm:creates build variables for the runtime dependencies excluding the current package'
+                    'run_excluderoot.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime dependencies excluding the current package'
+                    'devrun.runtimefarm:creates build variables for the runtime and development dependencies'
+                    'devrun.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime and development dependencies'
+                    'devrun_excluderoot.runtimefarm:creates build variables for the runtime and development dependencies excluding the current package'
+                    'devrun_excluderoot.pythonhome:creates colon-delimited list of PYTHONHOME paths for the runtime and development dependencies excluding the current package'
+                    '--list:list all the available path names'
+                    '--help:show help message'
+                    '-h:show help message'
+                )
+                ;;
+            cache)
+                completions+=(
+                    'cache-root:returns the path to the package cache root'
+                    'clean:clean up the packages cached on local disk'
                     '--help:show help message'
                     '-h:show help message'
                 )
