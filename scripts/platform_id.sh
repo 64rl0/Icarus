@@ -26,10 +26,10 @@ sanitize() {
 linux_flavour() {
     # If /etc/os-release is readable, pull ID and VERSION_ID
     if [[ -r /etc/os-release ]]; then
-        # Extract ID (e.g. “ubuntu” or “debian”) and strip quotes
+        # Extract ID (e.g. "ubuntu" or "debian") and strip quotes
         local distro
         distro=$(grep '^ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
-        # Extract VERSION_ID (e.g. “22.04”) and strip quotes
+        # Extract VERSION_ID (e.g. "22.04") and strip quotes
         local version
         version=$(grep '^VERSION_ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
         # Fallback defaults if those keys are missing
@@ -37,7 +37,7 @@ linux_flavour() {
         [[ -z "$version" ]] && version="0"
         echo "${distro}${version}"
     else
-        # If the file is missing or unreadable, fallback to “linux0”
+        # If the file is missing or unreadable, fallback to "linux0"
         echo "linux0"
     fi
 }
@@ -46,22 +46,22 @@ linux_flavour() {
 # then sanitize/normalize
 platform_id() {
     # 1) Determine architecture (lowercased)
-    #    e.g. “x86_64” → “x86_64”, “aarch64” or “arm64” → “arm64”
+    #    e.g. "x86_64" → "x86_64", "aarch64" or "arm64" → "arm64"
     local arch
     arch=$(uname -m | tr '[:upper:]' '[:lower:]')
 
-    # 2) Determine OS-specific “os_part”
+    # 2) Determine OS-specific "os_part"
     local uname_s os_part
     uname_s=$(uname -s)
 
     case "$uname_s" in
     Linux*)
-        # On Linux, use /etc/os-release to get “distroVERSION”
+        # On Linux, use /etc/os-release to get "distroVERSION"
         os_part=$(linux_flavour)
         ;;
 
     Darwin*)
-        # On macOS, use sw_vers to get the product version (e.g. “13.4.1”)
+        # On macOS, use sw_vers to get the product version (e.g. "13.4.1")
         local version
         version=$(sw_vers -productVersion 2>/dev/null | cut -d '.' -f1 || echo "")
         [[ -z "$version" ]] && version="0"
@@ -69,10 +69,10 @@ platform_id() {
         ;;
 
     CYGWIN* | MINGW* | MSYS*)
-        # On Windows/Cygwin/Msys, attempt to extract “Windows NT x.x.xxxxx” from ‘ver’
-        # If that fails, fall back to “win0”
+        # On Windows/Cygwin/Msys, attempt to extract "Windows NT x.x.xxxxx" from 'ver'
+        # If that fails, fall back to "win0"
         local winver
-        # ‘cmd.exe /c ver’ gives something like: “Microsoft Windows [Version 10.0.19044.2130]”
+        # 'cmd.exe /c ver' gives something like: "Microsoft Windows [Version 10.0.19044.2130]"
         winver=$(cmd.exe /c ver 2>/dev/null | tr -d '\r' \
             | sed -n 's/.*\[Version[[:space:]]\([0-9.]*\)\].*/\1/p')
         [[ -z "$winver" ]] && winver="0"

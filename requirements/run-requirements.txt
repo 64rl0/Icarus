@@ -1,5 +1,5 @@
 #
-# Lists “library” (AKA “direct”) dependencies for your package.
+# Lists "library" (AKA "direct") dependencies for your package.
 #
 # These are transitive: anyone that depends on your package
 # will automatically pick up these dependencies.

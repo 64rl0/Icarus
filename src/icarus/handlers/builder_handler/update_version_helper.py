@@ -31,7 +31,7 @@ This module ...
 
 # Local Application Imports
 from icarus import config, utils
-from icarus.handlers.builder_handler.types import IbArgMmp
+from icarus.handlers.builder_handler.model import IcarusBuilderArg
 
 # END IMPORTS
 # ======================================================================
@@ -47,18 +47,18 @@ module_logger = config.master_logger.get_child_logger(__name__)
 
 
 @utils.capture_exit_code
-def update_version_file(ib_arg_mmp: IbArgMmp) -> None:
+def update_version_file(ib_arg: IcarusBuilderArg) -> None:
     """
     Update the version number in a given file.
 
-    :param ib_arg_mmp: The IbbArgMmp dictionary.
+    :param ib_arg: The IbbArgMmp dictionary.
     :return: None
     """
 
-    current_version = ib_arg_mmp['package_version_full']
-    current_version_major = ib_arg_mmp['package_version_major']
-    current_version_minor = ib_arg_mmp['package_version_minor']
-    current_version_patch = ib_arg_mmp['package_version_patch']
+    current_version = ib_arg.package_version_full
+    current_version_major = ib_arg.package_version_major
+    current_version_minor = ib_arg.package_version_minor
+    current_version_patch = ib_arg.package_version_patch
 
     print(f"Current version: {current_version}", flush=True)
     print("", flush=True)
@@ -96,16 +96,16 @@ def update_version_file(ib_arg_mmp: IbArgMmp) -> None:
 
     # Update new version in icarus.cfg
     try:
-        with open(ib_arg_mmp['icarus_config_filepath'], 'r') as icarus_build_config:
+        with open(ib_arg.icarus_config_filepath, 'r') as icarus_build_config:
             icarus_build_config_content = icarus_build_config.readlines()
     except Exception as e:
         raise utils.IcarusParserException(
-            f"Error parsing {ib_arg_mmp['icarus_config_filename']} -- {repr(e)}"
+            f"Error parsing {ib_arg.icarus_config_filename} -- {repr(e)}"
         )
 
     updated = False
     try:
-        with open(ib_arg_mmp['icarus_config_filepath'], 'w') as icarus_build_config:
+        with open(ib_arg.icarus_config_filepath, 'w') as icarus_build_config:
             for line in icarus_build_config_content:
                 if line == f'  - version: {current_version}\n':
                     icarus_build_config.write(f'  - version: {new_version}\n')
@@ -114,12 +114,12 @@ def update_version_file(ib_arg_mmp: IbArgMmp) -> None:
                     icarus_build_config.write(line)
     except Exception as e:
         raise utils.IcarusParserException(
-            f"Error parsing {ib_arg_mmp['icarus_config_filename']} -- {repr(e)}"
+            f"Error parsing {ib_arg.icarus_config_filename} -- {repr(e)}"
         )
 
     if not updated:
         raise utils.IcarusParserException(
-            f"Error updating version in {ib_arg_mmp['icarus_config_filename']}"
+            f"Error updating version in {ib_arg.icarus_config_filename}"
         )
 
     print(f"New version: {new_version}", flush=True)

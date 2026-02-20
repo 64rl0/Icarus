@@ -41,7 +41,13 @@ from setuptools import setup
 
 def derive_version() -> str:
     """
-    Derive the version number from the environment.
+    This function is required for Icarus Builder to  determine the
+    package version from the version in `icarus.cfg`.
+
+    The version number is expected to be provided via the
+    environment variable `ICARUS_PACKAGE_VERSION`.
+
+    If this variable is not found, a KeyError will be raised.
 
     :return: The version number as a string.
     """

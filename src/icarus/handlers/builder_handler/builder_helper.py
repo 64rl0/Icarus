@@ -30,8 +30,8 @@ This module ...
 # ======================================================================
 
 # Standard Library Imports
+import argparse
 import datetime
-import enum
 import errno
 import fcntl
 import getpass
@@ -52,7 +52,12 @@ import carlogtt_python_library as mylib
 
 # Local Application Imports
 from icarus import config, utils
-from icarus.handlers.builder_handler.types import IbArgMmp
+from icarus.handlers.builder_handler.model import (
+    BuildSystems,
+    IcarusBuilderArg,
+    IcarusBuilderCliArg,
+    IcarusBuilderOperation,
+)
 
 # END IMPORTS
 # ======================================================================
@@ -60,21 +65,17 @@ from icarus.handlers.builder_handler.types import IbArgMmp
 
 # List of public names in the module
 __all__ = [
-    'get_argv',
-    'get_arg_mmp',
     'ensure_builder_control_plane',
     'acquire_builder_lock',
     'release_builder_lock',
     'run_bash_script_with_logging',
+    'parse_icarus_builder_cli_arg',
+    'get_ib_arg',
+    'get_ib_argv',
 ]
 
 # Setting up logger for current module
 module_logger = config.master_logger.get_child_logger(__name__)
-
-
-class BuildSystems(enum.Enum):
-    ICARUS_PYTHON3 = 'icarus-python3'
-    ICARUS_CDK = 'icarus-cdk'
 
 
 def ensure_builder_control_plane() -> None:
@@ -201,377 +202,409 @@ def run_bash_script_with_logging(
     return return_code
 
 
-def get_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> IbArgMmp:
+def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliArg:
     """
-    Get the IbbArgMmp dictionary.
+    Parse the arguments received from the CLI and return the appropriate
+    operation and arguments.
 
-    :param ib_args: The parsed arguments.
-    :return: The IbbArgMmp dictionary.
+    :param args: The parsed arguments.
+    :return: The operation and arguments.
     """
 
-    ib_arg_mmp = _initialize_ib_arg_mmp(ib_args=ib_args)
-    ib_arg_mmp = _read_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _parse_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _validate_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _parse_pyproject_toml(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _process_ib_args(ib_arg_mmp=ib_arg_mmp, ib_args=ib_args)
-    ib_arg_mmp = _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp=ib_arg_mmp)
-    ib_arg_mmp = _normalize_and_set_python_version(ib_arg_mmp=ib_arg_mmp)
+    ib_cli_arg = IcarusBuilderCliArg()
 
-    return ib_arg_mmp
+    too_many_args = 'too many arguments'
+    args_required = 'the following arguments are required: <subcommand>'
+    standalone_arg = '{hook} is a standalone argument and must be used alone'
+
+    base_args: dict[str, Union[int]] = {
+        'verbose': args.verbose,
+    }
+
+    builder_hooks: dict[str, Union[str, list[str]]] = {
+        'build': getattr(args, 'build', ''),
+        'release': getattr(args, 'release', ''),
+        'format': getattr(args, 'format', ''),
+        'docs': getattr(args, 'docs', ''),
+        'test': getattr(args, 'test', ''),
+        'clean': getattr(args, 'clean', ''),
+        'isort': getattr(args, 'isort', ''),
+        'black': getattr(args, 'black', ''),
+        'flake8': getattr(args, 'flake8', ''),
+        'mypy': getattr(args, 'mypy', ''),
+        'shfmt': getattr(args, 'shfmt', ''),
+        'eolnorm': getattr(args, 'eolnorm', ''),
+        'whitespaces': getattr(args, 'whitespaces', ''),
+        'trailing': getattr(args, 'trailing', ''),
+        'eofnewline': getattr(args, 'eofnewline', ''),
+        'gitleaks': getattr(args, 'gitleaks', ''),
+        'pytest': getattr(args, 'pytest', ''),
+        'sphinx': getattr(args, 'sphinx', ''),
+        'readthedocs': getattr(args, 'readthedocs', ''),
+        'merge': getattr(args, 'merge', ''),
+        'exectool': getattr(args, 'exec-tool', '') or getattr(args, 'exec_tool', ''),
+        'execrun': getattr(args, 'exec-run', '') or getattr(args, 'exec_run', ''),
+        'execdev': getattr(args, 'exec-dev', '') or getattr(args, 'exec_dev', ''),
+        'bumpver': getattr(args, 'bumpver', ''),
+    }
+
+    builder_hooks_count = sum(1 for el in builder_hooks.values() if el)
+
+    cache_hooks: dict[str, Union[str, list[str]]] = {
+        'cache_root': args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'cache-root' else '',
+        'cache_clean': args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'clean' else '',
+    }
+
+    cache_hooks_count = sum(1 for el in cache_hooks.values() if el)
+
+    path_hooks: dict[str, Union[str, list[str]]] = {
+        'list_paths': getattr(args, 'list', ''),
+        'path_name': getattr(args, 'path_name', ''),
+    }
+
+    path_hooks_count = sum(1 for el in path_hooks.values() if el)
+
+    builder_subcommand = {
+        'build-runtime',
+        'create',
+        'path',
+        'cache',
+    }
+
+    if args.builder_command in builder_subcommand and builder_hooks_count > 0:
+        raise utils.IcarusParserException(too_many_args)
+
+    if args.builder_command == 'build-runtime':
+        ib_cli_arg.operation = IcarusBuilderOperation.BUILD_RUNTIME
+
+    elif args.builder_command == 'create':
+        ib_cli_arg.operation = IcarusBuilderOperation.CREATE
+
+    elif args.builder_command == 'cache':
+        if cache_hooks_count == 0:
+            raise utils.IcarusParserException(args_required)
+
+        if cache_hooks_count > 1:
+            raise utils.IcarusParserException(too_many_args)
+
+        ib_cli_arg.operation = IcarusBuilderOperation.CACHE
+        ib_cli_arg.args = {**base_args, **builder_hooks, **cache_hooks}
+
+    elif args.builder_command == 'path':
+        if path_hooks_count == 0:
+            raise utils.IcarusParserException(args_required)
+
+        if path_hooks_count > 1:
+            raise utils.IcarusParserException(too_many_args)
+
+        ib_cli_arg.operation = IcarusBuilderOperation.PATH
+        ib_cli_arg.args = {**base_args, **builder_hooks, **path_hooks}
+
+    elif args.builder_command not in builder_subcommand:
+        if builder_hooks_count == 0:
+            raise utils.IcarusParserException(args_required)
+
+        if builder_hooks.get('clean') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--clean'))
+
+        if builder_hooks.get('merge') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--merge'))
+
+        if builder_hooks.get('exectool') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--exec-tool'))
+
+        if builder_hooks.get('execrun') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--exec-run'))
+
+        if builder_hooks.get('execdev') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--exec-dev'))
+
+        if builder_hooks.get('bumpver') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--bumpver'))
+
+        if builder_hooks.get('bumpver'):
+            ib_cli_arg.operation = IcarusBuilderOperation.BUMPVER
+            ib_cli_arg.args = {**base_args, **builder_hooks}
+        else:
+            ib_cli_arg.operation = IcarusBuilderOperation.BUILDER
+            ib_cli_arg.args = {**base_args, **builder_hooks}
+
+    else:
+        raise utils.IcarusParserException(args_required)
+
+    return ib_cli_arg
 
 
-def get_argv(ib_args: dict[str, Union[int, str, list[str]]]) -> str:
+def get_ib_arg(cli_ib_arg: dict[str, Union[int, str, list[str]]]) -> IcarusBuilderArg:
     """
-    Get the arguments for the builder.sh script.
+    Get the arguments as IcarusBuilderArg object.
 
-    :param ib_args:
+    :param cli_ib_arg: The parsed arguments.
+    :return: The arguments as IcarusBuilderArg object.
+    """
+
+    ib_arg = IcarusBuilderArg()
+
+    _read_icarus_build_cfg(ib_arg)
+    _parse_icarus_build_cfg(ib_arg)
+    _validate_icarus_build_cfg(ib_arg)
+    _parse_pyproject_toml(ib_arg)
+    _process_cli_ib_args(ib_arg, cli_ib_arg)
+    _normalize_and_set_defaults_icarus_build_cfg(ib_arg)
+    _normalize_and_set_python_version(ib_arg)
+
+    return ib_arg
+
+
+def get_ib_argv(cli_ib_arg: dict[str, Union[int, str, list[str]]]) -> str:
+    """
+    Get the arguments for the builder.sh script as a string.
+
+    :param cli_ib_arg:
     :return: The arguments for the builder.sh script.
     """
 
-    ib_arg_mmp = get_arg_mmp(ib_args=ib_args)
+    ib_arg = get_ib_arg(cli_ib_arg=cli_ib_arg)
 
-    ib_argv = _convert_ib_arg_mmp_to_ib_argv(ib_arg_mmp=ib_arg_mmp)
+    ib_argv = ib_arg.as_bash_argv()
 
     return ib_argv
 
 
-def _initialize_ib_arg_mmp(ib_args: dict[str, Union[int, str, list[str]]]) -> IbArgMmp:
+def _process_cli_ib_args(
+    ib_arg: IcarusBuilderArg, cli_ib_arg: dict[str, Union[int, str, list[str]]]
+) -> None:
     """
-    Initialize the IbbArgMmp dictionary with default values.
+    Process the arguments received from the CLI and set the
+    appropriate values.
 
-    :param ib_args: The parsed arguments.
-    :return: The initialized IbbArgMmp dictionary.
-    """
-
-    # Initialize the IbbArgMmp dictionary with default values
-    ib_arg_mmp: IbArgMmp = {
-        'verbose': 'N',
-        'all_hooks': (
-            'build',
-            'clean',
-            'isort',
-            'black',
-            'flake8',
-            'mypy',
-            'shfmt',
-            'eolnorm',
-            'whitespaces',
-            'trailing',
-            'eofnewline',
-            'gitleaks',
-            'pytest',
-            'sphinx',
-            'readthedocs',
-            'merge',
-            'exectool',
-            'execrun',
-            'execdev',
-            'bumpver',
-        ),
-        'icarus_config_filename': '',
-        'icarus_config_filepath': '',
-        'project_root_dir_abs': '',
-        'package_name_pascal_case': '',
-        'package_name_snake_case': '',
-        'package_name_dashed': '',
-        'package_language': '',
-        'package_version_full': '',
-        'package_version_major': '',
-        'package_version_minor': '',
-        'package_version_patch': '',
-        'build_system_in_use': '',
-        'platform_identifier': utils.platform_id(),
-        'build_root_dir': '',
-        'python_version_default_for_icarus': '',
-        'python_versions_for_icarus': [],
-        'tool_requirements_paths': [],
-        'run_requirements_paths': [],
-        'run_requirements_pyproject_toml': [],
-        'dev_requirements_paths': [],
-        'icarus_ignore_array': [],
-        'merge': 'Y' if ib_args.get('merge') else 'N',
-        'build': 'Y' if ib_args.get('build') else 'N',
-        'clean': 'Y' if ib_args.get('clean') else 'N',
-        'isort': 'Y' if ib_args.get('isort') else 'N',
-        'black': 'Y' if ib_args.get('black') else 'N',
-        'flake8': 'Y' if ib_args.get('flake8') else 'N',
-        'mypy': 'Y' if ib_args.get('mypy') else 'N',
-        'shfmt': 'Y' if ib_args.get('shfmt') else 'N',
-        'eolnorm': 'Y' if ib_args.get('eolnorm') else 'N',
-        'whitespaces': 'Y' if ib_args.get('whitespaces') else 'N',
-        'trailing': 'Y' if ib_args.get('trailing') else 'N',
-        'eofnewline': 'Y' if ib_args.get('eofnewline') else 'N',
-        'gitleaks': 'Y' if ib_args.get('gitleaks') else 'N',
-        'pytest': 'Y' if ib_args.get('pytest') else 'N',
-        'sphinx': 'Y' if ib_args.get('sphinx') else 'N',
-        'readthedocs': 'Y' if ib_args.get('readthedocs') else 'N',
-        'exectool': 'Y' if ib_args.get('exectool') else 'N',
-        'execrun': 'Y' if ib_args.get('execrun') else 'N',
-        'execdev': 'Y' if ib_args.get('execdev') else 'N',
-        'bumpver': 'Y' if ib_args.get('bumpver') else 'N',
-        'initial_command_received': 'icarus builder',
-        'initial_exectool_command_received': [],
-        'initial_execrun_command_received': [],
-        'initial_execdev_command_received': [],
-        'is_only_build_hook': 'N',
-        'is_release': 'N',
-        'running_hooks_name': [],
-        'running_hooks_count': '',
-        'python_default_version': '',
-        'python_default_full_version': '',
-        'python_versions': [],
-        'path_name': '',
-        'list_paths': 'Y' if ib_args.get('list_paths') else 'N',
-    }
-
-    return ib_arg_mmp
-
-
-def _process_ib_args(
-    ib_arg_mmp: IbArgMmp, ib_args: dict[str, Union[int, str, list[str]]]
-) -> IbArgMmp:
-    """
-    Prepare the arguments for the builder.sh script.
-
-    :param ib_arg_mmp:
-    :param ib_args:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
+    :param cli_ib_arg: The parsed arguments.
     :return:
     """
 
-    if ib_args.get('verbose'):
-        ib_arg_mmp['verbose'] = 'Y'
+    if cli_ib_arg.get('verbose'):
+        ib_arg.verbose = 'Y'
 
-    if ib_args.get('exectool'):
-        assert not isinstance(ib_args['exectool'], int)
-        if len(ib_args['exectool']) == 1:
-            initial_exectool_command_received = ib_args['exectool'][0].split()
-        elif len(ib_args['exectool']) > 1:
-            assert isinstance(ib_args['exectool'], list)
-            initial_exectool_command_received = ib_args['exectool']
+    if cli_ib_arg.get('exectool'):
+        assert not isinstance(cli_ib_arg['exectool'], int)
+        if len(cli_ib_arg['exectool']) == 1:
+            ib_arg.initial_exectool_command_received = cli_ib_arg['exectool'][0].split()
+        elif len(cli_ib_arg['exectool']) > 1:
+            assert isinstance(cli_ib_arg['exectool'], list)
+            ib_arg.initial_exectool_command_received = cli_ib_arg['exectool']
         else:
             raise utils.IcarusParserException('Invalid --exec-tool argument')
-        ib_arg_mmp.update({'initial_exectool_command_received': initial_exectool_command_received})
         # altering the exec value so it can be used from the for loop
         # here below to make up the initial_command_received look pretty
-        ib_args['exectool'] = f"--exec-tool {' '.join(ib_args['exectool'])}"
+        cli_ib_arg['exectool'] = f"--exec-tool {' '.join(cli_ib_arg['exectool'])}"
 
-    if ib_args.get('execrun'):
-        assert not isinstance(ib_args['execrun'], int)
-        if len(ib_args['execrun']) == 1:
-            initial_execrun_command_received = ib_args['execrun'][0].split()
-        elif len(ib_args['execrun']) > 1:
-            assert isinstance(ib_args['execrun'], list)
-            initial_execrun_command_received = ib_args['execrun']
+    if cli_ib_arg.get('execrun'):
+        assert not isinstance(cli_ib_arg['execrun'], int)
+        if len(cli_ib_arg['execrun']) == 1:
+            ib_arg.initial_execrun_command_received = cli_ib_arg['execrun'][0].split()
+        elif len(cli_ib_arg['execrun']) > 1:
+            assert isinstance(cli_ib_arg['execrun'], list)
+            ib_arg.initial_execrun_command_received = cli_ib_arg['execrun']
         else:
             raise utils.IcarusParserException('Invalid --exec-run argument')
-        ib_arg_mmp.update({'initial_execrun_command_received': initial_execrun_command_received})
         # altering the exec value so it can be used from the for loop
         # here below to make up the initial_command_received look pretty
-        ib_args['execrun'] = f"--exec-run {' '.join(ib_args['execrun'])}"
+        cli_ib_arg['execrun'] = f"--exec-run {' '.join(cli_ib_arg['execrun'])}"
 
-    if ib_args.get('execdev'):
-        assert not isinstance(ib_args['execdev'], int)
-        if len(ib_args['execdev']) == 1:
-            initial_execdev_command_received = ib_args['execdev'][0].split()
-        elif len(ib_args['execdev']) > 1:
-            assert isinstance(ib_args['execdev'], list)
-            initial_execdev_command_received = ib_args['execdev']
+    if cli_ib_arg.get('execdev'):
+        assert not isinstance(cli_ib_arg['execdev'], int)
+        if len(cli_ib_arg['execdev']) == 1:
+            ib_arg.initial_execdev_command_received = cli_ib_arg['execdev'][0].split()
+        elif len(cli_ib_arg['execdev']) > 1:
+            assert isinstance(cli_ib_arg['execdev'], list)
+            ib_arg.initial_execdev_command_received = cli_ib_arg['execdev']
         else:
             raise utils.IcarusParserException('Invalid --exec-dev argument')
-        ib_arg_mmp.update({'initial_execdev_command_received': initial_execdev_command_received})
         # altering the exec value so it can be used from the for loop
         # here below to make up the initial_command_received look pretty
-        ib_args['execdev'] = f"--exec-dev {' '.join(ib_args['execdev'])}"
+        cli_ib_arg['execdev'] = f"--exec-dev {' '.join(cli_ib_arg['execdev'])}"
+
+    # HOOKS
+    for hook in ib_arg.all_hooks:
+        if cli_ib_arg.get(hook):
+            setattr(ib_arg, hook, 'Y')
 
     # RELEASE target
-    if ib_args.get('release'):
-        ib_arg_mmp['is_release'] = 'Y'
-        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
-            ib_arg_mmp.update({
-                'build': 'Y',
-                'isort': 'Y',
-                'black': 'Y',
-                'flake8': 'Y',
-                'mypy': 'Y',
-                'shfmt': 'Y',
-                'eolnorm': 'Y',
-                'whitespaces': 'Y',
-                'trailing': 'Y',
-                'eofnewline': 'Y',
-                'pytest': 'Y',
-                'gitleaks': 'Y',
-                'sphinx': 'Y',
-            })
-        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
-            ib_arg_mmp.update({
-                'build': 'Y',
-                'shfmt': 'Y',
-                'eolnorm': 'Y',
-                'whitespaces': 'Y',
-                'trailing': 'Y',
-                'eofnewline': 'Y',
-                'gitleaks': 'Y',
-            })
+    if cli_ib_arg.get('release'):
+        ib_arg.is_release = 'Y'
+        if ib_arg.build_system_in_use == BuildSystems.ICARUS_PYTHON3.value:
+            ib_arg.build = 'Y'
+            ib_arg.isort = 'Y'
+            ib_arg.black = 'Y'
+            ib_arg.flake8 = 'Y'
+            ib_arg.mypy = 'Y'
+            ib_arg.shfmt = 'Y'
+            ib_arg.eolnorm = 'Y'
+            ib_arg.whitespaces = 'Y'
+            ib_arg.trailing = 'Y'
+            ib_arg.eofnewline = 'Y'
+            ib_arg.pytest = 'Y'
+            ib_arg.gitleaks = 'Y'
+            ib_arg.sphinx = 'Y'
+        elif ib_arg.build_system_in_use == BuildSystems.ICARUS_CDK.value:
+            ib_arg.build = 'Y'
+            ib_arg.shfmt = 'Y'
+            ib_arg.eolnorm = 'Y'
+            ib_arg.whitespaces = 'Y'
+            ib_arg.trailing = 'Y'
+            ib_arg.eofnewline = 'Y'
+            ib_arg.gitleaks = 'Y'
         else:
             raise utils.IcarusParserException(
-                'The --release target is not configured for the'
-                f' f{ib_arg_mmp["build_system_in_use"]} build systems'
+                f'The --release target is not configured for the {ib_arg.build_system_in_use} build'
+                ' systems'
             )
 
     # FORMAT target
-    if ib_args.get('format'):
-        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
-            ib_arg_mmp.update({
-                'isort': 'Y',
-                'black': 'Y',
-                'shfmt': 'Y',
-                'eolnorm': 'Y',
-                'whitespaces': 'Y',
-                'trailing': 'Y',
-                'eofnewline': 'Y',
-            })
-        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
-            ib_arg_mmp.update({
-                'shfmt': 'Y',
-                'eolnorm': 'Y',
-                'whitespaces': 'Y',
-                'trailing': 'Y',
-                'eofnewline': 'Y',
-            })
+    if cli_ib_arg.get('format'):
+        if ib_arg.build_system_in_use == BuildSystems.ICARUS_PYTHON3.value:
+            ib_arg.isort = 'Y'
+            ib_arg.black = 'Y'
+            ib_arg.shfmt = 'Y'
+            ib_arg.eolnorm = 'Y'
+            ib_arg.whitespaces = 'Y'
+            ib_arg.trailing = 'Y'
+            ib_arg.eofnewline = 'Y'
+        elif ib_arg.build_system_in_use == BuildSystems.ICARUS_CDK.value:
+            ib_arg.shfmt = 'Y'
+            ib_arg.eolnorm = 'Y'
+            ib_arg.whitespaces = 'Y'
+            ib_arg.trailing = 'Y'
+            ib_arg.eofnewline = 'Y'
         else:
             raise utils.IcarusParserException(
                 'The --format target is not configured for the'
-                f' f{ib_arg_mmp["build_system_in_use"]} build systems'
+                f' f{ib_arg.build_system_in_use} build systems'
             )
 
     # TEST target
-    if ib_args.get('test'):
-        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
-            ib_arg_mmp.update({
-                'pytest': 'Y',
-            })
-        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
-            ib_arg_mmp.update({
-                # this is just a placeholder for now
-                'pytest': 'N',
-            })
+    if cli_ib_arg.get('test'):
+        if ib_arg.build_system_in_use == BuildSystems.ICARUS_PYTHON3.value:
+            ib_arg.pytest = 'Y'
+        elif ib_arg.build_system_in_use == BuildSystems.ICARUS_CDK.value:
+            # This is just a placeholder for now
+            ib_arg.pytest = 'N'
         else:
             raise utils.IcarusParserException(
-                f'The --test target is not configured for the f{ib_arg_mmp["build_system_in_use"]}'
+                f'The --test target is not configured for the f{ib_arg.build_system_in_use}'
                 ' build systems'
             )
 
     # DOCS target
-    if ib_args.get('docs'):
-        if ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_PYTHON3.value:
-            ib_arg_mmp.update({
-                'sphinx': 'Y',
-            })
-        elif ib_arg_mmp['build_system_in_use'] == BuildSystems.ICARUS_CDK.value:
-            ib_arg_mmp.update({
-                # this is just a placeholder for now
-                'sphinx': 'N',
-            })
+    if cli_ib_arg.get('docs'):
+        if ib_arg.build_system_in_use == BuildSystems.ICARUS_PYTHON3.value:
+            ib_arg.sphinx = 'Y'
+        elif ib_arg.build_system_in_use == BuildSystems.ICARUS_CDK.value:
+            # This is just a placeholder for now
+            ib_arg.sphinx = 'N'
         else:
             raise utils.IcarusParserException(
-                f'The --docs target is not configured for the f{ib_arg_mmp["build_system_in_use"]}'
+                f'The --docs target is not configured for the f{ib_arg.build_system_in_use}'
                 ' build systems'
             )
 
-    for arg_name, arg_value in ib_args.items():
+    for arg_name, arg_value in cli_ib_arg.items():
         if arg_name == 'verbose':
             assert isinstance(arg_value, int)
             if arg_value > 0:
-                ib_arg_mmp['initial_command_received'] += " -v"
+                ib_arg.initial_command_received += " -v"
                 continue
         if arg_value:
-            ib_arg_mmp['initial_command_received'] += f" {arg_value}"
+            ib_arg.initial_command_received += f" {arg_value}"
 
-    for hook in ib_arg_mmp['all_hooks']:
-        if ib_arg_mmp[hook] == 'Y':
-            ib_arg_mmp['running_hooks_name'].append(hook)
+    # Count running hooks
+    for hook in ib_arg.all_hooks:
+        if getattr(ib_arg, hook) == 'Y':
+            ib_arg.running_hooks_name.append(hook)
 
-    ib_arg_mmp['running_hooks_count'] = str(len(ib_arg_mmp['running_hooks_name']))
+    ib_arg.running_hooks_count = str(len(ib_arg.running_hooks_name))
 
-    if ib_arg_mmp['build'] == 'Y' and ib_arg_mmp['running_hooks_count'] == str(1):
-        ib_arg_mmp['is_only_build_hook'] = 'Y'
+    if ib_arg.build == 'Y' and ib_arg.running_hooks_count == str(1):
+        ib_arg.is_only_build_hook = 'Y'
 
-    if ib_args.get('path_name'):
-        assert isinstance(ib_args['path_name'], str)
-        ib_arg_mmp['path_name'] = ib_args['path_name']
+    # Path CLI
+    if cli_ib_arg.get('path_name'):
+        assert isinstance(cli_ib_arg['path_name'], str)
+        ib_arg.path_name = cli_ib_arg['path_name']
 
-    return ib_arg_mmp
+    # Cache CLI
+    if cli_ib_arg.get('cache_root'):
+        ib_arg.cache_root = 'Y'
+    if cli_ib_arg.get('cache_clean'):
+        ib_arg.cache_clean = 'Y'
 
 
-def _read_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+def _read_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:
     """
-    Process the icarus build config file and return a string with
-    all the ib_arg_mmp to be then eval from the sh script.
+    Read the icarus build config file.
 
-    :param ib_arg_mmp:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
     :return:
     """
 
     project_root_dir_abs = _find_project_root_dir()
     config_filepath = os.path.join(project_root_dir_abs, config.ICARUS_CFG_FILENAME)
 
-    ib_arg_mmp['icarus_config_filename'] = config.ICARUS_CFG_FILENAME
-    ib_arg_mmp['icarus_config_filepath'] = config_filepath
-    ib_arg_mmp['project_root_dir_abs'] = project_root_dir_abs
-
-    return ib_arg_mmp
+    ib_arg.icarus_config_filename = config.ICARUS_CFG_FILENAME
+    ib_arg.icarus_config_filepath = config_filepath
+    ib_arg.project_root_dir_abs = project_root_dir_abs
 
 
-def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+def _parse_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:
     """
     Parse the icarus build config file.
 
-    :param ib_arg_mmp:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
     :return:
     """
 
     try:
-        with open(ib_arg_mmp['icarus_config_filepath']) as icarus_build_config:
+        with open(ib_arg.icarus_config_filepath) as icarus_build_config:
             ibc = yaml.safe_load(icarus_build_config)
     except Exception as e:
         raise utils.IcarusParserException(
-            f"Error parsing {ib_arg_mmp['icarus_config_filepath']} -- {repr(e)}"
+            f"Error parsing {ib_arg.icarus_config_filepath} -- {repr(e)}"
         )
 
     pkg = ibc.get('package', [])
     bs = ibc.get('build-system', [])
-    ipy = ibc.get('icarus-python3', [])
-    icdk = ibc.get('icarus-cdk', [])  # noqa
+    ipy = ibc.get(BuildSystems.ICARUS_PYTHON3.value, [])
+    icdk = ibc.get(BuildSystems.ICARUS_CDK.value, [])  # noqa
     ignrs = ibc.get('ignore', [])
 
     try:
-        ib_arg_mmp['package_name_pascal_case'] = [d['name'] for d in pkg if d.get('name')][0]
+        ib_arg.package_name_pascal_case = [d['name'] for d in pkg if d.get('name')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['package_language'] = [d['language'] for d in pkg if d.get('language')][0]
+        ib_arg.package_language = [d['language'] for d in pkg if d.get('language')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['package_version_full'] = [d['version'] for d in pkg if d.get('version')][0]
+        ib_arg.package_version_full = [d['version'] for d in pkg if d.get('version')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['build_system_in_use'] = [d['system'] for d in bs if d.get('system')][0]
+        ib_arg.build_system_in_use = [d['system'] for d in bs if d.get('system')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['build_root_dir'] = [d['build-root'] for d in bs if d.get('build-root')][0]
+        ib_arg.build_root_dir = [d['build-root'] for d in bs if d.get('build-root')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['python_version_default_for_icarus'] = [
+        ib_arg.python_version_default_for_icarus = [
             d['python-default'] for d in ipy if d.get('python-default')
         ][0]
 
@@ -579,222 +612,234 @@ def _parse_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
 
     try:
-        ib_arg_mmp['python_versions_for_icarus'] = [d['python'] for d in ipy if d.get('python')][0]
+        ib_arg.python_versions_for_icarus = [d['python'] for d in ipy if d.get('python')][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['tool_requirements_paths'] = [
+        ib_arg.tool_requirements_paths = [
             d['tool-dependencies'] for d in ipy if d.get('tool-dependencies')
         ][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['run_requirements_paths'] = [
+        ib_arg.run_requirements_paths = [
             d['run-dependencies'] for d in ipy if d.get('run-dependencies')
         ][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['dev_requirements_paths'] = [
+        ib_arg.dev_requirements_paths = [
             d['dev-dependencies'] for d in ipy if d.get('dev-dependencies')
         ][0]
     except Exception:
         pass
 
     try:
-        ib_arg_mmp['icarus_ignore_array'] = [i.strip() for i in ignrs]
+        read_the_docs_dict = [d['read-the-docs'] for d in ipy if d.get('read-the-docs')][0]
+        ib_arg.read_the_docs_requirements_path = [
+            d['requirements'] for d in read_the_docs_dict if d.get('requirements')
+        ][0]
     except Exception:
         pass
 
-    return ib_arg_mmp
+    try:
+        ib_arg.icarus_ignore_array = [i.strip() for i in ignrs]
+    except Exception:
+        pass
 
 
-def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+def _validate_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:
     """
     Validate the icarus build config file.
 
-    :param ib_arg_mmp:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
     :return:
     """
 
-    if not ib_arg_mmp.get('package_name_pascal_case'):
+    if not ib_arg.package_name_pascal_case:
         raise utils.IcarusParserException(
             f'No name specified in package {config.ICARUS_CFG_FILENAME}'
         )
     else:
-        if not isinstance(ib_arg_mmp.get('package_name_pascal_case'), str):
+        if not isinstance(ib_arg.package_name_pascal_case, str):
             raise utils.IcarusParserException(
                 f'name in package {config.ICARUS_CFG_FILENAME} must be a string'
             )
 
-    if not ib_arg_mmp.get('package_language'):
+    if not ib_arg.package_language:
         raise utils.IcarusParserException(
             f'No language specified in package {config.ICARUS_CFG_FILENAME}'
         )
     else:
-        if not isinstance(ib_arg_mmp.get('package_language'), str):
+        if not isinstance(ib_arg.package_language, str):
             raise utils.IcarusParserException(
                 f'language in package {config.ICARUS_CFG_FILENAME} must be a string'
             )
 
-    if not ib_arg_mmp.get('package_version_full'):
+    if not ib_arg.package_version_full:
         raise utils.IcarusParserException(
             f'No version specified in package {config.ICARUS_CFG_FILENAME}'
         )
     else:
-        if not isinstance(ib_arg_mmp.get('package_version_full'), str):
+        if not isinstance(ib_arg.package_version_full, str):
             raise utils.IcarusParserException(
                 f'version in package {config.ICARUS_CFG_FILENAME} must be a string'
             )
-        if len(ib_arg_mmp.get('package_version_full', '').split('.')) not in {3}:
+        if len(ib_arg.package_version_full.split('.')) not in {3}:
             raise utils.IcarusParserException(
                 f'Invalid version in package {config.ICARUS_CFG_FILENAME}, version must follow'
                 ' Semantic Versioning (SemVer): MAJOR.MINOR.PATCH (see https://semver.org).'
             )
 
-    if not ib_arg_mmp.get('build_system_in_use'):
+    if not ib_arg.build_system_in_use:
         raise utils.IcarusParserException(
             f'No system specified in build-system {config.ICARUS_CFG_FILENAME}'
         )
     else:
-        if not isinstance(ib_arg_mmp.get('build_system_in_use'), str):
+        if not isinstance(ib_arg.build_system_in_use, str):
             raise utils.IcarusParserException(
                 f'system in build-system {config.ICARUS_CFG_FILENAME} must be a string'
             )
-        if ib_arg_mmp.get('build_system_in_use') not in BuildSystems:
+        if ib_arg.build_system_in_use not in BuildSystems:
             raise utils.IcarusParserException(
                 f'Invalid system in build-system {config.ICARUS_CFG_FILENAME}'
             )
 
-    if not ib_arg_mmp.get('build_root_dir'):
+    if not ib_arg.build_root_dir:
         raise utils.IcarusParserException(
             f'No build-root specified in build-system {config.ICARUS_CFG_FILENAME}'
         )
     else:
-        if not isinstance(ib_arg_mmp.get('build_root_dir'), str):
+        if not isinstance(ib_arg.build_root_dir, str):
             raise utils.IcarusParserException(
                 f'build-root in build-system {config.ICARUS_CFG_FILENAME} must be a string'
             )
 
-    if ib_arg_mmp.get('build_system_in_use') == 'icarus-python3':
-        if not ib_arg_mmp.get('python_versions_for_icarus'):
+    if ib_arg.build_system_in_use == BuildSystems.ICARUS_PYTHON3.value:
+        if not ib_arg.python_versions_for_icarus:
             raise utils.IcarusParserException(
-                f'No python version(s) specified in icarus-python3 {config.ICARUS_CFG_FILENAME}'
+                f'No python version(s) specified in {BuildSystems.ICARUS_PYTHON3.value}'
+                f' {config.ICARUS_CFG_FILENAME}'
             )
-        elif isinstance(ib_arg_mmp.get('python_versions_for_icarus'), list):
-            if not all(
-                isinstance(v, str) for v in ib_arg_mmp.get('python_versions_for_icarus', [])
-            ):
+        elif isinstance(ib_arg.python_versions_for_icarus, list):
+            if not all(isinstance(v, str) for v in ib_arg.python_versions_for_icarus):
                 raise utils.IcarusParserException(
-                    f'All python version(s) in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                    ' strings'
+                    f'All python version(s) in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be strings'
                 )
-            if not all(
-                len(v.split('.')) in {2, 3}
-                for v in ib_arg_mmp.get('python_versions_for_icarus', [])
-            ):
+            if not all(len(v.split('.')) in {2, 3} for v in ib_arg.python_versions_for_icarus):
                 raise utils.IcarusParserException(
-                    f'All python version(s) in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                    ' valid'
+                    f'All python version(s) in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be valid'
                 )
         else:
             raise utils.IcarusParserException(
-                f'Python version(s) in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a list'
-                ' of string'
+                f'Python version(s) in {BuildSystems.ICARUS_PYTHON3.value}'
+                f' {config.ICARUS_CFG_FILENAME} must be a list of string'
             )
 
-        if not ib_arg_mmp.get('python_version_default_for_icarus'):
+        if not ib_arg.python_version_default_for_icarus:
             raise utils.IcarusParserException(
-                'No python-default version specified in icarus-python3'
+                f'No python-default version specified in {BuildSystems.ICARUS_PYTHON3.value}'
                 f' {config.ICARUS_CFG_FILENAME}'
             )
         else:
-            if not isinstance(ib_arg_mmp.get('python_version_default_for_icarus'), str):
+            if not isinstance(ib_arg.python_version_default_for_icarus, str):
                 raise utils.IcarusParserException(
-                    f'python-default version in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                    ' a string'
+                    f'python-default version in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be a string'
                 )
-            if len(ib_arg_mmp.get('python_version_default_for_icarus', '').split('.')) not in {
+            if len(ib_arg.python_version_default_for_icarus.split('.')) not in {
                 2,
                 3,
             }:
                 raise utils.IcarusParserException(
-                    f'Invalid python-default version in icarus-python3 {config.ICARUS_CFG_FILENAME}'
+                    f'Invalid python-default version in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME}'
                 )
-            if ib_arg_mmp.get('python_version_default_for_icarus') not in ib_arg_mmp.get(
-                'python_versions_for_icarus', []
-            ):
+            if ib_arg.python_version_default_for_icarus not in ib_arg.python_versions_for_icarus:
                 raise utils.IcarusParserException(
-                    f'python-default version in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                    ' in the list of python versions'
+                    f'python-default version in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be in the list of python versions'
                 )
 
-        if not ib_arg_mmp.get('tool_requirements_paths'):
+        if not ib_arg.tool_requirements_paths:
             # not a mandatory field
             pass
-        elif isinstance(ib_arg_mmp.get('tool_requirements_paths'), list):
-            if not all(isinstance(v, str) for v in ib_arg_mmp.get('tool_requirements_paths', [])):
+        elif isinstance(ib_arg.tool_requirements_paths, list):
+            if not all(isinstance(v, str) for v in ib_arg.tool_requirements_paths):
                 raise utils.IcarusParserException(
-                    f'All tool-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                    ' strings'
+                    f'All tool-dependencies in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be strings'
                 )
         else:
-            if not isinstance(ib_arg_mmp.get('tool_requirements_paths'), list):
+            if not isinstance(ib_arg.tool_requirements_paths, list):
                 raise utils.IcarusParserException(
-                    f'tool-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a'
-                    ' list of strings'
+                    f'tool-dependencies in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be a list of strings'
                 )
 
-    if not ib_arg_mmp.get('run_requirements_paths'):
-        # not a mandatory field
-        pass
-    elif isinstance(ib_arg_mmp.get('run_requirements_paths'), list):
-        if not all(isinstance(v, str) for v in ib_arg_mmp.get('run_requirements_paths', [])):
-            raise utils.IcarusParserException(
-                f'All run-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                ' strings'
-            )
-    else:
-        if not isinstance(ib_arg_mmp.get('run_requirements_paths'), list):
-            raise utils.IcarusParserException(
-                f'run-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a list'
-                ' of strings'
-            )
+        if not ib_arg.run_requirements_paths:
+            # not a mandatory field
+            pass
+        elif isinstance(ib_arg.run_requirements_paths, list):
+            if not all(isinstance(v, str) for v in ib_arg.run_requirements_paths):
+                raise utils.IcarusParserException(
+                    f'All run-dependencies in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be strings'
+                )
+        else:
+            if not isinstance(ib_arg.run_requirements_paths, list):
+                raise utils.IcarusParserException(
+                    f'run-dependencies in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be a list of strings'
+                )
 
-    if not ib_arg_mmp.get('dev_requirements_paths'):
-        # not a mandatory field
-        pass
-    elif isinstance(ib_arg_mmp.get('dev_requirements_paths'), list):
-        if not all(isinstance(v, str) for v in ib_arg_mmp.get('dev_requirements_paths', [])):
-            raise utils.IcarusParserException(
-                f'All dev-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be'
-                ' strings'
-            )
-    else:
-        if not isinstance(ib_arg_mmp.get('dev_requirements_paths'), list):
-            raise utils.IcarusParserException(
-                f'dev-dependencies in icarus-python3 {config.ICARUS_CFG_FILENAME} must be a list'
-                ' of strings'
-            )
+        if not ib_arg.dev_requirements_paths:
+            # not a mandatory field
+            pass
+        elif isinstance(ib_arg.dev_requirements_paths, list):
+            if not all(isinstance(v, str) for v in ib_arg.dev_requirements_paths):
+                raise utils.IcarusParserException(
+                    f'All dev-dependencies in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be strings'
+                )
+        else:
+            if not isinstance(ib_arg.dev_requirements_paths, list):
+                raise utils.IcarusParserException(
+                    f'dev-dependencies in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be a list of strings'
+                )
 
-    if ib_arg_mmp.get('build_system_in_use') == 'icarus-cdk':
+        if not ib_arg.read_the_docs_requirements_path:
+            # not a mandatory field
+            pass
+        else:
+            if not isinstance(ib_arg.read_the_docs_requirements_path, str):
+                raise utils.IcarusParserException(
+                    f'read-the-docs requirements in {BuildSystems.ICARUS_PYTHON3.value}'
+                    f' {config.ICARUS_CFG_FILENAME} must be a string'
+                )
+
+    if ib_arg.build_system_in_use == BuildSystems.ICARUS_CDK.value:
         raise utils.IcarusParserException(
-            f'CDK build system not yet supported in icarus-cdk {config.ICARUS_CFG_FILENAME}'
+            f'CDK build system not yet supported in {BuildSystems.ICARUS_CDK.value}'
+            f' {config.ICARUS_CFG_FILENAME}'
         )
 
-    if not ib_arg_mmp.get('icarus_ignore_array'):
+    if not ib_arg.icarus_ignore_array:
         # not a mandatory field
         pass
     else:
-        if isinstance(ib_arg_mmp.get('icarus_ignore_array'), list):
-            if not all(isinstance(v, str) for v in ib_arg_mmp.get('icarus_ignore_array', [])):
+        if isinstance(ib_arg.icarus_ignore_array, list):
+            if not all(isinstance(v, str) for v in ib_arg.icarus_ignore_array):
                 raise utils.IcarusParserException(
                     f'All icarus ignore in ignore {config.ICARUS_CFG_FILENAME} must be strings'
                 )
-            for v in ib_arg_mmp.get('icarus_ignore_array', []):
+            for v in ib_arg.icarus_ignore_array:
                 if '//' in v:
                     raise utils.IcarusParserException(
                         f'icarus ignore in ignore {config.ICARUS_CFG_FILENAME} cannot contain `//`'
@@ -808,18 +853,16 @@ def _validate_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
                 f'Icarus ignore in ignore {config.ICARUS_CFG_FILENAME} must be a list of string'
             )
 
-    return ib_arg_mmp
 
-
-def _parse_pyproject_toml(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+def _parse_pyproject_toml(ib_arg: IcarusBuilderArg) -> None:
     """
     Parse the pyproject.toml file.
 
-    :param ib_arg_mmp:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
     :return:
     """
 
-    pyproject_toml_filepath = os.path.join(ib_arg_mmp['project_root_dir_abs'], 'pyproject.toml')
+    pyproject_toml_filepath = os.path.join(ib_arg.project_root_dir_abs, 'pyproject.toml')
 
     try:
         with open(pyproject_toml_filepath, 'rb') as pyproject_toml:
@@ -829,89 +872,69 @@ def _parse_pyproject_toml(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
         pass
 
     try:
-        ib_arg_mmp['run_requirements_pyproject_toml'] = pyproject_toml_data.get('project', {}).get(
+        ib_arg.run_requirements_pyproject_toml = pyproject_toml_data.get('project', {}).get(
             'dependencies', []
         )
     except Exception:
         pass
 
-    return ib_arg_mmp
 
-
-def _normalize_and_set_defaults_icarus_build_cfg(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+def _normalize_and_set_defaults_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:
     """
-    Normalize the ib_arg_mmp to be used in the python script.
+    Normalize the values and set defaults.
 
-    :param ib_arg_mmp:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
     :return:
     """
 
     stru = mylib.StringUtils()
 
-    # Optional settings will get here as None, set defaults
-    if ib_arg_mmp.get('tool_requirements_paths') is None:
-        ib_arg_mmp['tool_requirements_paths'] = []
-    if ib_arg_mmp.get('run_requirements_paths') is None:
-        ib_arg_mmp['run_requirements_paths'] = []
-    if ib_arg_mmp.get('dev_requirements_paths') is None:
-        ib_arg_mmp['dev_requirements_paths'] = []
-    if ib_arg_mmp.get('icarus_ignore_array') is None:
-        ib_arg_mmp['icarus_ignore_array'] = []
-
     # Add pkg name snake anf dashed
     try:
-        ib_arg_mmp['package_name_snake_case'] = stru.snake_case(
-            ib_arg_mmp['package_name_pascal_case']
-        )
-        ib_arg_mmp['package_name_dashed'] = ib_arg_mmp['package_name_snake_case'].replace("_", "-")
+        ib_arg.package_name_snake_case = stru.snake_case(ib_arg.package_name_pascal_case)
+        ib_arg.package_name_dashed = ib_arg.package_name_snake_case.replace("_", "-")
     except Exception:
         raise utils.IcarusParserException(f"Invalid package name in {config.ICARUS_CFG_FILENAME}")
 
     # Add pkg version
-    ib_arg_mmp['package_version_major'] = ib_arg_mmp['package_version_full'].split('.')[0]
-    ib_arg_mmp['package_version_minor'] = ib_arg_mmp['package_version_full'].split('.')[1]
-    ib_arg_mmp['package_version_patch'] = ib_arg_mmp['package_version_full'].split('.')[2]
+    ib_arg.package_version_major = ib_arg.package_version_full.split('.')[0]
+    ib_arg.package_version_minor = ib_arg.package_version_full.split('.')[1]
+    ib_arg.package_version_patch = ib_arg.package_version_full.split('.')[2]
 
     # Remove duplicates and sort from newest to oldest version
-    ib_arg_mmp['python_versions_for_icarus'] = sorted(
-        list(set(ib_arg_mmp['python_versions_for_icarus'])), key=_sort_version, reverse=True
+    ib_arg.python_versions_for_icarus = sorted(
+        set(ib_arg.python_versions_for_icarus), key=_sort_version, reverse=True
     )
-    ib_arg_mmp['icarus_ignore_array'] = list(set(ib_arg_mmp['icarus_ignore_array']))
-    ib_arg_mmp['tool_requirements_paths'] = list(set(ib_arg_mmp['tool_requirements_paths']))
-    ib_arg_mmp['run_requirements_paths'] = list(set(ib_arg_mmp['run_requirements_paths']))
-    ib_arg_mmp['dev_requirements_paths'] = list(set(ib_arg_mmp['dev_requirements_paths']))
-
-    return ib_arg_mmp
+    ib_arg.icarus_ignore_array = list(set(ib_arg.icarus_ignore_array))
+    ib_arg.tool_requirements_paths = list(set(ib_arg.tool_requirements_paths))
+    ib_arg.run_requirements_paths = list(set(ib_arg.run_requirements_paths))
+    ib_arg.dev_requirements_paths = list(set(ib_arg.dev_requirements_paths))
 
 
-def _normalize_and_set_python_version(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
+def _normalize_and_set_python_version(ib_arg: IcarusBuilderArg) -> None:
     """
-    Set the python version to use.
+    Normalize the python version.
 
-    :param ib_arg_mmp:
+    :param ib_arg: The IcarusBuilderArg object to be updated.
     :return:
     """
 
-    if ib_arg_mmp['build_system_in_use'] == 'icarus-python3':
-        if len(ib_arg_mmp['python_version_default_for_icarus'].split('.')) == 2:
-            ib_arg_mmp['python_default_version'] = ib_arg_mmp['python_version_default_for_icarus']
-            ib_arg_mmp['python_default_full_version'] = _get_latest_python_version(
-                ib_arg_mmp['python_default_version']
+    if ib_arg.build_system_in_use == BuildSystems.ICARUS_PYTHON3.value:
+        if len(ib_arg.python_version_default_for_icarus.split('.')) == 2:
+            ib_arg.python_default_version = ib_arg.python_version_default_for_icarus
+            ib_arg.python_default_full_version = _get_latest_python_version(
+                ib_arg.python_default_version
             )
-        elif len(ib_arg_mmp['python_version_default_for_icarus'].split('.')) == 3:
-            ib_arg_mmp['python_default_version'] = '.'.join(
-                ib_arg_mmp['python_version_default_for_icarus'].split('.')[:2]
+        elif len(ib_arg.python_version_default_for_icarus.split('.')) == 3:
+            ib_arg.python_default_version = '.'.join(
+                ib_arg.python_version_default_for_icarus.split('.')[:2]
             )
-            ib_arg_mmp['python_default_full_version'] = ib_arg_mmp[
-                'python_version_default_for_icarus'
-            ]
+            ib_arg.python_default_full_version = ib_arg.python_version_default_for_icarus
 
-        def_v = (
-            f"{ib_arg_mmp['python_default_version']}:{ib_arg_mmp['python_default_full_version']}"
-        )
+        def_v = f"{ib_arg.python_default_version}:{ib_arg.python_default_full_version}"
         tmp_py_v = []
 
-        for v in ib_arg_mmp['python_versions_for_icarus']:
+        for v in ib_arg.python_versions_for_icarus:
             if len(v.split('.')) == 2:
                 short_version = v
                 full_version = _get_latest_python_version(v)
@@ -921,34 +944,9 @@ def _normalize_and_set_python_version(ib_arg_mmp: IbArgMmp) -> IbArgMmp:
             tmp_py_v.append(':'.join([short_version, full_version]))
 
         # Python default always stays at index 0
-        ib_arg_mmp['python_versions'] = [v for v in tmp_py_v if v == def_v] + [
+        ib_arg.python_versions = [v for v in tmp_py_v if v == def_v] + [
             v for v in tmp_py_v if v != def_v
         ]
-
-    return ib_arg_mmp
-
-
-def _convert_ib_arg_mmp_to_ib_argv(ib_arg_mmp: IbArgMmp) -> str:
-    """
-    Convert a dictionary to a bash ib_arg_mmp string.
-
-    :param ib_arg_mmp:
-    :return:
-    """
-
-    temp_ib_arg_mmp = {}
-
-    module_logger.debug('*' * 50)
-
-    for k, v in ib_arg_mmp.items():
-        temp_ib_arg_mmp[k] = _convert_value(v)
-        module_logger.debug(f"ib_arg_mmp -> {k}={temp_ib_arg_mmp[k]}")
-
-    module_logger.debug('*' * 50)
-
-    ib_arg_mmp_str = ' '.join([f"{k}={v}" for k, v in temp_ib_arg_mmp.items()])
-
-    return ib_arg_mmp_str
 
 
 def _find_project_root_dir() -> str:
@@ -978,7 +976,7 @@ def _get_latest_python_version(python_version: str) -> str:
     """
     Get the latest python full version for the given python version.
 
-    :param python_version:
+    :param python_version: The python version.
     :return:
     """
 
@@ -1001,23 +999,6 @@ def _get_latest_python_version(python_version: str) -> str:
             given_patch = int(patch)
 
     return f"{given_major}.{given_minor}.{given_patch}"
-
-
-def _convert_value(value):
-    """
-    Convert a value to a string representation suitable for use in a
-    Bash script.
-
-    :param value:
-    :return:
-    """
-
-    if isinstance(value, str):
-        return repr(value)
-    elif isinstance(value, list) or isinstance(value, tuple):
-        return f"( {' '.join(_convert_value(el) for el in value)} )"
-    else:
-        raise utils.IcarusParserException(f"Invalid type for `{value}`")
 
 
 def _sort_version(v):

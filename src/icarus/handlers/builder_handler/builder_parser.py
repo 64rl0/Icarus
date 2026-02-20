@@ -31,11 +31,11 @@ This module ...
 
 # Standard Library Imports
 import argparse
-from typing import Union
 
 # Local Application Imports
 from icarus import config, utils
 from icarus.handlers.builder_handler import builder_helper, create_helper, update_version_helper
+from icarus.handlers.builder_handler.model import IcarusBuilderOperation
 
 # END IMPORTS
 # ======================================================================
@@ -67,55 +67,9 @@ def handle_builder_command(args: argparse.Namespace) -> int:
     :raise ValueError: If an unknown `builder_command` is provided.
     """
 
-    base_args: dict[str, Union[int]] = {
-        'verbose': args.verbose,
-    }
-    builder_only_args: dict[str, Union[str, list[str]]] = {
-        'build': getattr(args, 'build', ''),
-        'release': getattr(args, 'release', ''),
-        'format': getattr(args, 'format', ''),
-        'docs': getattr(args, 'docs', ''),
-        'test': getattr(args, 'test', ''),
-        'clean': getattr(args, 'clean', ''),
-        'isort': getattr(args, 'isort', ''),
-        'black': getattr(args, 'black', ''),
-        'flake8': getattr(args, 'flake8', ''),
-        'mypy': getattr(args, 'mypy', ''),
-        'shfmt': getattr(args, 'shfmt', ''),
-        'eolnorm': getattr(args, 'eolnorm', ''),
-        'whitespaces': getattr(args, 'whitespaces', ''),
-        'trailing': getattr(args, 'trailing', ''),
-        'eofnewline': getattr(args, 'eofnewline', ''),
-        'gitleaks': getattr(args, 'gitleaks', ''),
-        'pytest': getattr(args, 'pytest', ''),
-        'sphinx': getattr(args, 'sphinx', ''),
-        'readthedocs': getattr(args, 'readthedocs', ''),
-        'merge': getattr(args, 'merge', ''),
-        'exectool': getattr(args, 'exec-tool', '') or getattr(args, 'exec_tool', ''),
-        'execrun': getattr(args, 'exec-run', '') or getattr(args, 'exec_run', ''),
-        'execdev': getattr(args, 'exec-dev', '') or getattr(args, 'exec_dev', ''),
-        'bumpver': getattr(args, 'bumpver', ''),
-    }
-    singleton_args = {
-        'path',
-        'create',
-        'build-runtime',
-    }
+    ib_cli = builder_helper.parse_icarus_builder_cli_arg(args)
 
-    if args.builder_command in singleton_args and any(builder_only_args.values()):
-        raise utils.IcarusParserException("too many arguments")
-
-    if args.builder_command == 'create':
-        module_logger.debug(f"Running {args.builder_command=}")
-
-        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'create.sh'
-        script_args = create_helper.get_argv(package_name=args.n, package_language=args.l)
-
-        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
-
-        return return_code
-
-    elif args.builder_command == 'build-runtime':
+    if ib_cli.operation is IcarusBuilderOperation.BUILD_RUNTIME:
         module_logger.debug(f"Running {args.builder_command=}")
 
         script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'build_runtime.sh'
@@ -125,28 +79,35 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command == 'path':
+    elif ib_cli.operation is IcarusBuilderOperation.CREATE:
         module_logger.debug(f"Running {args.builder_command=}")
 
-        builder_path_only_args: dict[str, Union[str, list[str]]] = {
-            'path_name': args.path_name,
-            'list_paths': args.list,
-        }
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'create.sh'
+        script_args = create_helper.get_argv(package_name=args.n, package_language=args.l)
 
-        if sum(1 for a in builder_path_only_args.values() if a) > 1:
-            raise utils.IcarusParserException("too many arguments")
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
 
-        if not any(builder_path_only_args.values()):
-            raise utils.IcarusParserException('the following arguments are required: <subcommand>')
+        return return_code
 
-        builder_path_args = {**base_args, **builder_only_args, **builder_path_only_args}
+    elif ib_cli.operation is IcarusBuilderOperation.CACHE:
+        module_logger.debug(f"Running {args.builder_command=}")
+
+        script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'cache.sh'
+        script_args = [builder_helper.get_ib_argv(ib_cli.args)]
+
+        return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
+
+        return return_code
+
+    elif ib_cli.operation is IcarusBuilderOperation.PATH:
+        module_logger.debug(f"Running {args.builder_command=}")
 
         builder_helper.ensure_builder_control_plane()
         builder_lock = builder_helper.acquire_builder_lock()
 
         try:
-            script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder_path.sh'
-            script_args = [builder_helper.get_argv(ib_args=builder_path_args)]
+            script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'path.sh'
+            script_args = [builder_helper.get_ib_argv(ib_cli.args)]
 
             return_code = utils.run_bash_script(script_path=script_path, script_args=script_args)
         finally:
@@ -154,60 +115,34 @@ def handle_builder_command(args: argparse.Namespace) -> int:
 
         return return_code
 
-    elif args.builder_command not in singleton_args:
+    elif ib_cli.operation is IcarusBuilderOperation.BUMPVER:
         module_logger.debug(f"Running {args.builder_command=}")
-
-        total_builder_only_args = sum(1 for el in builder_only_args.values() if el)
-
-        if builder_only_args.get('clean') and total_builder_only_args > 1:
-            raise utils.IcarusParserException(
-                '--clean is a standalone argument and must be used alone'
-            )
-
-        if builder_only_args.get('merge') and total_builder_only_args > 1:
-            raise utils.IcarusParserException(
-                '--merge is a standalone argument and must be used alone'
-            )
-
-        if builder_only_args.get('exectool') and total_builder_only_args > 1:
-            raise utils.IcarusParserException(
-                '--exec-tool is a standalone argument and must be used alone'
-            )
-
-        if builder_only_args.get('execrun') and total_builder_only_args > 1:
-            raise utils.IcarusParserException(
-                '--exec-run is a standalone argument and must be used alone'
-            )
-
-        if builder_only_args.get('execdev') and total_builder_only_args > 1:
-            raise utils.IcarusParserException(
-                '--exec-dev is a standalone argument and must be used alone'
-            )
-
-        if builder_only_args.get('bumpver') and total_builder_only_args > 1:
-            raise utils.IcarusParserException(
-                '--bumpver is a standalone argument and must be used alone'
-            )
-
-        if not any(builder_only_args.values()):
-            raise utils.IcarusParserException('the following arguments are required: <subcommand>')
-
-        builder_args = {**base_args, **builder_only_args}
 
         builder_helper.ensure_builder_control_plane()
         builder_lock = builder_helper.acquire_builder_lock()
 
         try:
-            if builder_only_args.get('bumpver'):
-                ib_arg_mmp = builder_helper.get_arg_mmp(ib_args=builder_args)
-                return_code = update_version_helper.update_version_file(ib_arg_mmp=ib_arg_mmp)
-            else:
-                script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
-                script_args = [builder_helper.get_argv(ib_args=builder_args)]
+            ib_arg = builder_helper.get_ib_arg(ib_cli.args)
 
-                return_code = builder_helper.run_bash_script_with_logging(
-                    script_path=script_path, script_args=script_args
-                )
+            return_code = update_version_helper.update_version_file(ib_arg)
+        finally:
+            builder_helper.release_builder_lock(builder_lock)
+
+        return return_code
+
+    elif ib_cli.operation is IcarusBuilderOperation.BUILDER:
+        module_logger.debug(f"Running {args.builder_command=}")
+
+        builder_helper.ensure_builder_control_plane()
+        builder_lock = builder_helper.acquire_builder_lock()
+
+        try:
+            script_path = config.CLI_SCRIPTS_DIR / 'builder_handler' / 'builder.sh'
+            script_args = [builder_helper.get_ib_argv(ib_cli.args)]
+
+            return_code = builder_helper.run_bash_script_with_logging(
+                script_path=script_path, script_args=script_args
+            )
         finally:
             builder_helper.release_builder_lock(builder_lock)
 

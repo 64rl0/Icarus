@@ -1,7 +1,7 @@
 #
 # Lists development dependencies for your package.
 #
-# Your package doesn’t need these packages at runtime,
+# Your package doesn't need these packages at runtime,
 # but they are needed at development time.
 #
 # These are not transitive: anyone that depends on your package

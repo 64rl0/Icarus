@@ -491,7 +491,7 @@ function build_generic() {
         echo -e "--| ${conf}"
     done
     echo -e "Redirecting output to '${path_to_log_root}/${unpacked_dir_name}.configure.log'"
-    # Only for zstd/Zstandard that uses a plain Makefile, not autotools, so there’s no ./configure
+    # Only for zstd/Zstandard that uses a plain Makefile, not autotools, so there's no ./configure
     if [[ "${package_download_filename}" =~ [zZ]std ]]; then
         :
     # Only for OpenSSl that uses ./config to auto-detect platform
@@ -1359,8 +1359,8 @@ function build_python_runtime() {
         # - We point CC/CXX/LDSHARED at those shims so both compilation and
         #   shared-object linking see the sysroot.
         # - We intentionally keep CPPFLAGS/LDFLAGS free of --sysroot to avoid
-        #   leaking absolute paths into Python’s sysconfig/python3-config.
-        # - The wrappers live under ${path_to_tmpwork_root} and aren’t packaged,
+        #   leaking absolute paths into Python's sysconfig/python3-config.
+        # - The wrappers live under ${path_to_tmpwork_root} and aren't packaged,
         #   so the final runtime has no dependency on host SDK locations.
 
         # Create tiny CC/CXX wrappers that add --sysroot only at compile/link time
@@ -1746,7 +1746,7 @@ function check_loadable_refs_macos() {
                         exit_code=1
                         ;;
                     *)
-                        # any extra “forbidden” prefixes
+                        # any extra "forbidden" prefixes
                         for p in "${forbidden_paths[@]}"; do
                             if [[ "${lib}" == "${p}"* ]]; then
                                 echo -e "Match case macOS_02"
@@ -1793,7 +1793,7 @@ function check_loadable_refs_linux() {
                 # Short-circuit non-ELF files right away
                 continue
             fi
-            # everything echo inside the if/else gets lost unless it’s the last thing before the
+            # everything echo inside the if/else gets lost unless it's the last thing before the
             # back-slashed pipe so we use the response variable for this purpose
             printf '%s\n' "${response}" \
                 | while read -r lib; do
@@ -1815,7 +1815,7 @@ function check_loadable_refs_linux() {
                         /lib/libselinux* | /lib64/libselinux* | \
                         /lib/libstdc++* | /lib64/libstdc++* | \
                         /lib/libutil* | /lib64/libutil*)
-                        # Core “system” libraries we can assume exist on the host machine
+                        # Core "system" libraries we can assume exist on the host machine
                         ;;
                     "${path_to_python_home}"/lib* | \
                         "${path_to_python_home}"/local/bin* | \
@@ -1851,7 +1851,7 @@ function check_loadable_refs_linux() {
                         fi
                         ;;
                     *)
-                        # any extra “forbidden” prefixes
+                        # any extra "forbidden" prefixes
                         for p in "${forbidden_paths[@]}"; do
                             if [[ "${lib}" == "${p}"* ]]; then
                                 echo -e "Match case Linux_03"
@@ -1864,8 +1864,8 @@ function check_loadable_refs_linux() {
                             continue
                         fi
                         if [[ "${lib}" == '=>' ]]; then
-                            # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare “=>”
-                            # when there’s no third field, so skip it
+                            # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare "=>"
+                            # when there's no third field, so skip it
                             continue
                         fi
                         if [[ "${file}" == "${path_to_sysroot}"* ]]; then
