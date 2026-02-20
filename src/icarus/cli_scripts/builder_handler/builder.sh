@@ -943,6 +943,10 @@ function run_build_icarus_python3() {
     # want to show the succeed of the single run.
     build_single_run_status=0
 
+    # We export ICARUS_PACKAGE_VERSION at build time. we need to inject
+    # the ICARUS_PACKAGE_VERSION var in the env for the setup.py to find it.
+    export ICARUS_PACKAGE_VERSION="${package_version_full}"
+
     # We need the tool.runtimefarm to build the pkg.
     resolve_path "${path_tool_runtimefarm_name}"
 
@@ -952,16 +956,13 @@ function run_build_icarus_python3() {
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package.
-    # We need to inject the ICARUS_PACKAGE_VERSION var in the env for the setup.py to find it.
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package${end}"
-    export ICARUS_PACKAGE_VERSION="${package_version_full}"
     "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-    unset ICARUS_PACKAGE_VERSION
     echo
 
     echo -e "${bold_green}${package} Checking package health${end}"
@@ -1006,6 +1007,9 @@ function run_build_icarus_python3() {
         build_single_run_status=1
         exit_code=1
     fi
+
+    # Unsetting ICARUS_PACKAGE_VERSION var from the env.
+    unset ICARUS_PACKAGE_VERSION
 
     if [[ "${build_single_run_status}" -eq 0 ]]; then
         # Build complete!
