@@ -71,14 +71,35 @@ declare -r package="\xF0\x9F\x93\xA6"
 declare -r network_world="\xF0\x9F\x8C\x90"
 
 # Sourcing existing bashrc to export current PATH
-. "${HOME}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+if [[ -f "${HOME}/.bashrc" ]]; then
+    . "${HOME}/.bashrc" || {
+        echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+    }
+fi
+# Only if run as sudo source the sudo related files
 if [[ -n "${SUDO_USER}" ]]; then
     if [[ $(uname -s) == "Darwin" ]]; then
-        . "/Users/${SUDO_USER}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
-        . "/Users/${SUDO_USER}/.bash/config/bash.conf" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
+        if [[ -f "/Users/${SUDO_USER}/.bashrc" ]]; then
+            . "/Users/${SUDO_USER}/.bashrc" || {
+                echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+            }
+        fi
+        if [[ -f "/Users/${SUDO_USER}/.bash/config/bash.conf" ]]; then
+            . "/Users/${SUDO_USER}/.bash/config/bash.conf" || {
+                echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
+            }
+        fi
     elif [[ $(uname -s) == "Linux" ]]; then
-        . "/home/${SUDO_USER}/.bashrc" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
-        . "/home/${SUDO_USER}/.bash/config/bash.conf" || echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
+        if [[ -f "/home/${SUDO_USER}/.bashrc" ]]; then
+            . "/home/${SUDO_USER}/.bashrc" || {
+                echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source .bashrc"
+            }
+        fi
+        if [[ -f "/home/${SUDO_USER}/.bash/config/bash.conf" ]]; then
+            . "/home/${SUDO_USER}/.bash/config/bash.conf" || {
+                echo -e "[$(date '+%Y-%m-%d %T %Z')] [ERROR] Failed to source bash.conf"
+            }
+        fi
     fi
 fi
 

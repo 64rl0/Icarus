@@ -119,7 +119,7 @@ function echo_summary() {
 
     echo -e "${bold_blue}${cli_name} builder:${end}"
     # We need to unset everything to get the real icarus running in the os
-    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
+    unset FARMHOME PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
     echo -e "$("${this_cli_fullpath}" --version)"
     echo
 
@@ -1075,8 +1075,10 @@ function exec_dev_cmd() {
 }
 
 function resolve_path() {
-    local p_name path_response
+    local p_name path_runtime path_bin path_python_home pkg_pythonpath
+
     # path_called is a global var DO NOT set as local.
+    path_called="Y"
 
     p_name=$1
 
@@ -1086,56 +1088,109 @@ function resolve_path() {
         exit_code=1
     fi
 
+    # Clear previous exports
+    unset FARMHOME PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
+    set -a
+    PATH="${_OLD_PATH}"
+    set +a
+
     # If there isn't a path, then we incur the risk of using system binaries,
     # therefore this is a hard stop, using errexit.
 
-    # Clear previous exports
-    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
-    PATH="${_OLD_PATH}"
-    export PATH
-
-    path_called="Y"
-
     case "${p_name}" in
     "${path_pkg_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
+        path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
             echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
         }
+        path_bin="$(_internal_icarus_builder_path_cmd "${path_pkg_bin_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_pkg_bin_name}." "errexit"
+        }
+        path_python_home="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonhome_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_pkg_pythonhome_name}." "errexit"
+        }
         ;;
     "${path_tool_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${path_tool_runtimefarm_name}")" || {
+        path_runtime="$(_internal_icarus_builder_path_cmd "${path_tool_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
             echo_error "Failed to resolve path ${path_tool_runtimefarm_name}." "errexit"
         }
+        path_bin="$(_internal_icarus_builder_path_cmd "${path_tool_bin_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_tool_bin_name}." "errexit"
+        }
+        path_python_home="$(_internal_icarus_builder_path_cmd "${path_tool_pythonhome_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_tool_pythonhome_name}." "errexit"
+        }
         ;;
     "${path_run_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${path_run_runtimefarm_name}")" || {
+        path_runtime="$(_internal_icarus_builder_path_cmd "${path_run_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
             echo_error "Failed to resolve path ${path_run_runtimefarm_name}." "errexit"
         }
+        path_bin="$(_internal_icarus_builder_path_cmd "${path_run_bin_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_run_bin_name}." "errexit"
+        }
+        path_python_home="$(_internal_icarus_builder_path_cmd "${path_run_pythonhome_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_run_pythonhome_name}." "errexit"
+        }
         ;;
     "${path_devrun_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${path_devrun_runtimefarm_name}")" || {
+        path_runtime="$(_internal_icarus_builder_path_cmd "${path_devrun_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
             echo_error "Failed to resolve path ${path_devrun_runtimefarm_name}." "errexit"
         }
+        path_bin="$(_internal_icarus_builder_path_cmd "${path_devrun_bin_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_devrun_bin_name}." "errexit"
+        }
+        path_python_home="$(_internal_icarus_builder_path_cmd "${path_devrun_pythonhome_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_devrun_pythonhome_name}." "errexit"
+        }
         ;;
     "${path_devrun_excluderoot_runtimefarm_name}")
-        path_response="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
+        path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
             echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
         }
-        pkg_pythonpath="${path_response}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
-        path_response="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_runtimefarm_name}")" || {
+        pkg_pythonpath="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonhome_name}")/lib/python${python_version}/site-packages" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_pkg_pythonhome_name}." "errexit"
+        }
+        path_runtime="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
             echo_error "Failed to resolve path ${path_devrun_excluderoot_runtimefarm_name}." "errexit"
+        }
+        path_bin="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_bin_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_devrun_excluderoot_bin_name}." "errexit"
+        }
+        path_python_home="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_pythonhome_name}")" || {
+            path_summary_status="${failed}"
+            exit_code=1
+            echo_error "Failed to resolve path ${path_devrun_excluderoot_pythonhome_name}." "errexit"
         }
         ;;
     *)
@@ -1144,20 +1199,12 @@ function resolve_path() {
     esac
 
     set -a
-    # shellcheck disable=SC1090
-    . "${path_response}/farm-info/path-py${python_full_version}" || {
-        echo_error "Failed to resolve path ${p_name}." "errexit"
-    }
-    PATH="${FARMPATH:+${FARMPATH}:}${PATH}"
+    PATH="${path_bin:+${path_bin}:}${PATH}"
+    FARMHOME="${path_runtime}"
+    PYTHONHOME="${path_python_home}"
+    PYTHONPATH="${pkg_pythonpath:+${pkg_pythonpath}:}${PYTHONPATH:+${PYTHONPATH}}"
+    PYTHONBIN="${path_python_home}/bin/python${python_version}"
     set +a
-
-    # Special handling for devrun.runtimefarm_excluderoot
-    if [[ "${p_name}" == "${path_devrun_excluderoot_runtimefarm_name}" ]]; then
-        # Prepending to the front of PYTHONPATH in case the path-py${python_full_version}
-        # exports any PYTHONPATH
-        PYTHONPATH="${pkg_pythonpath}${PYTHONPATH:+:${PYTHONPATH}}"
-        export PYTHONPATH
-    fi
 }
 
 function workspace_merge() (

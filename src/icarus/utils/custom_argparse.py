@@ -52,10 +52,24 @@ module_logger = config.master_logger.get_child_logger(__name__)
 #
 
 
+class IcarusHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    """
+    Custom help formatter for the CLI application.
+    """
+
+    def __init__(self, prog, **kwargs):
+        kwargs.setdefault('max_help_position', 38)
+        super().__init__(prog, **kwargs)
+
+
 class IcarusArgumentParser(argparse.ArgumentParser):
     """
     Custom argument parser for the CLI application.
     """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('formatter_class', IcarusHelpFormatter)
+        super().__init__(*args, **kwargs)
 
     def error(self, message):
         """

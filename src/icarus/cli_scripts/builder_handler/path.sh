@@ -1075,36 +1075,71 @@ function clean_farm() {
 }
 
 function activate_farm_icarus_python3() {
-    local runtimefarm_path
+    local runtimefarm_path farm_path_file
 
     runtimefarm_path=$1
-
-    # Clear previous exports
-    deactivate_farm_icarus_python3
+    farm_path_file="${runtimefarm_path}/farm-info/path-py${python_full_version}"
 
     # If there isn't a farm, then we incur the risk of using system binaries,
     # therefore this is a hard stop, using errexit.
 
-    if [[ -f "${runtimefarm_path}/farm-info/path-py${python_full_version}" ]]; then
-        set -a
-        # shellcheck disable=SC1090
-        . "${runtimefarm_path}/farm-info/path-py${python_full_version}" || {
-            exit_code=1
-            # We invalidate the farm and error
-            clean_farm "${runtimefarm_path}"
-            echo_error "Failed to activate farm." "errexit"
-        }
-        set +a
-    else
+    if [[ ! -f "${farm_path_file}" ]]; then
         exit_code=1
         # We invalidate the farm and error
         clean_farm "${runtimefarm_path}"
         echo_error "Failed to activate farm." "errexit"
     fi
+
+    # Clear previous exports
+    deactivate_farm_icarus_python3
+
+    set -a
+    # shellcheck disable=SC1090
+    . "${farm_path_file}" || {
+        exit_code=1
+        # We invalidate the farm and error
+        clean_farm "${runtimefarm_path}"
+        echo_error "Failed to activate farm." "errexit"
+    }
+    set +a
 }
 
 function deactivate_farm_icarus_python3() {
     unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
+}
+
+function join_deps() {
+    local runtimefarm_path python_packages_release_info farm_ready_file
+
+    runtimefarm_path="$1"
+    farm_ready_file="${runtimefarm_path}/farm-info/ready-py${python_full_version}"
+    python_packages_release_info="${runtimefarm_path}/farm-info/packages-py${python_full_version}"
+
+    if [[ ! -f "${farm_ready_file}" ]]; then
+        echo_error "Farm not built!"
+        exit_code=1
+        return 1
+    fi
+
+    # Split on space so local imports will be clean
+    cut -d ' ' -f 1 "${python_packages_release_info}" | paste -s -d ';' -
+}
+
+join_deps_names() {
+    local runtimefarm_path python_packages_release_info farm_ready_file
+
+    runtimefarm_path="$1"
+    farm_ready_file="${runtimefarm_path}/farm-info/ready-py${python_full_version}"
+    python_packages_release_info="${runtimefarm_path}/farm-info/packages-py${python_full_version}"
+
+    if [[ ! -f "${farm_ready_file}" ]]; then
+        echo_error "Farm not built!"
+        exit_code=1
+        return 1
+    fi
+
+    # Split on space so local imports will be clean
+    cut -d ' ' -f 1 "${python_packages_release_info}" | cut -d '=' -f 1 | paste -s -d ';' -
 }
 
 ####################################################################################################
@@ -1122,41 +1157,12 @@ function build_path_icarus_python3() {
     fi
 
     case "${path}" in
+    # #############
+    # SIMPLE RECIPE
+    # #############
     "${path_platform_identifier_name}")
         only_with_python_default=true
         response="${platform_identifier}"
-        ;;
-    "${path_pkg_name_pascal_name}")
-        only_with_python_default=true
-        response="${package_name_pascal_case}"
-        ;;
-    "${path_pkg_name_snake_name}")
-        only_with_python_default=true
-        response="${package_name_snake_case}"
-        ;;
-    "${path_pkg_name_dashed_name}")
-        only_with_python_default=true
-        response="${package_name_dashed}"
-        ;;
-    "${path_pkg_language_name}")
-        only_with_python_default=true
-        response="${package_language}"
-        ;;
-    "${path_pkg_version_full_name}")
-        only_with_python_default=true
-        response="${package_version_full}"
-        ;;
-    "${path_pkg_version_major_name}")
-        only_with_python_default=true
-        response="${package_version_major}"
-        ;;
-    "${path_pkg_version_minor_name}")
-        only_with_python_default=true
-        response="${package_version_minor}"
-        ;;
-    "${path_pkg_version_patch_name}")
-        only_with_python_default=true
-        response="${package_version_patch}"
         ;;
     "${path_ws_root_name}")
         only_with_python_default=true
@@ -1174,6 +1180,90 @@ function build_path_icarus_python3() {
         only_with_python_default=true
         response="${path_to_runtime_root}/local"
         ;;
+    # ###############
+    # LANGUAGE RECIPE
+    # ###############
+    "${path_pkg_language_name}")
+        only_with_python_default=true
+        response="${package_language}"
+        ;;
+    # ###########
+    # NAME RECIPE
+    # ###########
+    "${path_pkg_name_pascal_name}")
+        only_with_python_default=true
+        response="${package_name_pascal_case}"
+        ;;
+    "${path_pkg_name_snake_name}")
+        only_with_python_default=true
+        response="${package_name_snake_case}"
+        ;;
+    "${path_pkg_name_dashed_name}")
+        only_with_python_default=true
+        response="${package_name_dashed}"
+        ;;
+    "${path_tool_name_name}")
+        only_with_python_default=true
+        response="$(join_deps_names "${tool_runtimefarm_root}")" || exit_code=1
+        ;;
+    "${path_run_name_name}")
+        only_with_python_default=true
+        response="$(join_deps_names "${run_runtimefarm_root}")" || exit_code=1
+        ;;
+    "${path_run_excluderoot_name_name}")
+        only_with_python_default=true
+        response="$(join_deps_names "${path_run_excluderoot_runtimefarm_name}")" || exit_code=1
+        ;;
+    "${path_devrun_name_name}")
+        only_with_python_default=true
+        response="$(join_deps_names "${path_devrun_runtimefarm_name}")" || exit_code=1
+        ;;
+    "${path_devrun_excluderoot_name_name}")
+        only_with_python_default=true
+        response="$(join_deps_names "${path_devrun_excluderoot_runtimefarm_name}")" || exit_code=1
+        ;;
+    # ##############
+    # VERSION RECIPE
+    # ##############
+    "${path_pkg_version_full_name}")
+        only_with_python_default=true
+        response="${package_version_full}"
+        ;;
+    "${path_pkg_version_major_name}")
+        only_with_python_default=true
+        response="${package_version_major}"
+        ;;
+    "${path_pkg_version_minor_name}")
+        only_with_python_default=true
+        response="${package_version_minor}"
+        ;;
+    "${path_pkg_version_patch_name}")
+        only_with_python_default=true
+        response="${package_version_patch}"
+        ;;
+    "${path_tool_version_full_name}")
+        only_with_python_default=true
+        response="$(join_deps "${tool_runtimefarm_root}")" || exit_code=1
+        ;;
+    "${path_run_version_full_name}")
+        only_with_python_default=true
+        response="$(join_deps "${run_runtimefarm_root}")" || exit_code=1
+        ;;
+    "${path_run_excluderoot_version_full_name}")
+        only_with_python_default=true
+        response="$(join_deps "${path_run_excluderoot_runtimefarm_name}")" || exit_code=1
+        ;;
+    "${path_devrun_version_full_name}")
+        only_with_python_default=true
+        response="$(join_deps "${path_devrun_runtimefarm_name}")" || exit_code=1
+        ;;
+    "${path_devrun_excluderoot_version_full_name}")
+        only_with_python_default=true
+        response="$(join_deps "${path_devrun_excluderoot_runtimefarm_name}")" || exit_code=1
+        ;;
+    # ##################
+    # RUNTIMEFARM RECIPE
+    # ##################
     "${path_tool_runtimefarm_name}")
         if [[ ! -f "${tool_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
             installation_type="build"
@@ -1315,6 +1405,9 @@ function build_path_icarus_python3() {
         deactivate_farm_icarus_python3
         response="${devrun_excluderoot_runtimefarm_root}"
         ;;
+    # #################
+    # PYTHONHOME RECIPE
+    # #################
     "${path_tool_pythonhome_name}")
         response="${response:+${response}:}${tool_runtimefarm_root}/CPython/${python_full_version}"
         ;;
@@ -1332,6 +1425,27 @@ function build_path_icarus_python3() {
         ;;
     "${path_devrun_excluderoot_pythonhome_name}")
         response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}"
+        ;;
+    # ##########
+    # BIN RECIPE
+    # ##########
+    "${path_tool_bin_name}")
+        response="${response:+${response}:}${tool_runtimefarm_root}/bin:${tool_runtimefarm_root}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_pkg_bin_name}")
+        response="${response:+${response}:}${pkg_runtimefarm_root}/bin:${pkg_runtimefarm_root}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_run_bin_name}")
+        response="${response:+${response}:}${run_runtimefarm_root}/bin:${run_runtimefarm_root}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_run_excluderoot_bin_name}")
+        response="${response:+${response}:}${run_excluderoot_runtimefarm_root}/bin:${run_excluderoot_runtimefarm_root}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_devrun_bin_name}")
+        response="${response:+${response}:}${devrun_runtimefarm_root}/bin:${devrun_runtimefarm_root}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_devrun_excluderoot_bin_name}")
+        response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/bin:${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}/bin"
         ;;
     *)
         echo_error "Unknown path: '${path}'"

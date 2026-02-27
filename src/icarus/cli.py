@@ -65,7 +65,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         prog=config.CLI_NAME,
         description=config.CLI_DESCRIPTION,
         epilog=config.CLI_EPILOG,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -113,7 +112,6 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' to streamline workflows, simplify setup, and ensure proper configuration for'
             ' development\n  and operational tasks within Amazon\'s infrastructure.'
         ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     amazon_sub = amazon_par.add_subparsers(
@@ -133,7 +131,6 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' environments, and simplify workflows for creating, maintaining, and\n  deploying'
             ' software projects.'
         ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_sub = builder_par.add_subparsers(
@@ -153,7 +150,6 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' managing mount points, and automating startup configurations to enhance\n  macOS'
             ' system workflows.'
         ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     macos_sub = macos_par.add_subparsers(
@@ -173,7 +169,6 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' simplifies tasks such as starting and stopping syncs, checking\n  profile status,'
             ' clearing locks, and automating startup configuration for Unison operations.'
         ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     unison_sub = unison_par.add_subparsers(
@@ -195,7 +190,6 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' to ensure your local environment stays aligned with project standards'
             ' and ready for\n  productive work.'
         ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     provision_sub = provision_par.add_subparsers(
@@ -232,7 +226,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         parents=[amazon_auth_init_parent_parser],
         help='run midway authentication on localhost and optional remote DevDsk(s)',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -241,7 +234,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         parents=[amazon_auth_init_parent_parser],
         help='run midway authentication express on localhost and optional remote DevDsk(s)',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -249,7 +241,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='midway-cookie',
         help='check the cookies validity',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     amazon_midway_cookie.add_argument(
@@ -264,7 +255,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devdsk-formation',
         help='run DevDsk Formation on a remote DevDsk',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     amazon_devdsk_formation.add_argument('-i', required=True, metavar='ID', help='the DevDsk ID')
@@ -273,7 +263,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='update-hosts',
         help='update /etc/hosts file',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -281,7 +270,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='update-hosts-d',
         help='install a LaunchDaemon to update the hosts file every hour',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -289,7 +277,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='brazil-setup',
         help='creating case-sensitive volumes (\'workplace\' and \'brazil-pkg-cache\')',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -297,7 +284,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='spurdog-ro',
         help='check membership for Spurdog Program',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     amazon_spurdog_ro.add_argument(
@@ -319,7 +305,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='hook',
         help='the hook(s) for the builder',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_hook_par.add_argument(
@@ -530,7 +515,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='build',
         help='create/re-create the project runtime environment',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_build.set_defaults(build='--build')
@@ -539,7 +523,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='release',
         help='run the full "release" pipeline',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_release.set_defaults(release='--release')
@@ -548,7 +531,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='format',
         help='run the formatting tools',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_format.set_defaults(format='--format')
@@ -557,7 +539,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='docs',
         help='generate user documentation',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_docs.set_defaults(docs='--docs')
@@ -566,7 +547,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='test',
         help='run the automated test suite',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_test.set_defaults(test='--test')
@@ -575,7 +555,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='clean',
         help='remove all build artifacts from the workspace',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_clean.set_defaults(clean='--clean')
@@ -584,7 +563,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='merge',
         help='merge user-space installed tools into runtimefarms exposed by builder path',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_merge.set_defaults(merge='--merge')
@@ -593,7 +571,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='exec-tool',
         help='run a command inside the tool.runtimefarm environment',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_exec_tool.add_argument(
@@ -608,7 +585,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='exec-run',
         help='run a command inside the run.runtimefarm environment',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_exec_run.add_argument(
@@ -623,7 +599,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='exec-dev',
         help='run a command inside the devrun.runtimefarm environment',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_exec_dev.add_argument(
@@ -638,7 +613,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='cache',
         help='provides utilities to manage the local package cache.',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_cache_cmd_par = builder_cache_par.add_subparsers(
@@ -651,14 +625,12 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='cache-root',
         help='returns the path to the package cache root',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_cache_cmd_par.add_parser(
         name='clean',
         help='clean up the packages cached on local disk',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -669,7 +641,6 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' path-name'
         ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_par.add_argument(
@@ -690,140 +661,204 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='platform-identifier',
         help='returns the name of the current platform',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.name-pascal',
-        help='returns the name of the current package in PascalCase',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.name-snake',
-        help='returns the name of the current package in snake_case',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.name-dashed',
-        help='returns the name of the current package in dashed-case',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.language',
-        help='returns the language of the current package',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.version',
-        help='returns the version of the current package in SemVer format AKA MAJOR.MINOR.PATCH',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.version-major',
-        help='returns the major version of the current package in SemVer format',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.version-minor',
-        help='returns the minor version of the current package in SemVer format',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        allow_abbrev=False,
-    )
-    builder_path_cmd_par.add_parser(
-        name='pkg.version-patch',
-        help='returns the patch version of the current package in SemVer format',
-        description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.root',
         help='returns the path to the current workspace root',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.src-root',
         help='returns the path to the current workspace source directory',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.build-root',
         help='returns the path to the current workspace build directory',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.user-space-root',
         help='returns the path to the runtime user-space prefix directory',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='tool.runtimefarm',
-        help='creates build variables for the build-tools dependencies',
+        name='pkg.language',
+        help='returns the language of the current package',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
-        name='tool.pythonhome',
-        help='creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies',
+        name='pkg.name-pascal',
+        help='returns the name of the current package in PascalCase',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.name-snake',
+        help='returns the name of the current package in snake_case',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.name-dashed',
+        help='returns the name of the current package in dashed-case',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version',
+        help='returns the version of the current package in SemVer format AKA MAJOR.MINOR.PATCH',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version-major',
+        help='returns the major version of the current package in SemVer format',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version-minor',
+        help='returns the minor version of the current package in SemVer format',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.version-patch',
+        help='returns the patch version of the current package in SemVer format',
+        description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='pkg.runtimefarm',
-        help='creates build variables for the current package',
+        help=(
+            'produces the location of a symlink farm and creates build variables for the current'
+            ' package'
+        ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='pkg.pythonhome',
         help='creates colon-delimited list of PYTHONHOME paths for the current package',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.bin',
+        help='creates colon-delimited list of bin directory for the current package',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='tool.name',
+        help=(
+            'creates semicolon-delimited list of the names of all packages for the build-tools'
+            ' dependencies'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='tool.version',
+        help=(
+            'creates semicolon-delimited list of the names of all packages plus full versions for'
+            ' the build-tools dependencies'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='tool.runtimefarm',
+        help=(
+            'produces the location of a symlink farm and creates build variables for the'
+            ' build-tools dependencies'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='tool.pythonhome',
+        help='creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='tool.bin',
+        help='creates colon-delimited list of bin directory for the build-tools dependencies',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run.name',
+        help=(
+            'creates semicolon-delimited list of the names of all packages for the runtime'
+            ' dependencies'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run.version',
+        help=(
+            'creates semicolon-delimited list of the names of all packages plus full versions for'
+            ' the runtime dependencies'
+        ),
+        description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='run.runtimefarm',
-        help='creates build variables for the runtime dependencies',
+        help=(
+            'produces the location of a symlink farm and creates build variables for the runtime'
+            ' dependencies'
+        ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='run.pythonhome',
         help='creates colon-delimited list of PYTHONHOME paths for the runtime dependencies',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run.bin',
+        help='creates colon-delimited list of bin directory for the runtime dependencies',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run_excluderoot.name',
+        help=(
+            'creates semicolon-delimited list of the names of all packages for the runtime'
+            ' dependencies excluding the current package'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run_excluderoot.version',
+        help=(
+            'creates semicolon-delimited list of the names of all packages plus full versions for'
+            ' the runtime dependencies excluding the current package'
+        ),
+        description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='run_excluderoot.runtimefarm',
-        help='creates build variables for the runtime dependencies excluding the current package',
+        help=(
+            'produces the location of a symlink farm and creates build variables for the runtime'
+            ' dependencies excluding the current package'
+        ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
@@ -833,14 +868,42 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' excluding the current package'
         ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='run_excluderoot.bin',
+        help=(
+            'creates colon-delimited list of bin directory for the runtime dependencies excluding'
+            ' the current package'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun.name',
+        help=(
+            'creates semicolon-delimited list of the names of all packages for the runtime and'
+            ' development dependencies'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun.version',
+        help=(
+            'creates semicolon-delimited list of the names of all packages plus full versions for'
+            ' the runtime and development dependencies'
+        ),
+        description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='devrun.runtimefarm',
-        help='creates build variables for the runtime and development dependencies',
+        help=(
+            'produces the location of a symlink farm and creates build variables for the runtime'
+            ' and development dependencies'
+        ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
@@ -850,17 +913,42 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' dependencies'
         ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun.bin',
+        help=(
+            'creates colon-delimited list of bin directory for the runtime and development'
+            ' dependencies'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun_excluderoot.name',
+        help=(
+            'creates semicolon-delimited list of the names of all packages for the runtime and'
+            ' development dependencies excluding the current package'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun_excluderoot.version',
+        help=(
+            'creates semicolon-delimited list of the names of all packages plus full versions for'
+            ' the runtime and development dependencies excluding the current package'
+        ),
+        description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='devrun_excluderoot.runtimefarm',
         help=(
-            'creates build variables for the runtime and development dependencies excluding the'
-            ' current package'
+            'produces the location of a symlink farm and creates build variables for the runtime'
+            ' and development dependencies excluding the current package'
         ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
@@ -870,7 +958,15 @@ def initialize_parser() -> argparse.ArgumentParser:
             ' dependencies excluding the current package'
         ),
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='devrun_excluderoot.bin',
+        help=(
+            'creates colon-delimited list of bin directory for the runtime and development'
+            ' dependencies excluding the current package'
+        ),
+        description='',
         allow_abbrev=False,
     )
 
@@ -878,7 +974,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='create',
         help='initiate a new package in the current folder',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     builder_create.add_argument(
@@ -899,7 +994,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='build-runtime',
         help='build the interpreter runtime',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -910,7 +1004,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='find-unencrypted-volumes',
         help='find all unencrypted volumes',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -918,7 +1011,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='make-encrypted-volume',
         help='make an encrypted APFS volume',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     macos_make_encrypted_volume.add_argument(
@@ -936,7 +1028,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='encrypt-volume',
         help='encrypt an APFS volume',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     macos_encrypt_volume.add_argument(
@@ -947,7 +1038,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='mount-volume',
         help='mount the specified volume at the specified mount point',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     macos_mount_volume.add_argument(
@@ -961,7 +1051,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='mount-at-startup',
         help='install a LaunchDaemon to mount the volume at System Startup',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     macos_mount_at_startup.add_argument(
@@ -975,7 +1064,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name=f'{config.CLI_NAME}-update-daemon',
         help=f'install the {config.CLI_NAME} auto-update daemon (LaunchAgent)',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -986,7 +1074,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='status',
         help='check the running status of each Unison profile',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -994,7 +1081,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='restart',
         help='restart Unison profile(s) sync',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -1002,7 +1088,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='stop',
         help='stop Unison profile(s) sync',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -1010,7 +1095,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='clear-locks',
         help='clear Unison locks on localhost and an optional remote DevDsk',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
     unison_clear_locks.add_argument(
@@ -1021,7 +1105,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='start-at-startup',
         help='install a LaunchDaemon to start Unison at System Startup',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -1029,7 +1112,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run-profiles',
         help='[DO NOT USE] internally used only to run Unison profiles',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -1040,7 +1122,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='dotfiles-update',
         help='update dotfiles from their specified repository',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
@@ -1048,7 +1129,6 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='envroot',
         help='install envroot in /opt/icarus',
         description='',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         allow_abbrev=False,
     )
 
