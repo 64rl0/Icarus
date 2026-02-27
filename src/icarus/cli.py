@@ -514,6 +514,14 @@ def initialize_parser() -> argparse.ArgumentParser:
         default='',
         help='generate readthedocs requirements',
     )
+    builder_hook_par.add_argument(
+        '--pypi',
+        required=False,
+        action='store_const',
+        const='--pypi',
+        default='',
+        help='publish package artifacts to PyPI (requires ICARUS_PYPI_TEST_API_TOKEN and ICARUS_PYPI_PROD_API_TOKEN)',
+    )
 
     builder_build = builder_sub.add_parser(
         name='build',

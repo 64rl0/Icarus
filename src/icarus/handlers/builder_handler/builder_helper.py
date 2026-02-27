@@ -241,6 +241,7 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
         'pytest': getattr(args, 'pytest', ''),
         'sphinx': getattr(args, 'sphinx', ''),
         'readthedocs': getattr(args, 'readthedocs', ''),
+        'pypi': getattr(args, 'pypi', ''),
         'merge': getattr(args, 'merge', ''),
         'exectool': getattr(args, 'exec-tool', '') or getattr(args, 'exec_tool', ''),
         'execrun': getattr(args, 'exec-run', '') or getattr(args, 'exec_run', ''),
@@ -325,6 +326,9 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
 
         if builder_hooks.get('bumpver') and builder_hooks_count > 1:
             raise utils.IcarusParserException(standalone_arg.format(hook='--bumpver'))
+
+        if builder_hooks.get('pypi') and builder_hooks_count > 1:
+            raise utils.IcarusParserException(standalone_arg.format(hook='--pypi'))
 
         if builder_hooks.get('bumpver'):
             ib_cli_arg.operation = IcarusBuilderOperation.BUMPVER

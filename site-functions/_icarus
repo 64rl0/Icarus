@@ -265,6 +265,7 @@ _icarus() {
                     '--pytest:execute the unit/integration-test suite via pytest'
                     '--sphinx:generate user documentation with sphinx'
                     '--readthedocs:generate readthedocs requirements'
+                    '--pypi:publish package artifacts to PyPI (requires ICARUS_PYPI_TEST_API_TOKEN and ICARUS_PYPI_PROD_API_TOKEN)'
                     '--merge:merge user-space installed tools into runtimefarms exposed by builder path'
                     '--exec-tool:run a command inside the tool.runtimefarm environment'
                     '--exec-run:run a command inside the run.runtimefarm environment'

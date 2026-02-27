@@ -92,6 +92,7 @@ class IcarusBuilderArg:
         Literal['pytest'],
         Literal['sphinx'],
         Literal['readthedocs'],
+        Literal['pypi'],
         Literal['merge'],
         Literal['exectool'],
         Literal['execrun'],
@@ -113,6 +114,7 @@ class IcarusBuilderArg:
         'pytest',
         'sphinx',
         'readthedocs',
+        'pypi',
         'merge',
         'exectool',
         'execrun',
@@ -166,6 +168,7 @@ class IcarusBuilderArg:
     pytest: str = ''
     sphinx: str = ''
     readthedocs: str = ''
+    pypi: str = ''
     exectool: str = ''
     execrun: str = ''
     execdev: str = ''

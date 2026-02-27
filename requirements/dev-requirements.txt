@@ -15,9 +15,16 @@ pytest
 sphinx
 sphinx-rtd-theme
 
-# Development dependencies
+# PyPi dependencies
+twine
+
+# Formatting dependencies
 black
 isort
+
+# Type checking dependencies
 mypy
+
+# build-time linting dependencies
 flake8
 pep8-naming

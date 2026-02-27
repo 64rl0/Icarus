@@ -282,6 +282,7 @@ function set_constants() {
     pytest_summary_status="${passed}"
     sphinx_summary_status="${passed}"
     readthedocs_summary_status="${passed}"
+    pypi_summary_status="${passed}"
     exectool_summary_status="${passed}"
     execrun_summary_status="${passed}"
     execdev_summary_status="${passed}"
@@ -304,6 +305,7 @@ function set_constants() {
     pytest_execution_time=0
     sphinx_execution_time=0
     readthedocs_execution_time=0
+    pypi_execution_time=0
     exectool_execution_time=0
     execrun_execution_time=0
     execdev_execution_time=0
@@ -901,14 +903,12 @@ function run_documentation_sphinx() {
     echo
 }
 
-function pypi() {
+function run_pypi() {
     local f
 
-    # We need the tool.runtimefarm to upload the pkg artifacts to pypi.
-    resolve_path "${path_tool_runtimefarm_name}"
-
-    # TODO(carlogtt): how do we retrieve the token?
-    # TODO(carlogtt): do we need this to run alone?
+    if [[ -z "${ICARUS_PYPI_TEST_API_TOKEN}" || -z "${ICARUS_PYPI_PROD_API_TOKEN}" ]]; then
+        echo_error "ICARUS_PYPI_TEST_API_TOKEN and ICARUS_PYPI_PROD_API_TOKEN environment variables must both be set." "errexit"
+    fi
 
     for f in "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
         if [[ ! -e "${f}" ]]; then
@@ -923,16 +923,27 @@ function pypi() {
     "${PYTHONBIN}" -m twine upload \
         --repository testpypi \
         --username __token__ \
-        --password "${CARLOGTT_SECRET_PYPI_TEST_API_TOKEN}" \
-        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}
+        --password "${ICARUS_PYPI_TEST_API_TOKEN}" \
+        --verbose \
+        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
+        echo_error "Failed to upload package artifact to TEST PyPi."
+        pypi_summary_status="${failed}"
+        exit_code=1
+        return
+    }
     echo
 
     # Upload package artifact to PROD PyPi
     echo -e "${bold_green}${network_world} Uploading package artifact to PROD PyPi${end}"
     "${PYTHONBIN}" -m twine upload \
         --username __token__ \
-        --password "${CARLOGTT_SECRET_PYPI_PROD_API_TOKEN}" \
-        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}
+        --password "${ICARUS_PYPI_PROD_API_TOKEN}" \
+        --verbose \
+        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
+        echo_error "Failed to upload package artifact to PROD PyPi."
+        pypi_summary_status="${failed}"
+        exit_code=1
+    }
     echo
 }
 
@@ -965,8 +976,16 @@ function run_build_icarus_python3() {
     }
     echo
 
+    for f in "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
+        if [[ ! -e "${f}" ]]; then
+            echo_error "Package artifact '${f}' not found!"
+            build_summary_status="${failed}"
+            exit_code=1
+        fi
+    done
+
     echo -e "${bold_green}${package} Checking package health${end}"
-    "${PYTHONBIN}" -m twine check "${path_to_dist_root}/${package_name_snake_case}"* || {
+    "${PYTHONBIN}" -m twine check "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1801,6 +1820,18 @@ function dispatch_icarus_python3_tools() {
         fi
         end_block=$(date +%s.%N)
         readthedocs_execution_time=$(echo "${readthedocs_execution_time}" + "${end_block} - ${start_block}" | bc)
+    fi
+
+    if [[ "${pypi}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
+        echo_title "Running PyPi"
+        if [[ "${is_python_default}" == true ]]; then
+            run_pypi
+        else
+            echo_warning "Skipping Python${python_version} because it is not the python-default (in icarus.cfg)"
+        fi
+        end_block=$(date +%s.%N)
+        pypi_execution_time=$(echo "${pypi_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     dispatch_icarus_python3_after_tools_plugins
