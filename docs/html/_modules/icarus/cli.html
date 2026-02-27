@@ -811,7 +811,10 @@
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.runtimefarm&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;produces the location of a symlink farm and creates build variables for the current package&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the current&#39;</span>
+            <span class="s1">&#39; package&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -829,19 +832,28 @@
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.name&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the build-tools dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the build-tools&#39;</span>
+            <span class="s1">&#39; dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.version&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for the build-tools dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
+            <span class="s1">&#39; the build-tools dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.runtimefarm&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;produces the location of a symlink farm and creates build variables for the build-tools dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the&#39;</span>
+            <span class="s1">&#39; build-tools dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -859,19 +871,28 @@
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.name&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime&#39;</span>
+            <span class="s1">&#39; dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.version&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for the runtime dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
+            <span class="s1">&#39; the runtime dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.runtimefarm&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime&#39;</span>
+            <span class="s1">&#39; dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -889,19 +910,28 @@
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.name&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime dependencies excluding the current package&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime&#39;</span>
+            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.version&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for the runtime dependencies excluding the current package&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
+            <span class="s1">&#39; the runtime dependencies excluding the current package&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.runtimefarm&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime dependencies excluding the current package&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime&#39;</span>
+            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -917,26 +947,36 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime dependencies excluding&#39;</span>
+            <span class="s1">&#39; the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.name&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime and development dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime and&#39;</span>
+            <span class="s1">&#39; development dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.version&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for the runtime and development dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
+            <span class="s1">&#39; the runtime and development dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.runtimefarm&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime and development dependencies&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime&#39;</span>
+            <span class="s1">&#39; and development dependencies&#39;</span>
+        <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -952,7 +992,8 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development dependencies&#39;</span>
+            <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development&#39;</span>
+            <span class="s1">&#39; dependencies&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -960,7 +1001,8 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.name&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime and development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime and&#39;</span>
+            <span class="s1">&#39; development dependencies excluding the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -968,7 +1010,8 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.version&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for the runtime and development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
+            <span class="s1">&#39; the runtime and development dependencies excluding the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -976,8 +1019,8 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.runtimefarm&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime and development dependencies excluding the&#39;</span>
-            <span class="s1">&#39; current package&#39;</span>
+            <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime&#39;</span>
+            <span class="s1">&#39; and development dependencies excluding the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -994,7 +1037,8 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development&#39;</span>
+            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
