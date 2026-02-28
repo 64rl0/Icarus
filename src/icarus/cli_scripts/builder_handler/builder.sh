@@ -965,9 +965,6 @@ function run_build_icarus_python3() {
     # the ICARUS_PACKAGE_VERSION var in the env for the setup.py to find it.
     export ICARUS_PACKAGE_VERSION="${package_version_full}"
 
-    # We need the tool.runtimefarm to build the pkg.
-    resolve_path "${path_tool_runtimefarm_name}"
-
     # Cleanup silently
     # We are about to rebuild the dist so make sure the env is clean to accommodate the new one.
     rm -rf "${path_to_dist_root}"
@@ -975,6 +972,10 @@ function run_build_icarus_python3() {
 
     # Building local package.
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package${end}"
+
+    # We need the tool.runtimefarm to build the pkg.
+    resolve_path "${path_tool_runtimefarm_name}"
+
     "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
         echo_error "Failed to build '${project_root_dir_abs}'."
         build_summary_status="${failed}"
