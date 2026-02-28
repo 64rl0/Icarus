@@ -971,7 +971,7 @@ function run_build_icarus_python3() {
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # Building local package.
-    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package${end}"
+    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package artifact${end}"
 
     # We need the tool.runtimefarm to build the pkg.
     resolve_path "${path_tool_runtimefarm_name}"
