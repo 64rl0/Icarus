@@ -1395,7 +1395,7 @@ function restore_paths() {
 }
 
 function _internal_icarus_builder_path_cmd() {
-    local p_name response path_response stderr_target
+    local p_name response stderr_target
     local -a new_argv
 
     p_name="${1}"
