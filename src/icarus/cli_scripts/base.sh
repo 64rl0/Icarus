@@ -69,6 +69,7 @@ declare -r broom="\xF0\x9F\xA7\xB9"
 declare -r link="\xF0\x9F\x94\x97"
 declare -r package="\xF0\x9F\x93\xA6"
 declare -r network_world="\xF0\x9F\x8C\x90"
+declare -r bar_chart="\xF0\x9F\x93\x8A"
 
 # Sourcing existing bashrc to export current PATH
 if [[ -f "${HOME}/.bashrc" ]]; then
