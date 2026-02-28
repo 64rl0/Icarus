@@ -117,6 +117,10 @@ function echo_summary() {
 
     echo_title "Icarus Builder Summary"
 
+    echo -e "${bold_blue}Report:${end}"
+    echo -e "${yellow}${report_filepath}${end}"
+    echo
+
     echo -e "${bold_blue}${cli_name} builder:${end}"
     # We need to unset everything to get the real icarus running in the os
     unset FARMHOME PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
@@ -263,6 +267,9 @@ function set_constants() {
     path_called="N"
     path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
     declare -g -r path_to_path_root
+
+    report_filepath="file://${project_root_dir_abs}/.icarus/reports/index.html"
+    declare -g -r report_filepath
 
     index_summary_status="${passed}"
     path_summary_status="${passed}"

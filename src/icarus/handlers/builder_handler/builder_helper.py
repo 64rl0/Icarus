@@ -58,6 +58,7 @@ from icarus.handlers.builder_handler.model import (
     IcarusBuilderCliArg,
     IcarusBuilderOperation,
 )
+from icarus.handlers.builder_handler.report_generator import generate_report
 
 # END IMPORTS
 # ======================================================================
@@ -88,8 +89,9 @@ def ensure_builder_control_plane() -> None:
     control_plane_dir = pathlib.Path(project_root_dir_abs) / config.ICARUS_CONTROL_PLANE_DIRNAME
     log_dir = control_plane_dir / config.ICARUS_LOG_DIRNAME
     lock_dir = control_plane_dir / config.ICARUS_LOCK_DIRNAME
+    report_dir = control_plane_dir / config.ICARUS_REPORT_DIRNAME
 
-    for path in (control_plane_dir, log_dir, lock_dir):
+    for path in (control_plane_dir, log_dir, lock_dir, report_dir):
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -198,6 +200,12 @@ def run_bash_script_with_logging(
     # Keep the log file if the command was successful
     if return_code == 0:
         run_log_path.unlink(missing_ok=True)
+
+    # Regenerate the HTML report from trace log
+    try:
+        generate_report(pathlib.Path(_find_project_root_dir()))
+    except Exception as ex:
+        module_logger.debug(f"Failed to generate report: {repr(ex)}")
 
     return return_code
 

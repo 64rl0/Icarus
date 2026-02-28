@@ -116,6 +116,8 @@ def run_bash_script(
 
     module_logger.debug(f"Running BASH script with script_args before serializing {script_args=}")
 
+    # Strip ANSI codes from logs
+    ansi_re = re.compile(r'\x1b\[[0-9;]*m')
     script_args_normalized: list[str] = []
 
     if script_args is not None:
@@ -154,7 +156,7 @@ def run_bash_script(
                 for line in process.stdout:
                     sys.stdout.write(line)
                     sys.stdout.flush()
-                    log_handle.write(line)
+                    log_handle.write(ansi_re.sub('', line))
                 process.wait()
                 return_code = process.returncode
         else:
@@ -182,9 +184,11 @@ def _sanitize(raw: str) -> str:
     Keep only letters, digits, dot, dash.
     """
 
+    pattern = re.compile(r'[^A-Za-z0-9.-]')
+
     raw_replaced = raw.casefold().replace(' ', '-').replace('"', '').replace("'", '')
 
-    sanitized = re.sub(r"[^A-Za-z0-9.-]", "-", raw_replaced)
+    sanitized = pattern.sub("-", raw_replaced)
 
     return sanitized
 

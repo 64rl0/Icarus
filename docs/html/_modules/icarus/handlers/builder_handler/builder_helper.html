@@ -130,6 +130,7 @@
     <span class="n">IcarusBuilderCliArg</span><span class="p">,</span>
     <span class="n">IcarusBuilderOperation</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">icarus.handlers.builder_handler.report_generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_report</span>
 
 <span class="c1"># END IMPORTS</span>
 <span class="c1"># ======================================================================</span>
@@ -162,8 +163,9 @@
     <span class="n">control_plane_dir</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">project_root_dir_abs</span><span class="p">)</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">ICARUS_CONTROL_PLANE_DIRNAME</span>
     <span class="n">log_dir</span> <span class="o">=</span> <span class="n">control_plane_dir</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">ICARUS_LOG_DIRNAME</span>
     <span class="n">lock_dir</span> <span class="o">=</span> <span class="n">control_plane_dir</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">ICARUS_LOCK_DIRNAME</span>
+    <span class="n">report_dir</span> <span class="o">=</span> <span class="n">control_plane_dir</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">ICARUS_REPORT_DIRNAME</span>
 
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">(</span><span class="n">control_plane_dir</span><span class="p">,</span> <span class="n">log_dir</span><span class="p">,</span> <span class="n">lock_dir</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">(</span><span class="n">control_plane_dir</span><span class="p">,</span> <span class="n">log_dir</span><span class="p">,</span> <span class="n">lock_dir</span><span class="p">,</span> <span class="n">report_dir</span><span class="p">):</span>
         <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
@@ -281,6 +283,12 @@
     <span class="c1"># Keep the log file if the command was successful</span>
     <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">run_log_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Regenerate the HTML report from trace log</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">generate_report</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">_find_project_root_dir</span><span class="p">()))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to generate report: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">return_code</span></div>
 
