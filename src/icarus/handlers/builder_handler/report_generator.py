@@ -290,7 +290,7 @@ def _build_run_table_rows(entries: list[dict[str, Any]], log_dir: pathlib.Path) 
             '<tr class="detail-row" style="display:none">'
             '<td colspan="6">'
             '<div class="detail-content">'
-            f'<div class="detail-field"><strong>cwd:</strong>'
+            '<div class="detail-field"><strong>cwd:</strong>'
             f' <pre>{cwd}</pre></div>'
             '<div class="detail-field"><strong>args:</strong>'
             f' <pre>{args_display}</pre></div>'
@@ -363,7 +363,8 @@ def _format_command_args(args: list[str]) -> str:
     if not args:
         return ''
 
-    # The args list is typically a single large string of bash assignments.
+    # The args list is typically a single large string of bash
+    # assignments.
     raw = ' '.join(args)
 
     return raw
