@@ -11,8 +11,6 @@
 
 # src/icarus/handlers/builder_handler/report_generator.py
 # Created 2/28/26 - 10:02 AM UK Time (London) by carlogtt
-# Copyright (c) Amazon.com Inc. All Rights Reserved.
-# AMAZON.COM CONFIDENTIAL
 
 """
 This module ...
