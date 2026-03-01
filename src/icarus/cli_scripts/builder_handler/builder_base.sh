@@ -57,6 +57,14 @@ path_run_excluderoot_pythonhome_name="run_excluderoot.pythonhome"
 path_devrun_pythonhome_name="devrun.pythonhome"
 path_devrun_excluderoot_pythonhome_name="devrun_excluderoot.pythonhome"
 
+# PYTHONPATH RECIPE
+path_pkg_pythonpath_name="pkg.pythonpath"
+path_tool_pythonpath_name="tool.pythonpath"
+path_run_pythonpath_name="run.pythonpath"
+path_run_excluderoot_pythonpath_name="run_excluderoot.pythonpath"
+path_devrun_pythonpath_name="devrun.pythonpath"
+path_devrun_excluderoot_pythonpath_name="devrun_excluderoot.pythonpath"
+
 # BIN RECIPE
 path_pkg_bin_name="pkg.bin"
 path_tool_bin_name="tool.bin"
@@ -107,6 +115,13 @@ path_all_names=(
     "${path_devrun_pythonhome_name}"
     "${path_devrun_excluderoot_pythonhome_name}"
 
+    "${path_pkg_pythonpath_name}"
+    "${path_tool_pythonpath_name}"
+    "${path_run_pythonpath_name}"
+    "${path_run_excluderoot_pythonpath_name}"
+    "${path_devrun_pythonpath_name}"
+    "${path_devrun_excluderoot_pythonpath_name}"
+
     "${path_pkg_bin_name}"
     "${path_tool_bin_name}"
     "${path_run_bin_name}"
@@ -151,6 +166,12 @@ declare -g -r path_run_pythonhome_name
 declare -g -r path_run_excluderoot_pythonhome_name
 declare -g -r path_devrun_pythonhome_name
 declare -g -r path_devrun_excluderoot_pythonhome_name
+declare -g -r path_pkg_pythonpath_name
+declare -g -r path_tool_pythonpath_name
+declare -g -r path_run_pythonpath_name
+declare -g -r path_run_excluderoot_pythonpath_name
+declare -g -r path_devrun_pythonpath_name
+declare -g -r path_devrun_excluderoot_pythonpath_name
 declare -g -r path_pkg_bin_name
 declare -g -r path_tool_bin_name
 declare -g -r path_run_bin_name

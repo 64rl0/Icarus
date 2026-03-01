@@ -1426,6 +1426,27 @@ function build_path_icarus_python3() {
     "${path_devrun_excluderoot_pythonhome_name}")
         response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}"
         ;;
+    # #################
+    # PYTHONPATH RECIPE
+    # #################
+    "${path_tool_pythonpath_name}")
+        response="${response:+${response}:}${tool_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        ;;
+    "${path_pkg_pythonpath_name}")
+        response="${response:+${response}:}${pkg_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        ;;
+    "${path_run_pythonpath_name}")
+        response="${response:+${response}:}${run_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        ;;
+    "${path_run_excluderoot_pythonpath_name}")
+        response="${response:+${response}:}${run_excluderoot_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        ;;
+    "${path_devrun_pythonpath_name}")
+        response="${response:+${response}:}${devrun_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        ;;
+    "${path_devrun_excluderoot_pythonpath_name}")
+        response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        ;;
     # ##########
     # BIN RECIPE
     # ##########
