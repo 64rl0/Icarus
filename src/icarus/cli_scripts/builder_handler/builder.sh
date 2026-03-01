@@ -268,7 +268,7 @@ function set_constants() {
     path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
     declare -g -r path_to_path_root
 
-    report_filepath="file://${project_root_dir_abs}/.icarus/reports/index.html"
+    report_filepath="file://${project_root_dir_abs}/.icarus/report/index.html"
     declare -g -r report_filepath
 
     index_summary_status="${passed}"
