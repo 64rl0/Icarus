@@ -1180,10 +1180,10 @@ function resolve_path() {
             exit_code=1
             echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
         }
-        pkg_pythonpath="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonhome_name}")/lib/python${python_version}/site-packages" || {
+        pkg_pythonpath="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonpath_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_pythonhome_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_pythonpath_name}." "errexit"
         }
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_runtimefarm_name}")" || {
             path_summary_status="${failed}"
