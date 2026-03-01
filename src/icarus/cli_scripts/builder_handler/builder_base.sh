@@ -223,6 +223,7 @@ function declare_global_vars() {
     declare -r -g pytest
     declare -r -g sphinx
     declare -r -g readthedocs
+    declare -r -g pypi
     declare -r -g exectool
     declare -r -g execrun
     declare -r -g execdev
