@@ -659,31 +659,37 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_path_cmd_par.add_parser(
         name='platform-identifier',
-        help='returns the name of the current platform',
+        help='returns the name of the platform',
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.root',
-        help='returns the path to the current workspace root',
+        help='returns the path to the local workspace root',
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.src-root',
-        help='returns the path to the current workspace source directory',
+        help='returns the path to the local workspace source directory',
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.build-root',
-        help='returns the path to the current workspace build directory',
+        help='returns the path to the local workspace build directory',
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='workspace.user-space-root',
         help='returns the path to the runtime user-space prefix directory',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.config',
+        help='returns the path to the `icarus.cfg` file of the local workspace package',
         description='',
         allow_abbrev=False,
     )
@@ -762,6 +768,12 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='pkg.bin',
         help='creates colon-delimited list of bin directory for the current package',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
+        name='pkg.artifact',
+        help='returns the path to the build artifacts for the current package',
         description='',
         allow_abbrev=False,
     )
@@ -865,7 +877,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run_excluderoot.name',
         help=(
             'creates semicolon-delimited list of the names of all packages for the runtime'
-            ' dependencies excluding the current package'
+            ' dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -874,7 +886,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run_excluderoot.version',
         help=(
             'creates semicolon-delimited list of the names of all packages plus full versions for'
-            ' the runtime dependencies excluding the current package'
+            ' the runtime dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -883,7 +895,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run_excluderoot.runtimefarm',
         help=(
             'produces the location of a symlink farm and creates build variables for the runtime'
-            ' dependencies excluding the current package'
+            ' dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -892,7 +904,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run_excluderoot.pythonhome',
         help=(
             'creates colon-delimited list of PYTHONHOME paths for the runtime dependencies'
-            ' excluding the current package'
+            ' excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -901,7 +913,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run_excluderoot.pythonpath',
         help=(
             'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' runtime dependencies excluding the current package'
+            ' runtime dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -973,7 +985,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.name',
         help=(
             'creates semicolon-delimited list of the names of all packages for the runtime and'
-            ' development dependencies excluding the current package'
+            ' development dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -982,7 +994,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.version',
         help=(
             'creates semicolon-delimited list of the names of all packages plus full versions for'
-            ' the runtime and development dependencies excluding the current package'
+            ' the runtime and development dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -991,7 +1003,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.runtimefarm',
         help=(
             'produces the location of a symlink farm and creates build variables for the runtime'
-            ' and development dependencies excluding the current package'
+            ' and development dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -1000,7 +1012,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.pythonhome',
         help=(
             'creates colon-delimited list of PYTHONHOME paths for the runtime and development'
-            ' dependencies excluding the current package'
+            ' dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -1009,7 +1021,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.pythonpath',
         help=(
             'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' runtime and development dependencies excluding the current package'
+            ' runtime and development dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,
@@ -1018,7 +1030,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.bin',
         help=(
             'creates colon-delimited list of bin directory for the runtime and development'
-            ' dependencies excluding the current package'
+            ' dependencies excluding the root package'
         ),
         description='',
         allow_abbrev=False,

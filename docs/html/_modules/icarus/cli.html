@@ -733,31 +733,37 @@
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;platform-identifier&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the name of the current platform&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the name of the platform&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.root&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current workspace root&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the local workspace root&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.src-root&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current workspace source directory&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the local workspace source directory&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.build-root&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the current workspace build directory&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the local workspace build directory&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.user-space-root&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the runtime user-space prefix directory&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.config&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the `icarus.cfg` file of the local workspace package&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -836,6 +842,12 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;creates colon-delimited list of bin directory for the current package&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.artifact&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the build artifacts for the current package&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -939,7 +951,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.name&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime&#39;</span>
-            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -948,7 +960,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.version&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
-            <span class="s1">&#39; the runtime dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; the runtime dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -957,7 +969,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.runtimefarm&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime&#39;</span>
-            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -966,7 +978,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the runtime dependencies&#39;</span>
-            <span class="s1">&#39; excluding the current package&#39;</span>
+            <span class="s1">&#39; excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -975,7 +987,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.pythonpath&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the&#39;</span>
-            <span class="s1">&#39; runtime dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; runtime dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1047,7 +1059,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.name&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates semicolon-delimited list of the names of all packages for the runtime and&#39;</span>
-            <span class="s1">&#39; development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; development dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1056,7 +1068,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.version&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates semicolon-delimited list of the names of all packages plus full versions for&#39;</span>
-            <span class="s1">&#39; the runtime and development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; the runtime and development dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1065,7 +1077,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.runtimefarm&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;produces the location of a symlink farm and creates build variables for the runtime&#39;</span>
-            <span class="s1">&#39; and development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; and development dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1074,7 +1086,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of PYTHONHOME paths for the runtime and development&#39;</span>
-            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1083,7 +1095,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.pythonpath&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the&#39;</span>
-            <span class="s1">&#39; runtime and development dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; runtime and development dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1092,7 +1104,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development&#39;</span>
-            <span class="s1">&#39; dependencies excluding the current package&#39;</span>
+            <span class="s1">&#39; dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>

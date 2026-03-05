@@ -49,13 +49,16 @@ function clean_cache() {
     rm -rf "${path_to_cache_root}" || {
         echo_error "Failed to clean '${path_to_cache_root}'."
         exit_code=1
+        return
     }
-    echo
 
     mkdir -p "${path_to_cache_root}" || {
         echo_error "Failed to create cache root directory."
         exit_code=1
+        return
     }
+
+    echo -e "Cache cleaned successfully."
 }
 
 ####################################################################################################

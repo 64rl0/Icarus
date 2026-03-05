@@ -87,7 +87,8 @@ function echo_icarus_python3_project_info() {
 
     # Display env info
     echo -e "${bold_green}${green_circle} Runtime Environment:${end}"
-    echo -e "Runtimefarm: ${FARMHOME}"
+    echo -e "Runtimefarm: $(basename "${FARMHOME}")"
+    echo -e "Runtimefarm path: ${FARMHOME}"
     echo -e "Platform ID: ${platform_identifier}"
     echo -e "Python Version: $("python${python_version}" -c 'import sys; print(sys.version)')"
     echo
@@ -122,9 +123,7 @@ function echo_summary() {
     echo
 
     echo -e "${bold_blue}${cli_name} builder:${end}"
-    # We need to unset everything to get the real icarus running in the os
-    unset FARMHOME PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
-    echo -e "$("${this_cli_fullpath}" --version)"
+    echo -e "${cli_version_info}"
     echo
 
     echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
@@ -257,6 +256,9 @@ function set_constants() {
 
     exit_code=0
 
+    cli_version_info="$("${this_cli_fullpath}" --version)" || :
+    declare -g -r cli_version_info
+
     passed="${bold_black}${bg_green} PASS ${end}"
     failed="${bold_black}${bg_red} FAIL ${end}"
     warned="${bold_black}${bg_yellow} WARN ${end}"
@@ -265,8 +267,8 @@ function set_constants() {
     declare -g -r warned
 
     path_called="N"
-    path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
-    declare -g -r path_to_path_root
+    path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
+    declare -g -r path_root
 
     report_filepath="file://${project_root_dir_abs}/.icarus/report/index.html"
     declare -g -r report_filepath
@@ -431,8 +433,6 @@ function set_icarus_python3_constants() {
     else
         is_python_default=false
     fi
-
-    path_to_dist_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/${package_name_snake_case}/CPython/${python_full_version}"
 }
 
 function set_icarus_cdk_constants() {
@@ -911,13 +911,28 @@ function run_documentation_sphinx() {
 }
 
 function run_pypi() {
-    local f
+    local f artifact_root
+
+    validate_command "twine" || {
+        pypi_summary_status="${failed}"
+        exit_code=1
+        return
+    }
+
+    # Resolve path to dist root dir. If we fail it we return but do not
+    # errexit so we let other possible build proceed.
+    artifact_root="$(_internal_icarus_builder_path_cmd "${path_pkg_artifact_name}")" || {
+        pypi_summary_status="${failed}"
+        exit_code=1
+        echo_error "Failed to resolve path ${path_pkg_artifact_name}."
+        return
+    }
 
     if [[ -z "${ICARUS_PYPI_TEST_API_TOKEN}" || -z "${ICARUS_PYPI_PROD_API_TOKEN}" ]]; then
         echo_error "ICARUS_PYPI_TEST_API_TOKEN and ICARUS_PYPI_PROD_API_TOKEN environment variables must both be set." "errexit"
     fi
 
-    for f in "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
+    for f in "${artifact_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
         if [[ ! -e "${f}" ]]; then
             echo_error "Package artifact '${f}' not found! Have you built it?"
             pypi_summary_status="${failed}"
@@ -927,12 +942,12 @@ function run_pypi() {
 
     # Upload package artifact to TEST PyPi
     echo -e "${bold_green}${network_world} Uploading package artifact to TEST PyPi${end}"
-    "${PYTHONBIN}" -m twine upload \
+    twine upload \
         --repository testpypi \
         --username __token__ \
         --password "${ICARUS_PYPI_TEST_API_TOKEN}" \
         --verbose \
-        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
+        "${artifact_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
         echo_error "Failed to upload package artifact to TEST PyPi."
         pypi_summary_status="${failed}"
         exit_code=1
@@ -942,11 +957,11 @@ function run_pypi() {
 
     # Upload package artifact to PROD PyPi
     echo -e "${bold_green}${network_world} Uploading package artifact to PROD PyPi${end}"
-    "${PYTHONBIN}" -m twine upload \
+    twine upload \
         --username __token__ \
         --password "${ICARUS_PYPI_PROD_API_TOKEN}" \
         --verbose \
-        "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
+        "${artifact_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
         echo_error "Failed to upload package artifact to PROD PyPi."
         pypi_summary_status="${failed}"
         exit_code=1
@@ -955,6 +970,8 @@ function run_pypi() {
 }
 
 function run_build_icarus_python3() {
+    local build_single_run_status artifact_root
+
     # Single run status is used to monitor the outcome of a single run in
     # the for loop of python versions, if a previous run version but the
     # current succeed we do not wat to show the overall failure but we
@@ -965,9 +982,20 @@ function run_build_icarus_python3() {
     # the ICARUS_PACKAGE_VERSION var in the env for the setup.py to find it.
     export ICARUS_PACKAGE_VERSION="${package_version_full}"
 
+    # Resolve path to dist root dir. If we fail it we return but do not
+    # errexit so we let other possible build proceed.
+    artifact_root="$(_internal_icarus_builder_path_cmd "${path_pkg_artifact_name}")" || {
+        build_summary_status="${failed}"
+        build_single_run_status=1
+        exit_code=1
+        echo_error "Failed to resolve path ${path_pkg_artifact_name}."
+        return
+    }
+
     # Cleanup silently
-    # We are about to rebuild the dist so make sure the env is clean to accommodate the new one.
-    rm -rf "${path_to_dist_root}"
+    # We are about to rebuild the dist so make sure the dist dir is clean to
+    # accommodate the new one.
+    rm -rf "${artifact_root}"
     rm -rf "${project_root_dir_abs}/src/"*".egg-info"
 
     # We need the tool.runtimefarm to build the pkg.
@@ -975,15 +1003,15 @@ function run_build_icarus_python3() {
 
     # Building local package.
     echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' package artifact${end}"
-    "${PYTHONBIN}" -m build --no-isolation --outdir "${path_to_dist_root}" "${project_root_dir_abs}" || {
-        echo_error "Failed to build '${project_root_dir_abs}'."
+    "${PYTHONBIN}" -m build --no-isolation --outdir "${artifact_root}" "${project_root_dir_abs}" || {
+        echo_error "Failed to build '${package_name_snake_case}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
     echo
 
-    for f in "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
+    for f in "${artifact_root}/${package_name_snake_case}"*.{tar.gz,whl}; do
         if [[ ! -e "${f}" ]]; then
             echo_error "Package artifact '${f}' not found!"
             build_summary_status="${failed}"
@@ -992,7 +1020,7 @@ function run_build_icarus_python3() {
     done
 
     echo -e "${bold_green}${package} Checking package health${end}"
-    "${PYTHONBIN}" -m twine check "${path_to_dist_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
+    "${PYTHONBIN}" -m twine check "${artifact_root}/${package_name_snake_case}"*.{tar.gz,whl} || {
         echo_error "Failed to check package health."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1001,13 +1029,13 @@ function run_build_icarus_python3() {
     echo
 
     # Unpack sdist
-    mkdir -p "${path_to_dist_root}/sdist" || {
+    mkdir -p "${artifact_root}/sdist" || {
         echo_error "Failed to create sdist dir."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
     }
-    tar -xzf "${path_to_dist_root}/${package_name_snake_case}"*.tar.gz -C "${path_to_dist_root}/sdist" || {
+    tar -xzf "${artifact_root}/${package_name_snake_case}"*.tar.gz -C "${artifact_root}/sdist" || {
         echo_error "Failed to unpack sdist."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1015,7 +1043,7 @@ function run_build_icarus_python3() {
     }
 
     # Cleanup
-    mv "${project_root_dir_abs}/src/${package_name_snake_case}"*".egg-info" "${path_to_dist_root}" || {
+    mv "${project_root_dir_abs}/src/${package_name_snake_case}"*".egg-info" "${artifact_root}" || {
         echo_error "Failed to move egg-info dir to dist dir."
         build_summary_status="${failed}"
         build_single_run_status=1
@@ -1023,12 +1051,12 @@ function run_build_icarus_python3() {
     }
 
     # This will install the pkg just built in the pkg.runtimefarm.
-    echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' package${end}"
+    echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' package artifact${end}"
     if resolve_path "${path_pkg_runtimefarm_name}"; then
-        echo -e "Installed $(basename "${path_to_dist_root}"/*.whl)"
+        echo -e "Installed $(basename "${artifact_root}"/*.whl)"
         echo
     else
-        echo_error "Failed to install '${package_name_snake_case}' package."
+        echo_error "Failed to install '${package_name_snake_case}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
@@ -1096,7 +1124,7 @@ function resolve_path() {
     fi
 
     # Clear previous exports
-    unset FARMHOME PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
+    unset FARMHOME FARMPATH PYTHONHOME PYTHONPATH PYTHONBIN __PYVENV_LAUNCHER__
     set -a
     PATH="${_OLD_PATH}"
     set +a
@@ -1209,28 +1237,32 @@ function resolve_path() {
     PATH="${path_bin:+${path_bin}:}${PATH}"
     FARMHOME="${path_runtime}"
     PYTHONHOME="${path_python_home}"
-    PYTHONPATH="${pkg_pythonpath:+${pkg_pythonpath}:}${PYTHONPATH:+${PYTHONPATH}}"
+    if [[ -n "${pkg_pythonpath}" || -n "${PYTHONPATH}" ]]; then
+        # The middle ${pkg_pythonpath:+${PYTHONPATH:+:}} only inserts the colon when both sides have values.
+        PYTHONPATH="${pkg_pythonpath:+${pkg_pythonpath}}${pkg_pythonpath:+${PYTHONPATH:+:}}${PYTHONPATH:+${PYTHONPATH}}"
+    fi
     PYTHONBIN="${path_python_home}/bin/python${python_version}"
     set +a
 }
 
 function workspace_merge() (
     # Using a subshell to avoid mutating existing variables from the ready-* file.
+    # Variables set inside this subshell (like exit_code) do not propagate to the
+    # parent shell. Failures are signaled via exit code and handled at the call site.
     local farm_ready p_name
     local -a farms_to_merge
 
     farms_to_merge=()
 
     echo -e "Checking workspace"
-    for farm_ready in "${path_to_path_root}/"*"/farm-info/ready-"*; do
+    for farm_ready in "${path_root}/"*"/farm-info/ready-"*; do
         if [[ ! -e "${farm_ready}" ]]; then
             continue
         fi
         # shellcheck disable=SC1090
         . <(head -n 11 "${farm_ready}") || {
             echo_error "Failed to merge workspace."
-            merge_summary_status="${failed}"
-            exit_code=1
+            exit 1
         }
         farms_to_merge+=("${farm_name}")
     done
@@ -1239,20 +1271,22 @@ function workspace_merge() (
         echo -e "Detected farms: [NONE]"
         echo -e "Done!"
         echo
-        return
+        exit 0
     fi
 
     echo -e "Detected farms: ${farms_to_merge[*]}"
 
     echo -e "Merging workspace"
-    rm -rf "${path_to_path_root}" || {
+    rm -rf "${path_root}" || {
         echo_error "Failed to merge workspace."
-        merge_summary_status="${failed}"
-        exit_code=1
+        exit 1
     }
 
     for p_name in "${farms_to_merge[@]}"; do
-        resolve_path "${p_name}"
+        resolve_path "${p_name}" || {
+            echo_error "Failed to merge workspace."
+            exit 1
+        }
     done
 
     echo -e "Done!"
@@ -1645,7 +1679,11 @@ function dispatch_icarus_python3_tools() {
 
         start_block=$(date +%s.%N)
         echo_title "Merging Workspace"
-        workspace_merge
+        # Because workspace_merge runs entirely in a subshell we set failure variables here.
+        workspace_merge || {
+            merge_summary_status="${failed}"
+            exit_code=1
+        }
         end_block=$(date +%s.%N)
         merge_execution_time=$(echo "${merge_execution_time}" + "${end_block} - ${start_block}" | bc)
 

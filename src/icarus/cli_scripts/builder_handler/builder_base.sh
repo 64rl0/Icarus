@@ -17,6 +17,9 @@ path_ws_src_root_name="workspace.src-root"
 path_ws_build_root_name="workspace.build-root"
 path_ws_user_space_root_name="workspace.user-space-root"
 
+# CONFIG RECIPE
+path_pkg_config_name="pkg.config"
+
 # LANGUAGE RECIPE
 path_pkg_language_name="pkg.language"
 
@@ -73,12 +76,17 @@ path_run_excluderoot_bin_name="run_excluderoot.bin"
 path_devrun_bin_name="devrun.bin"
 path_devrun_excluderoot_bin_name="devrun_excluderoot.bin"
 
+# ARTIFACT RECIPE
+path_pkg_artifact_name="pkg.artifact"
+
 path_all_names=(
     "${path_platform_identifier_name}"
     "${path_ws_root_name}"
     "${path_ws_src_root_name}"
     "${path_ws_build_root_name}"
     "${path_ws_user_space_root_name}"
+
+    "${path_pkg_config_name}"
 
     "${path_pkg_language_name}"
 
@@ -128,6 +136,8 @@ path_all_names=(
     "${path_run_excluderoot_bin_name}"
     "${path_devrun_bin_name}"
     "${path_devrun_excluderoot_bin_name}"
+
+    "${path_pkg_artifact_name}"
 )
 
 declare -g -r path_to_cache_root
@@ -136,6 +146,7 @@ declare -g -r path_ws_root_name
 declare -g -r path_ws_src_root_name
 declare -g -r path_ws_build_root_name
 declare -g -r path_ws_user_space_root_name
+declare -g -r path_pkg_config_name
 declare -g -r path_pkg_language_name
 declare -g -r path_pkg_name_pascal_name
 declare -g -r path_pkg_name_snake_name
@@ -178,6 +189,7 @@ declare -g -r path_run_bin_name
 declare -g -r path_run_excluderoot_bin_name
 declare -g -r path_devrun_bin_name
 declare -g -r path_devrun_excluderoot_bin_name
+declare -g -r path_pkg_artifact_name
 declare -a -r -g path_all_names
 
 function declare_global_vars() {

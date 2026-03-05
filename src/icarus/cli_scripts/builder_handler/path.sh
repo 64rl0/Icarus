@@ -47,15 +47,15 @@ function ensure_icarus_build_root_env() {
     local dir
     local -a root_tree
 
-    path_to_runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
-    path_to_path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
-    path_to_path_cache_root="${path_to_path_root}/path-cache"
+    runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
+    path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
+    path_cache_root="${path_root}/path-cache"
 
     root_tree=(
         "${path_to_cache_root}"
-        "${path_to_runtime_root}"
-        "${path_to_path_root}"
-        "${path_to_path_cache_root}"
+        "${runtime_root}"
+        "${path_root}"
+        "${path_cache_root}"
     )
 
     for dir in "${root_tree[@]}"; do
@@ -65,22 +65,9 @@ function ensure_icarus_build_root_env() {
         }
     done
 
-    tool_runtimefarm_root="${path_to_path_root}/${path_tool_runtimefarm_name}"
-    pkg_runtimefarm_root="${path_to_path_root}/${path_pkg_runtimefarm_name}"
-    run_runtimefarm_root="${path_to_path_root}/${path_run_runtimefarm_name}"
-    run_excluderoot_runtimefarm_root="${path_to_path_root}/${path_run_excluderoot_runtimefarm_name}"
-    devrun_runtimefarm_root="${path_to_path_root}/${path_devrun_runtimefarm_name}"
-    devrun_excluderoot_runtimefarm_root="${path_to_path_root}/${path_devrun_excluderoot_runtimefarm_name}"
-
-    declare -g -r path_to_runtime_root
-    declare -g -r path_to_path_root
-    declare -g -r path_to_path_cache_root
-    declare -g -r tool_runtimefarm_root
-    declare -g -r pkg_runtimefarm_root
-    declare -g -r run_runtimefarm_root
-    declare -g -r run_excluderoot_runtimefarm_root
-    declare -g -r devrun_runtimefarm_root
-    declare -g -r devrun_excluderoot_runtimefarm_root
+    declare -g -r runtime_root
+    declare -g -r path_root
+    declare -g -r path_cache_root
 }
 
 function set_icarus_python3_constants() {
@@ -98,7 +85,7 @@ function set_icarus_python3_constants() {
         is_python_default=false
     fi
 
-    path_to_dist_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/${package_name_snake_case}/CPython/${python_full_version}"
+    artifact_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/CPython/${python_full_version}/${package_name_snake_case}-${package_version_full}"
 
     python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
     python_pkg_full_name="${python_pkg_name}.tar.gz"
@@ -190,7 +177,7 @@ function link_prefix_to_farm() {
     eval "${old_nullglob}"
 
     if [[ "${conflict}" == true ]]; then
-        echo_warninging "Destination file exists"
+        echo_warning "Destination file exists"
         exit_code=2
     fi
 }
@@ -199,7 +186,7 @@ function install_user_space_runtime() {
     local dir user_space_runtime
     local -a root_tree
 
-    user_space_runtime="${path_to_runtime_root}/local"
+    user_space_runtime="${runtime_root}/local"
 
     root_tree=(
         "${user_space_runtime}/bin"
@@ -236,50 +223,60 @@ function install_user_space_runtime() {
     echo
 }
 
-function link_user_space_runtime() {
-    local runtimefarm_path runtimefarm_name excluded
+function link_user_space_runtime_into_runtimefarm() {
+    local farm_path p_name
+    local -a excluded
 
-    runtimefarm_path="$1"
-    runtimefarm_name="$2"
-
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
     excluded=("lib64" ".envroot")
 
-    echo -e "${bold_green}${sparkles} Symlinking 'User Space'${end}"
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
+
+    echo -e "${bold_green}${sparkles} Symlinking 'User Space' into ${p_name}${end}"
 
     # If there isn't a symlink farm, then we incur the risk of using system binaries,
     # therefore this is a hard stop.
 
-    link_prefix_to_farm "${path_to_runtime_root}/local" "${runtimefarm_path}" "${excluded[@]}" || {
+    link_prefix_to_farm "${runtime_root}/local" "${farm_path}" "${excluded[@]}" || {
         exit_code=1
         # We invalidate the farm and error
-        clean_farm "${runtimefarm_path}"
-        echo_error "Failed to build ${runtimefarm_name}." "errexit"
+        clean_farm "${p_name}"
+        echo_error "Failed to symlink 'User Space' into ${p_name}." "errexit"
     }
 
     echo -e "Completed!"
     echo
 }
 
-# TODO(carlogtt): optimize these two functions as they are the same
-function fix_shebang_shim() {
-    local runtimefarm_path python_dir filepath first_line tmp shebang
+function fix_shebang_shim_core() {
+    local python_dir filepath first_line tmp shebang d
+    local -a prune_dirs prune_expr
 
-    runtimefarm_path="$1"
-    python_dir="${runtimefarm_path}/CPython/${python_full_version}"
-
-    if [[ -z "${runtimefarm_path}" ]]; then
-        echo_error "Missing argument: 'runtimefarm_path'"
-        exit_code=1
-        return 1
-    fi
+    python_dir="$1"
+    shift
+    prune_dirs=("$@")
 
     if [[ ! -d "${python_dir}" ]]; then
-        echo_error "Missing runtimefarm directory: '${python_dir}'"
+        echo_error "Missing directory: '${python_dir}'"
         exit_code=1
         return 1
     fi
 
-    echo -e "${bold_green}${sparkles} Fixing shebang shim for executables${end}"
+    echo -e "${bold_green}${sparkles} Fixing shebang shim${end}"
+
+    # Build find prune expression
+    prune_expr=()
+    for d in "${prune_dirs[@]}"; do
+        if ((${#prune_expr[@]} > 0)); then
+            prune_expr+=("-o")
+        fi
+        prune_expr+=("-path" "${python_dir}/${d}")
+    done
 
     while IFS= read -r -d '' filepath; do
         if [[ ! -e "${filepath}" ]]; then
@@ -321,97 +318,51 @@ function fix_shebang_shim() {
             exit_code=1
         }
     done < <(
-        find "${python_dir}" \
-            \( -path "${python_dir}/include" \
-            -o -path "${python_dir}/lib" \
-            -o -path "${python_dir}/lib64" \
-            -o -path "${python_dir}/local" \
-            -o -path "${python_dir}/share" \) -prune -o \
-            \( -type f -o -type l \) \
-            -print0
+        if ((${#prune_expr[@]} > 0)); then
+            find "${python_dir}" \( "${prune_expr[@]}" \) -prune -o \( -type f -o -type l \) -print0
+        else
+            find "${python_dir}" \( -type f -o -type l \) -print0
+        fi
     )
 
     echo -e "Done!"
     echo
 }
 
-function fix_shebang_python_runtime() {
-    local python_dir filepath first_line tmp shebang
+function fix_shebang_shim() {
+    local p_name farm_path python_dir
 
-    python_dir="${path_to_runtime_root}/CPython/${python_full_version}/runtime"
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    python_dir="${farm_path}/CPython/${python_full_version}"
 
-    if [[ ! -d "${python_dir}" ]]; then
-        echo_error "Missing runtimefarm directory: '${python_dir}'"
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
         exit_code=1
-        return 1
+        return
     fi
 
-    echo -e "${bold_green}${sparkles} Fixing shebang shim for executables${end}"
-
-    while IFS= read -r -d '' filepath; do
-        if [[ ! -e "${filepath}" ]]; then
-            continue
-        fi
-        if ! grep -Iq . "${filepath}" 2>/dev/null; then
-            continue
-        fi
-
-        IFS= read -r first_line <"${filepath}" || continue
-
-        if [[ "${first_line}" != "#!/"* ]]; then
-            continue
-        fi
-        if [[ "${first_line}" != *"python3"* ]]; then
-            continue
-        fi
-
-        tmp="${filepath}.shim"
-        shebang="#!/${cli_name}/bin/envroot \"\$ENVROOT/CPython/${python_full_version}/bin/python${python_version}\""
-
-        echo -e "Fixing ${filepath}"
-
-        {
-            printf '%s\n' "${shebang}"
-            tail -n +2 "${filepath}"
-        } >"${tmp}" || {
-            echo_error "Failed to update shebang for '${filepath}'."
-            exit_code=1
-        }
-
-        cat "${tmp}" >"${filepath}" || {
-            echo_error "Failed to update shebang for '${filepath}'."
-            exit_code=1
-        }
-
-        rm -rf "${tmp}" || {
-            echo_error "Failed to remove '${tmp}'."
-            exit_code=1
-        }
-    done < <(
-        find "${python_dir}" \
-            \( -path "${python_dir}/include" \
-            -o -path "${python_dir}/lib64" \
-            -o -path "${python_dir}/local" \
-            -o -path "${python_dir}/share" \) -prune -o \
-            \( -type f -o -type l \) \
-            -print0
-    )
-
-    echo -e "Done!"
-    echo
+    fix_shebang_shim_core "${python_dir}" "include" "lib" "lib64" "local" "share"
 }
 
 function install_python_runtime() {
-    local dir compression dest_tar single_run_status build_info_file
+    local dir compression dest_tar single_run_status build_info_file python_dir retries max_retries
     local -a root_tree
 
+    # Initializing single_run_status per python version.
     single_run_status=0
+
     dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
-    build_info_file="${path_to_runtime_root}/CPython/${python_full_version}/build-py${python_full_version}"
+    build_info_file="${runtime_root}/CPython/${python_full_version}/build-py${python_full_version}"
+    python_dir="${runtime_root}/CPython/${python_full_version}/runtime"
     root_tree=(
         "${path_to_cache_root}/CPython"
-        "${path_to_runtime_root}/CPython/${python_full_version}"
+        "${runtime_root}/CPython/${python_full_version}"
     )
+
+    # 30 min -> 2 sec sleep * 900 secs
+    retries=0
+    max_retries=900
 
     for dir in "${root_tree[@]}"; do
         mkdir -p "${dir}" || {
@@ -423,34 +374,82 @@ function install_python_runtime() {
 
     echo -e "${bold_green}${sparkles} Installing 'Python${python_full_version}'${end}"
 
-    # If the runtime already exists, use cached
+    # If the runtime is already created, use it
     if [[ -f "${build_info_file}" ]]; then
-        echo -e "Using cached installation"
+        echo -e "Using cached runtime"
         echo
         return
     fi
 
-    # TODO(carlogtt): this should be wrapped in a lock system to prevent race in the cache dir.
-    #  The wrapper should start from the download and end after the tar extract.
+    # Download or use cached one
+    # The while loop is used to prevent race conditions.
+    while true; do
+        # File exists, assume download complete.
+        if [[ -f "${dest_tar}" && ! -d "${dest_tar}.lock" ]]; then
+            echo -e "Using cached ${python_pkg_full_name}"
+            echo
+            break
 
-    # If the tar is in icarus cache, skip the download and unpack
-    if [[ ! -e "${dest_tar}" ]]; then
-        curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
-            echo_error "Failed to download '${python_pkg_name}'."
-            single_run_status=1
-            exit_code=1
-        }
-        echo
+        # mkdir is atomic—only one process will succeed.
+        # Successfully acquired lock; perform the download.
+        elif mkdir "${dest_tar}.lock" 2>/dev/null; then
+            echo -e "Downloading ${python_pkg_full_name}"
+            echo
+            # Cleanup / Remove partial download just in case was left there
+            rm -rf "${dest_tar}" || {
+                echo_error "Failed to remove '${dest_tar}'."
+                single_run_status=1
+                exit_code=1
+            }
+            # Download
+            curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
+                echo_error "Failed to download '${python_pkg_name}'."
+                single_run_status=1
+                exit_code=1
+                # Remove partial download
+                rm -rf "${dest_tar}" || {
+                    echo_error "Failed to remove '${dest_tar}'."
+                }
+            }
+            echo
+            # Always release the lock before breaking the loop
+            rm -rf "${dest_tar}.lock" || {
+                echo_error "Failed to remove '${dest_tar}.lock'."
+                single_run_status=1
+                exit_code=1
+            }
+            break
+
+        # Someone else is downloading; wait for them to finish.
+        else
+            ((retries = retries + 1))
+            if ((retries >= max_retries)); then
+                echo_error "Timed out waiting for ${python_pkg_name} download lock."
+                single_run_status=1
+                exit_code=1
+                break
+            fi
+            echo -e "Waiting for download own by another process to complete..."
+            sleep 2
+        fi
+    done
+
+    # After the download process we verify the single_run_status to check if
+    # the download was successful.
+    if [[ "${single_run_status}" -ne 0 ]]; then
+        single_run_status=1
+        exit_code=1
+        return
     fi
 
     # Clean any partial or old dir left there before moving to runtime root.
-    rm -rf "${path_to_runtime_root}/CPython/${python_full_version}/${python_full_version}" || {
-        echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}/${python_full_version}'."
+    rm -rf "${runtime_root}/CPython/${python_full_version}/${python_full_version}" || {
+        echo_error "Failed to remove '${runtime_root}/CPython/${python_full_version}/${python_full_version}'."
         single_run_status=1
         exit_code=1
     }
-    rm -rf "${path_to_runtime_root}/CPython/${python_full_version}/runtime" || {
-        echo_error "Failed to remove '${path_to_runtime_root}/CPython/${python_full_version}/runtime'."
+    rm -rf "${runtime_root}/CPython/${python_full_version}/runtime" || {
+        echo_error "Failed to remove '${runtime_root}/CPython/${python_full_version}/runtime'."
         single_run_status=1
         exit_code=1
     }
@@ -460,15 +459,15 @@ function install_python_runtime() {
         echo_error "Failed to detect '${dest_tar}' compression type."
         exit_code=1
     }
-    tar -v -x --"${compression}" -f "${dest_tar}" -C "${path_to_runtime_root}/CPython/${python_full_version}" || {
+    tar -v -x --"${compression}" -f "${dest_tar}" -C "${runtime_root}/CPython/${python_full_version}" || {
         echo_error "Failed to unpack '${python_pkg_name}'."
         single_run_status=1
         exit_code=1
     }
 
     # Unpack by default in ${python_full_version} we need to rename it to: 'runtime' dir.
-    mv "${path_to_runtime_root}/CPython/${python_full_version}/${python_full_version}" "${path_to_runtime_root}/CPython/${python_full_version}/runtime" || {
-        echo_error "Failed to move '${path_to_runtime_root}/CPython/${python_full_version}/${python_full_version}' to '${path_to_runtime_root}/CPython/${python_full_version}/runtime'."
+    mv "${runtime_root}/CPython/${python_full_version}/${python_full_version}" "${runtime_root}/CPython/${python_full_version}/runtime" || {
+        echo_error "Failed to move '${runtime_root}/CPython/${python_full_version}/${python_full_version}' to '${runtime_root}/CPython/${python_full_version}/runtime'."
         single_run_status=1
         exit_code=1
     }
@@ -478,10 +477,10 @@ function install_python_runtime() {
         echo
     fi
 
-    # Fixing runtime shebang
-    fix_shebang_python_runtime
+    # Fixing runtime shebang.
+    fix_shebang_shim_core "${python_dir}" "include" "lib64" "local" "share"
 
-    # Save the build release info
+    # Save the build release info.
     printf '%s\n' \
         "# The path command creates build variables from a graph of dependencies defined in package." \
         "# It is strongly recommended that you use the ${cli_name} builder path command to manage" \
@@ -494,22 +493,28 @@ function install_python_runtime() {
         "python_pkg_name=${python_pkg_name}" \
         "python_pkg_full_name=${python_pkg_full_name}" \
         "python_pkg_download_url=${python_pkg_download_url}" \
-        "runtime_root=${path_to_runtime_root}/CPython/${python_full_version}" \
+        "runtime_root=${runtime_root}/CPython/${python_full_version}" \
         >"${build_info_file}" || {
         echo_error "Failed to create '${build_info_file}'."
         exit_code=1
     }
 }
 
-function link_python_runtime() {
-    local runtimefarm_path runtimefarm_name path_to_python_runtime path_to_python_farm excluded
+function link_python_runtime_into_python_farm() {
+    local farm_path p_name path_to_python_runtime path_to_python_farm
+    local -a excluded
 
-    runtimefarm_path="$1"
-    runtimefarm_name="$2"
-    path_to_python_runtime="${path_to_runtime_root}/CPython/${python_full_version}/runtime"
-    path_to_python_farm="${runtimefarm_path}/CPython/${python_full_version}"
-
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    path_to_python_farm="${farm_path}/CPython/${python_full_version}"
+    path_to_python_runtime="${runtime_root}/CPython/${python_full_version}/runtime"
     excluded=("lib64" ".envroot")
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
 
     echo -e "${bold_green}${sparkles} Symlinking 'Python${python_full_version}'${end}"
 
@@ -519,8 +524,8 @@ function link_python_runtime() {
     link_prefix_to_farm "${path_to_python_runtime}" "${path_to_python_farm}" "${excluded[@]}" || {
         exit_code=1
         # We invalidate the farm and error
-        clean_farm "${runtimefarm_path}"
-        echo_error "Failed to build ${runtimefarm_name}." "errexit"
+        clean_farm "${p_name}"
+        echo_error "Failed to symlink 'Python${python_full_version}." "errexit"
     }
 
     # Make lib64 → lib symlink
@@ -533,14 +538,50 @@ function link_python_runtime() {
     echo
 }
 
+function link_python_runtime_into_runtimefarm() {
+    local farm_path p_name path_to_python_farm
+    local -a excluded
+
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    path_to_python_farm="${farm_path}/CPython/${python_full_version}"
+    excluded=("lib64" "local" ".envroot")
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
+
+    # This function is exclusively allowed if python is the default one!
+    if [[ "${is_python_default}" != true ]]; then
+        echo_error "The python runtime is not the default one!"
+        exit_code=1
+        return
+    fi
+
+    echo -e "${bold_green}${sparkles} Symlinking 'Python${python_full_version}' [python-default] into ${p_name}${end}"
+
+    link_prefix_to_farm "${path_to_python_farm}" "${farm_path}" "${excluded[@]}" || {
+        echo_error "Failed to symlink 'Python${python_full_version}' into ${p_name}."
+        exit_code=1
+    }
+
+    echo -e "Completed!"
+    echo
+}
+
 function build_runtimefarm_tree() {
-    local dir farm_path
+    local p_name dir farm_path
     local -a root_tree
 
-    farm_path=$1
-    if [[ -z "${farm_path}" ]]; then
-        echo_error "Missing argument: 'farm_path'"
+    p_name=$1
+    farm_path="${path_root}/${p_name}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
         exit_code=1
+        return
     fi
 
     # Do NOT rm -rf the existing tree because when performing the
@@ -582,14 +623,20 @@ function build_runtimefarm_tree() {
 }
 
 function build_runtimefarm_icarus_python3() {
-    local runtimefarm_path path_to_python_runtime path_to_python_farm
+    local p_name farm_path path_to_python_farm
 
-    runtimefarm_path="$1"
-    path_to_python_runtime="${path_to_runtime_root}/CPython/${python_full_version}"
-    path_to_python_farm="${runtimefarm_path}/CPython/${python_full_version}"
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    path_to_python_farm="${farm_path}/CPython/${python_full_version}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
 
     echo -e "${bold_green}${sparkles} Building farm${end}"
-    build_runtimefarm_tree "${runtimefarm_path}"
+    build_runtimefarm_tree "${p_name}"
     echo -e "Done!"
 
     # icarus builder path do not need to set PYTHONPATH, this could be done by the
@@ -603,10 +650,10 @@ function build_runtimefarm_icarus_python3() {
         "# your environments." \
         "" \
         "# The pathname to the farm." \
-        "FARMHOME='${runtimefarm_path}'" \
+        "FARMHOME='${farm_path}'" \
         "" \
         "# The PATH for the farm." \
-        "FARMPATH='${runtimefarm_path}/bin:${path_to_python_farm}/bin'" \
+        "FARMPATH='${farm_path}/bin:${path_to_python_farm}/bin'" \
         "" \
         "# Change the location of the standard Python libraries." \
         "# By default, the libraries are searched in prefix/lib/pythonversion and exec_prefix/lib/pythonversion," \
@@ -634,7 +681,7 @@ function build_runtimefarm_icarus_python3() {
         "" \
         "# The pathname of the executable Python binary." \
         "PYTHONBIN='${path_to_python_farm}/bin/python${python_version}'" \
-        >"${runtimefarm_path}/farm-info/path-py${python_full_version}" || {
+        >"${farm_path}/farm-info/path-py${python_full_version}" || {
         exit_code=1
         echo_error "Failed to create 'path-py${python_full_version}'."
     }
@@ -651,13 +698,14 @@ function pip_pip() {
     if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
+        return
     fi
 
     p_graph="$(echo "${p_name}" | cut -d'.' -f 1)"
     p_recipe="$(echo "${p_name}" | cut -d'.' -f 2)"
     p_ver="py-${python_full_version}"
 
-    report_path="${path_to_path_cache_root}/pip_${p_graph}_${p_recipe}_${p_ver}"
+    report_path="${path_cache_root}/pip_${p_graph}_${p_recipe}_${p_ver}"
 
     echo -e "${bold_green}${sparkles} Caching [${installation_type}] [pip] dependencies graph${end}"
     "${PYTHONBIN}" -m pip install \
@@ -708,14 +756,15 @@ function pip_target_package() {
     if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
+        return
     fi
 
     p_graph="$(echo "${p_name}" | cut -d'.' -f 1)"
     p_recipe="$(echo "${p_name}" | cut -d'.' -f 2)"
     p_ver="py-${python_full_version}"
 
-    report_path="${path_to_path_cache_root}/${package_name_dashed}_${p_graph}_${p_recipe}_${p_ver}"
-    pkg=("${path_to_dist_root}/${package_name_snake_case}"*.whl)
+    report_path="${path_cache_root}/${package_name_dashed}_${p_graph}_${p_recipe}_${p_ver}"
+    pkg=("${artifact_root}/${package_name_snake_case}"*.whl)
 
     if [[ ! -f "${pkg[0]}" ]]; then
         echo_error "Package artifact '${package_name_snake_case}' not found! Have you built it?"
@@ -734,7 +783,7 @@ function pip_target_package() {
         --dry-run \
         --ignore-installed \
         --report "${report_path}.${installation_type}" \
-        "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
+        "${artifact_root}/${package_name_snake_case}"*.whl || {
         echo_error "Failed to cache [${installation_type}] dependencies graph."
         exit_code=1
     }
@@ -747,7 +796,7 @@ function pip_target_package() {
             --no-deps \
             --no-compile \
             --no-warn-script-location \
-            "${path_to_dist_root}/${package_name_snake_case}"*.whl || {
+            "${artifact_root}/${package_name_snake_case}"*.whl || {
             echo_error "Failed to install ${package_name_snake_case}."
             exit_code=1
         }
@@ -769,6 +818,7 @@ function pip_tool_dependencies() {
     if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
+        return
     fi
 
     p_graph="$(echo "${p_name}" | cut -d'.' -f 1)"
@@ -778,7 +828,7 @@ function pip_tool_dependencies() {
     for requirements_path in "${tool_requirements_paths[@]}"; do
         requirements_path="${requirements_path##/}"
         requirements_path_basename="$(basename "${requirements_path}")"
-        report_path="${path_to_path_cache_root}/$(basename "$(echo "${requirements_path}" | tr '.' '-')_${p_graph}_${p_recipe}_${p_ver}")"
+        report_path="${path_cache_root}/$(basename "$(echo "${requirements_path}" | tr '.' '-')_${p_graph}_${p_recipe}_${p_ver}")"
 
         echo -e "${bold_green}${sparkles} Caching [${installation_type}] [tool:${requirements_path_basename}] dependencies graph${end}"
         "${PYTHONBIN}" -m pip install \
@@ -831,13 +881,14 @@ function pip_run_dependencies() {
     if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
+        return
     fi
 
     p_graph="$(echo "${p_name}" | cut -d'.' -f 1)"
     p_recipe="$(echo "${p_name}" | cut -d'.' -f 2)"
     p_ver="py-${python_full_version}"
 
-    report_path="${path_to_path_cache_root}/run_${p_graph}_${p_recipe}_${p_ver}"
+    report_path="${path_cache_root}/run_${p_graph}_${p_recipe}_${p_ver}"
 
     echo -e "${bold_green}${sparkles} Caching [${installation_type}] [run:pyproject.toml] dependencies graph${end}"
     "${PYTHONBIN}" -m pip install \
@@ -888,6 +939,7 @@ function pip_run_dependencies_legacy() {
     if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
+        return
     fi
 
     p_graph="$(echo "${p_name}" | cut -d'.' -f 1)"
@@ -897,7 +949,7 @@ function pip_run_dependencies_legacy() {
     for requirements_path in "${run_requirements_paths[@]}"; do
         requirements_path="${requirements_path##/}"
         requirements_path_basename="$(basename "${requirements_path}")"
-        report_path="${path_to_path_cache_root}/$(basename "$(echo "${requirements_path}" | tr '.' '-')_${p_graph}_${p_recipe}_${p_ver}")"
+        report_path="${path_cache_root}/$(basename "$(echo "${requirements_path}" | tr '.' '-')_${p_graph}_${p_recipe}_${p_ver}")"
 
         echo -e "${bold_green}${sparkles} Caching [${installation_type}] [run-legacy:${requirements_path_basename}] dependencies graph${end}"
         "${PYTHONBIN}" -m pip install \
@@ -949,6 +1001,7 @@ function pip_dev_dependencies() {
     if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
+        return
     fi
 
     p_graph="$(echo "${p_name}" | cut -d'.' -f 1)"
@@ -958,7 +1011,7 @@ function pip_dev_dependencies() {
     for requirements_path in "${dev_requirements_paths[@]}"; do
         requirements_path="${requirements_path##/}"
         requirements_path_basename="$(basename "${requirements_path}")"
-        report_path="${path_to_path_cache_root}/$(basename "$(echo "${requirements_path}" | tr '.' '-')_${p_graph}_${p_recipe}_${p_ver}")"
+        report_path="${path_cache_root}/$(basename "$(echo "${requirements_path}" | tr '.' '-')_${p_graph}_${p_recipe}_${p_ver}")"
 
         echo -e "${bold_green}${sparkles} Caching [${installation_type}] [dev:${requirements_path_basename}] dependencies graph${end}"
         "${PYTHONBIN}" -m pip install \
@@ -1002,31 +1055,47 @@ function pip_dev_dependencies() {
 }
 
 function write_python_packages_release_info() {
-    if [[ -z "${FARMHOME}" ]]; then
-        echo_error "Failed to resolve FARMHOME."
+    local p_name farm_path packages_file
+
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    packages_file="${farm_path}/farm-info/packages-py${python_full_version}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
         exit_code=1
+        return
     fi
 
-    "${PYTHONBIN}" -m pip freeze --all >"${FARMHOME}/farm-info/packages-py${python_full_version}" || {
+    printf '%s\n' \
+        "# The path command creates build variables from a graph of dependencies defined in package." \
+        "# It is strongly recommended that you use the ${cli_name} builder path command to manage" \
+        "# your environments." \
+        "" \
+        >"${packages_file}" || {
+        echo_error "Failed to create 'packages-py${python_full_version}'."
+        exit_code=1
+    }
+
+    "${PYTHONBIN}" -m pip freeze --all >>"${packages_file}" || {
         echo_error "Failed to create 'packages-py${python_full_version}'."
         exit_code=1
     }
 }
 
 function mark_farm_ready_icarus_python3() {
-    local farm_path installation_type farm_ready_file
+    local p_name farm_path installation_type farm_ready_file
 
-    farm_path=$1
+    p_name="$1"
     installation_type=$2
+    farm_path="${path_root}/${p_name}"
     farm_ready_file="${farm_path}/farm-info/ready-py${python_full_version}"
 
-    if [[ -z "${farm_path}" ]] || [[ -z "${installation_type}" ]]; then
+    if [[ -z "${p_name}" || -z "${installation_type}" ]]; then
         echo_error "Missing arguments."
         exit_code=1
-        return 1
+        return
     fi
-
-    # path_name is the global env passed in by the cli.
 
     if [[ "${installation_type}" == "build" ]]; then
         printf '%s\n' \
@@ -1038,11 +1107,9 @@ function mark_farm_ready_icarus_python3() {
             "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
             "python_version=${python_version}" \
             "python_full_version=${python_full_version}" \
-            "farm_name=${path_name}" \
+            "farm_name=${p_name}" \
             "farm_path=${farm_path}" \
             >"${farm_ready_file}" || {
-            # We invalidate the farm and error
-            clean_farm "${farm_path}"
             echo_error "Failed to [${installation_type}] '${farm_ready_file}'."
             exit_code=1
         }
@@ -1052,8 +1119,6 @@ function mark_farm_ready_icarus_python3() {
             "action=${installation_type}" \
             "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
             >>"${farm_ready_file}" || {
-            # We invalidate the farm and error
-            clean_farm "${farm_path}"
             echo_error "Failed to [${installation_type}] '${farm_ready_file}'."
             exit_code=1
         }
@@ -1063,10 +1128,39 @@ function mark_farm_ready_icarus_python3() {
     fi
 }
 
-function clean_farm() {
-    local farm_path
+function validate_farm_integrity() {
+    local p_name farm_path
 
-    farm_path=$1
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
+
+    # We MUST NOT use != 0 because when we return exit_code = 2
+    # we do not want to fail the integrity check.
+    if [[ "${exit_code}" == 1 ]]; then
+        echo_error "Farm integrity check failed!"
+        # We invalidate the farm and error
+        clean_farm "${p_name}"
+        exit_code=1
+    fi
+}
+
+function clean_farm() {
+    local p_name farm_path
+
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
 
     rm -rf "${farm_path}" || {
         echo_error "Failed to remove '${farm_path}'."
@@ -1075,10 +1169,17 @@ function clean_farm() {
 }
 
 function activate_farm_icarus_python3() {
-    local runtimefarm_path farm_path_file
+    local p_name farm_path farm_path_file
 
-    runtimefarm_path=$1
-    farm_path_file="${runtimefarm_path}/farm-info/path-py${python_full_version}"
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    farm_path_file="${farm_path}/farm-info/path-py${python_full_version}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
 
     # If there isn't a farm, then we incur the risk of using system binaries,
     # therefore this is a hard stop, using errexit.
@@ -1086,7 +1187,7 @@ function activate_farm_icarus_python3() {
     if [[ ! -f "${farm_path_file}" ]]; then
         exit_code=1
         # We invalidate the farm and error
-        clean_farm "${runtimefarm_path}"
+        clean_farm "${p_name}"
         echo_error "Failed to activate farm." "errexit"
     fi
 
@@ -1098,7 +1199,7 @@ function activate_farm_icarus_python3() {
     . "${farm_path_file}" || {
         exit_code=1
         # We invalidate the farm and error
-        clean_farm "${runtimefarm_path}"
+        clean_farm "${p_name}"
         echo_error "Failed to activate farm." "errexit"
     }
     set +a
@@ -1109,11 +1210,18 @@ function deactivate_farm_icarus_python3() {
 }
 
 function join_deps() {
-    local runtimefarm_path python_packages_release_info farm_ready_file
+    local p_name farm_path python_packages_release_info farm_ready_file
 
-    runtimefarm_path="$1"
-    farm_ready_file="${runtimefarm_path}/farm-info/ready-py${python_full_version}"
-    python_packages_release_info="${runtimefarm_path}/farm-info/packages-py${python_full_version}"
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    farm_ready_file="${farm_path}/farm-info/ready-py${python_full_version}"
+    python_packages_release_info="${farm_path}/farm-info/packages-py${python_full_version}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
 
     if [[ ! -f "${farm_ready_file}" ]]; then
         echo_error "Farm not built!"
@@ -1122,15 +1230,23 @@ function join_deps() {
     fi
 
     # Split on space so local imports will be clean
-    cut -d ' ' -f 1 "${python_packages_release_info}" | paste -s -d ';' -
+    # exclude empty lines and lines starting with #
+    cut -d ' ' -f 1 "${python_packages_release_info}" | grep '^[a-zA-Z]' | paste -s -d ';' -
 }
 
 join_deps_names() {
-    local runtimefarm_path python_packages_release_info farm_ready_file
+    local p_name farm_path python_packages_release_info farm_ready_file
 
-    runtimefarm_path="$1"
-    farm_ready_file="${runtimefarm_path}/farm-info/ready-py${python_full_version}"
-    python_packages_release_info="${runtimefarm_path}/farm-info/packages-py${python_full_version}"
+    p_name="$1"
+    farm_path="${path_root}/${p_name}"
+    farm_ready_file="${farm_path}/farm-info/ready-py${python_full_version}"
+    python_packages_release_info="${farm_path}/farm-info/packages-py${python_full_version}"
+
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
+        exit_code=1
+        return
+    fi
 
     if [[ ! -f "${farm_ready_file}" ]]; then
         echo_error "Farm not built!"
@@ -1139,24 +1255,25 @@ join_deps_names() {
     fi
 
     # Split on space so local imports will be clean
-    cut -d ' ' -f 1 "${python_packages_release_info}" | cut -d '=' -f 1 | paste -s -d ';' -
+    # exclude empty lines and lines starting with #
+    cut -d ' ' -f 1 "${python_packages_release_info}" | cut -d '=' -f 1 | grep '^[a-zA-Z]' | paste -s -d ';' -
 }
 
 ####################################################################################################
 # DISPATCHERS
 ####################################################################################################
 function build_path_icarus_python3() {
-    local path installation_type
+    local p_name installation_type
 
-    path="${1}"
+    p_name="${1}"
     installation_type=""
 
-    if [[ -z "${path}" ]]; then
-        echo_error "Missing argument: 'path'"
+    if [[ -z "${p_name}" ]]; then
+        echo_error "Missing argument: 'p_name'"
         exit_code=1
     fi
 
-    case "${path}" in
+    case "${p_name}" in
     # #############
     # SIMPLE RECIPE
     # #############
@@ -1178,7 +1295,14 @@ function build_path_icarus_python3() {
         ;;
     "${path_ws_user_space_root_name}")
         only_with_python_default=true
-        response="${path_to_runtime_root}/local"
+        response="${runtime_root}/local"
+        ;;
+    # #############
+    # CONFIG RECIPE
+    # #############
+    "${path_pkg_config_name}")
+        only_with_python_default=true
+        response="${project_root_dir_abs}/icarus.cfg"
         ;;
     # ###############
     # LANGUAGE RECIPE
@@ -1204,11 +1328,11 @@ function build_path_icarus_python3() {
         ;;
     "${path_tool_name_name}")
         only_with_python_default=true
-        response="$(join_deps_names "${tool_runtimefarm_root}")" || exit_code=1
+        response="$(join_deps_names "${path_tool_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_name_name}")
         only_with_python_default=true
-        response="$(join_deps_names "${run_runtimefarm_root}")" || exit_code=1
+        response="$(join_deps_names "${path_run_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_excluderoot_name_name}")
         only_with_python_default=true
@@ -1243,11 +1367,11 @@ function build_path_icarus_python3() {
         ;;
     "${path_tool_version_full_name}")
         only_with_python_default=true
-        response="$(join_deps "${tool_runtimefarm_root}")" || exit_code=1
+        response="$(join_deps "${path_tool_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_version_full_name}")
         only_with_python_default=true
-        response="$(join_deps "${run_runtimefarm_root}")" || exit_code=1
+        response="$(join_deps "${path_run_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_excluderoot_version_full_name}")
         only_with_python_default=true
@@ -1261,215 +1385,269 @@ function build_path_icarus_python3() {
         only_with_python_default=true
         response="$(join_deps "${path_devrun_excluderoot_runtimefarm_name}")" || exit_code=1
         ;;
-    # ##################
-    # RUNTIMEFARM RECIPE
-    # ##################
-    "${path_tool_runtimefarm_name}")
-        if [[ ! -f "${tool_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
-            installation_type="build"
-            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_tool_runtimefarm_name}${end}"
-            build_runtimefarm_icarus_python3 "${tool_runtimefarm_root}"
-            install_user_space_runtime
-            link_user_space_runtime "${tool_runtimefarm_root}" "${path_tool_runtimefarm_name}"
-            install_python_runtime
-            link_python_runtime "${tool_runtimefarm_root}" "${path_tool_runtimefarm_name}"
-        else
-            installation_type="sync"
-            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_tool_runtimefarm_name}${end}"
-        fi
-        activate_farm_icarus_python3 "${tool_runtimefarm_root}"
-        pip_pip "${path_tool_runtimefarm_name}" "${installation_type}"
-        pip_tool_dependencies "${path_tool_runtimefarm_name}" "${installation_type}"
-        write_python_packages_release_info
-        fix_shebang_shim "${tool_runtimefarm_root}"
-        mark_farm_ready_icarus_python3 "${tool_runtimefarm_root}" "${installation_type}"
-        deactivate_farm_icarus_python3
-        response="${tool_runtimefarm_root}"
-        ;;
-    "${path_pkg_runtimefarm_name}")
-        if [[ ! -f "${pkg_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
-            installation_type="build"
-            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_pkg_runtimefarm_name}${end}"
-            build_runtimefarm_icarus_python3 "${pkg_runtimefarm_root}"
-            install_user_space_runtime
-            link_user_space_runtime "${pkg_runtimefarm_root}" "${path_pkg_runtimefarm_name}"
-            install_python_runtime
-            link_python_runtime "${pkg_runtimefarm_root}" "${path_pkg_runtimefarm_name}"
-        else
-            installation_type="sync"
-            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_pkg_runtimefarm_name}${end}"
-        fi
-        activate_farm_icarus_python3 "${pkg_runtimefarm_root}"
-        pip_pip "${path_pkg_runtimefarm_name}" "${installation_type}"
-        pip_target_package "${path_pkg_runtimefarm_name}" "build" # We never sync pkg_only
-        write_python_packages_release_info
-        fix_shebang_shim "${pkg_runtimefarm_root}"
-        mark_farm_ready_icarus_python3 "${pkg_runtimefarm_root}" "${installation_type}"
-        deactivate_farm_icarus_python3
-        response="${pkg_runtimefarm_root}"
-        ;;
-    "${path_run_runtimefarm_name}")
-        if [[ ! -f "${run_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
-            installation_type="build"
-            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_run_runtimefarm_name}${end}"
-            build_runtimefarm_icarus_python3 "${run_runtimefarm_root}"
-            install_user_space_runtime
-            link_user_space_runtime "${run_runtimefarm_root}" "${path_run_runtimefarm_name}"
-            install_python_runtime
-            link_python_runtime "${run_runtimefarm_root}" "${path_run_runtimefarm_name}"
-        else
-            installation_type="sync"
-            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_run_runtimefarm_name}${end}"
-        fi
-        activate_farm_icarus_python3 "${run_runtimefarm_root}"
-        pip_pip "${path_run_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies "${path_run_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies_legacy "${path_run_runtimefarm_name}" "${installation_type}"
-        pip_target_package "${path_run_runtimefarm_name}" "build" # This will install a fresh pkg
-        write_python_packages_release_info
-        fix_shebang_shim "${run_runtimefarm_root}"
-        mark_farm_ready_icarus_python3 "${run_runtimefarm_root}" "${installation_type}"
-        deactivate_farm_icarus_python3
-        response="${run_runtimefarm_root}"
-        ;;
-    "${path_run_excluderoot_runtimefarm_name}")
-        if [[ ! -f "${run_excluderoot_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
-            installation_type="build"
-            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_run_excluderoot_runtimefarm_name}${end}"
-            build_runtimefarm_icarus_python3 "${run_excluderoot_runtimefarm_root}"
-            install_user_space_runtime
-            link_user_space_runtime "${run_excluderoot_runtimefarm_root}" "${path_run_excluderoot_runtimefarm_name}"
-            install_python_runtime
-            link_python_runtime "${run_excluderoot_runtimefarm_root}" "${path_run_excluderoot_runtimefarm_name}"
-        else
-            installation_type="sync"
-            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_run_excluderoot_runtimefarm_name}${end}"
-        fi
-        activate_farm_icarus_python3 "${run_excluderoot_runtimefarm_root}"
-        pip_pip "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies_legacy "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
-        write_python_packages_release_info
-        fix_shebang_shim "${run_excluderoot_runtimefarm_root}"
-        mark_farm_ready_icarus_python3 "${run_excluderoot_runtimefarm_root}" "${installation_type}"
-        deactivate_farm_icarus_python3
-        response="${run_excluderoot_runtimefarm_root}"
-        ;;
-    "${path_devrun_runtimefarm_name}")
-        if [[ ! -f "${devrun_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
-            installation_type="build"
-            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_devrun_runtimefarm_name}${end}"
-            build_runtimefarm_icarus_python3 "${devrun_runtimefarm_root}"
-            install_user_space_runtime
-            link_user_space_runtime "${devrun_runtimefarm_root}" "${path_devrun_runtimefarm_name}"
-            install_python_runtime
-            link_python_runtime "${devrun_runtimefarm_root}" "${path_devrun_runtimefarm_name}"
-        else
-            installation_type="sync"
-            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_devrun_runtimefarm_name}${end}"
-            deactivate_farm_icarus_python3
-        fi
-        activate_farm_icarus_python3 "${devrun_runtimefarm_root}"
-        pip_pip "${path_devrun_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies "${path_devrun_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies_legacy "${path_devrun_runtimefarm_name}" "${installation_type}"
-        pip_dev_dependencies "${path_devrun_runtimefarm_name}" "${installation_type}"
-        pip_target_package "${path_devrun_runtimefarm_name}" "build" # This will install a fresh pkg
-        write_python_packages_release_info
-        fix_shebang_shim "${devrun_runtimefarm_root}"
-        mark_farm_ready_icarus_python3 "${devrun_runtimefarm_root}" "${installation_type}"
-        deactivate_farm_icarus_python3
-        response="${devrun_runtimefarm_root}"
-        ;;
-    "${path_devrun_excluderoot_runtimefarm_name}")
-        if [[ ! -f "${devrun_excluderoot_runtimefarm_root}/farm-info/ready-py${python_full_version}" ]]; then
-            installation_type="build"
-            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_devrun_excluderoot_runtimefarm_name}${end}"
-            build_runtimefarm_icarus_python3 "${devrun_excluderoot_runtimefarm_root}"
-            install_user_space_runtime
-            link_user_space_runtime "${devrun_excluderoot_runtimefarm_root}" "${path_devrun_excluderoot_runtimefarm_name}"
-            install_python_runtime
-            link_python_runtime "${devrun_excluderoot_runtimefarm_root}" "${path_devrun_excluderoot_runtimefarm_name}"
-        else
-            installation_type="sync"
-            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_devrun_excluderoot_runtimefarm_name}${end}"
-        fi
-        activate_farm_icarus_python3 "${devrun_excluderoot_runtimefarm_root}"
-        pip_pip "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
-        pip_run_dependencies_legacy "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
-        pip_dev_dependencies "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
-        write_python_packages_release_info
-        fix_shebang_shim "${devrun_excluderoot_runtimefarm_root}"
-        mark_farm_ready_icarus_python3 "${devrun_excluderoot_runtimefarm_root}" "${installation_type}"
-        deactivate_farm_icarus_python3
-        response="${devrun_excluderoot_runtimefarm_root}"
-        ;;
     # #################
     # PYTHONHOME RECIPE
     # #################
     "${path_tool_pythonhome_name}")
-        response="${response:+${response}:}${tool_runtimefarm_root}/CPython/${python_full_version}"
+        response="${response:+${response}:}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_pkg_pythonhome_name}")
-        response="${response:+${response}:}${pkg_runtimefarm_root}/CPython/${python_full_version}"
+        response="${response:+${response}:}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_run_pythonhome_name}")
-        response="${response:+${response}:}${run_runtimefarm_root}/CPython/${python_full_version}"
+        response="${response:+${response}:}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_run_excluderoot_pythonhome_name}")
-        response="${response:+${response}:}${run_excluderoot_runtimefarm_root}/CPython/${python_full_version}"
+        response="${response:+${response}:}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_devrun_pythonhome_name}")
-        response="${response:+${response}:}${devrun_runtimefarm_root}/CPython/${python_full_version}"
+        response="${response:+${response}:}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_devrun_excluderoot_pythonhome_name}")
-        response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}"
+        response="${response:+${response}:}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     # #################
     # PYTHONPATH RECIPE
     # #################
     "${path_tool_pythonpath_name}")
-        response="${response:+${response}:}${tool_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}:}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_pkg_pythonpath_name}")
-        response="${response:+${response}:}${pkg_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}:}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_run_pythonpath_name}")
-        response="${response:+${response}:}${run_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}:}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_run_excluderoot_pythonpath_name}")
-        response="${response:+${response}:}${run_excluderoot_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}:}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_devrun_pythonpath_name}")
-        response="${response:+${response}:}${devrun_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}:}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_devrun_excluderoot_pythonpath_name}")
-        response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}:}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     # ##########
     # BIN RECIPE
     # ##########
     "${path_tool_bin_name}")
-        response="${response:+${response}:}${tool_runtimefarm_root}/bin:${tool_runtimefarm_root}/CPython/${python_full_version}/bin"
+        response="${response:+${response}:}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/bin"
+        # Only append the runtimefarm-level /bin on the first iteration.
+        if [[ "${response}" != *"${path_root}/${path_tool_runtimefarm_name}/bin"* ]]; then
+            response="${response}:${path_root}/${path_tool_runtimefarm_name}/bin"
+        fi
         ;;
     "${path_pkg_bin_name}")
-        response="${response:+${response}:}${pkg_runtimefarm_root}/bin:${pkg_runtimefarm_root}/CPython/${python_full_version}/bin"
+        response="${response:+${response}:}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/bin"
+        # Only append the runtimefarm-level /bin on the first iteration.
+        if [[ "${response}" != *"${path_root}/${path_pkg_runtimefarm_name}/bin"* ]]; then
+            response="${response}:${path_root}/${path_pkg_runtimefarm_name}/bin"
+        fi
         ;;
     "${path_run_bin_name}")
-        response="${response:+${response}:}${run_runtimefarm_root}/bin:${run_runtimefarm_root}/CPython/${python_full_version}/bin"
+        response="${response:+${response}:}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/bin"
+        # Only append the runtimefarm-level /bin on the first iteration.
+        if [[ "${response}" != *"${path_root}/${path_run_runtimefarm_name}/bin"* ]]; then
+            response="${response}:${path_root}/${path_run_runtimefarm_name}/bin"
+        fi
         ;;
     "${path_run_excluderoot_bin_name}")
-        response="${response:+${response}:}${run_excluderoot_runtimefarm_root}/bin:${run_excluderoot_runtimefarm_root}/CPython/${python_full_version}/bin"
+        response="${response:+${response}:}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin"
+        # Only append the runtimefarm-level /bin on the first iteration.
+        if [[ "${response}" != *"${path_root}/${path_run_excluderoot_runtimefarm_name}/bin"* ]]; then
+            response="${response}:${path_root}/${path_run_excluderoot_runtimefarm_name}/bin"
+        fi
         ;;
     "${path_devrun_bin_name}")
-        response="${response:+${response}:}${devrun_runtimefarm_root}/bin:${devrun_runtimefarm_root}/CPython/${python_full_version}/bin"
+        response="${response:+${response}:}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/bin"
+        # Only append the runtimefarm-level /bin on the first iteration.
+        if [[ "${response}" != *"${path_root}/${path_devrun_runtimefarm_name}/bin"* ]]; then
+            response="${response}:${path_root}/${path_devrun_runtimefarm_name}/bin"
+        fi
         ;;
     "${path_devrun_excluderoot_bin_name}")
-        response="${response:+${response}:}${devrun_excluderoot_runtimefarm_root}/bin:${devrun_excluderoot_runtimefarm_root}/CPython/${python_full_version}/bin"
+        response="${response:+${response}:}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin"
+        # Only append the runtimefarm-level /bin on the first iteration.
+        if [[ "${response}" != *"${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin"* ]]; then
+            response="${response}:${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin"
+        fi
+        ;;
+    # ###############
+    # ARTIFACT RECIPE
+    # ###############
+    "${path_pkg_artifact_name}")
+        response="${response:+${response}:}${artifact_root}"
+        ;;
+    # ##################
+    # RUNTIMEFARM RECIPE
+    # ##################
+    "${path_tool_runtimefarm_name}")
+        if [[ ! -f "${path_root}/${path_tool_runtimefarm_name}/farm-info/ready-py${python_full_version}" ]]; then
+            installation_type="build"
+            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_tool_runtimefarm_name}${end}"
+            build_runtimefarm_icarus_python3 "${path_tool_runtimefarm_name}"
+            install_user_space_runtime
+            link_user_space_runtime_into_runtimefarm "${path_tool_runtimefarm_name}"
+            install_python_runtime
+            link_python_runtime_into_python_farm "${path_tool_runtimefarm_name}"
+        else
+            installation_type="sync"
+            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_tool_runtimefarm_name}${end}"
+        fi
+        activate_farm_icarus_python3 "${path_tool_runtimefarm_name}"
+        pip_pip "${path_tool_runtimefarm_name}" "${installation_type}"
+        pip_tool_dependencies "${path_tool_runtimefarm_name}" "${installation_type}"
+        write_python_packages_release_info "${path_tool_runtimefarm_name}"
+        fix_shebang_shim "${path_tool_runtimefarm_name}"
+        mark_farm_ready_icarus_python3 "${path_tool_runtimefarm_name}" "${installation_type}"
+        deactivate_farm_icarus_python3
+        if [[ "${is_python_default}" == true ]]; then
+            link_python_runtime_into_runtimefarm "${path_tool_runtimefarm_name}"
+        fi
+        validate_farm_integrity "${path_tool_runtimefarm_name}"
+        response="${path_root}/${path_tool_runtimefarm_name}"
+        ;;
+    "${path_pkg_runtimefarm_name}")
+        if [[ ! -f "${path_root}/${path_pkg_runtimefarm_name}/farm-info/ready-py${python_full_version}" ]]; then
+            installation_type="build"
+            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_pkg_runtimefarm_name}${end}"
+            build_runtimefarm_icarus_python3 "${path_pkg_runtimefarm_name}"
+            install_user_space_runtime
+            link_user_space_runtime_into_runtimefarm "${path_pkg_runtimefarm_name}"
+            install_python_runtime
+            link_python_runtime_into_python_farm "${path_pkg_runtimefarm_name}"
+        else
+            installation_type="sync"
+            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_pkg_runtimefarm_name}${end}"
+        fi
+        activate_farm_icarus_python3 "${path_pkg_runtimefarm_name}"
+        pip_pip "${path_pkg_runtimefarm_name}" "${installation_type}"
+        pip_target_package "${path_pkg_runtimefarm_name}" "build" # We never sync pkg_only
+        write_python_packages_release_info "${path_pkg_runtimefarm_name}"
+        fix_shebang_shim "${path_pkg_runtimefarm_name}"
+        mark_farm_ready_icarus_python3 "${path_pkg_runtimefarm_name}" "${installation_type}"
+        deactivate_farm_icarus_python3
+        if [[ "${is_python_default}" == true ]]; then
+            link_python_runtime_into_runtimefarm "${path_pkg_runtimefarm_name}"
+        fi
+        validate_farm_integrity "${path_pkg_runtimefarm_name}"
+        response="${path_root}/${path_pkg_runtimefarm_name}"
+        ;;
+    "${path_run_runtimefarm_name}")
+        if [[ ! -f "${path_root}/${path_run_runtimefarm_name}/farm-info/ready-py${python_full_version}" ]]; then
+            installation_type="build"
+            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_run_runtimefarm_name}${end}"
+            build_runtimefarm_icarus_python3 "${path_run_runtimefarm_name}"
+            install_user_space_runtime
+            link_user_space_runtime_into_runtimefarm "${path_run_runtimefarm_name}"
+            install_python_runtime
+            link_python_runtime_into_python_farm "${path_run_runtimefarm_name}"
+        else
+            installation_type="sync"
+            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_run_runtimefarm_name}${end}"
+        fi
+        activate_farm_icarus_python3 "${path_run_runtimefarm_name}"
+        pip_pip "${path_run_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies "${path_run_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies_legacy "${path_run_runtimefarm_name}" "${installation_type}"
+        pip_target_package "${path_run_runtimefarm_name}" "build" # This will install a fresh pkg
+        write_python_packages_release_info "${path_run_runtimefarm_name}"
+        fix_shebang_shim "${path_run_runtimefarm_name}"
+        mark_farm_ready_icarus_python3 "${path_run_runtimefarm_name}" "${installation_type}"
+        deactivate_farm_icarus_python3
+        if [[ "${is_python_default}" == true ]]; then
+            link_python_runtime_into_runtimefarm "${path_run_runtimefarm_name}"
+        fi
+        validate_farm_integrity "${path_run_runtimefarm_name}"
+        response="${path_root}/${path_run_runtimefarm_name}"
+        ;;
+    "${path_run_excluderoot_runtimefarm_name}")
+        if [[ ! -f "${path_root}/${path_run_excluderoot_runtimefarm_name}/farm-info/ready-py${python_full_version}" ]]; then
+            installation_type="build"
+            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_run_excluderoot_runtimefarm_name}${end}"
+            build_runtimefarm_icarus_python3 "${path_run_excluderoot_runtimefarm_name}"
+            install_user_space_runtime
+            link_user_space_runtime_into_runtimefarm "${path_run_excluderoot_runtimefarm_name}"
+            install_python_runtime
+            link_python_runtime_into_python_farm "${path_run_excluderoot_runtimefarm_name}"
+        else
+            installation_type="sync"
+            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_run_excluderoot_runtimefarm_name}${end}"
+        fi
+        activate_farm_icarus_python3 "${path_run_excluderoot_runtimefarm_name}"
+        pip_pip "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies_legacy "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
+        write_python_packages_release_info "${path_run_excluderoot_runtimefarm_name}"
+        fix_shebang_shim "${path_run_excluderoot_runtimefarm_name}"
+        mark_farm_ready_icarus_python3 "${path_run_excluderoot_runtimefarm_name}" "${installation_type}"
+        deactivate_farm_icarus_python3
+        if [[ "${is_python_default}" == true ]]; then
+            link_python_runtime_into_runtimefarm "${path_run_excluderoot_runtimefarm_name}"
+        fi
+        validate_farm_integrity "${path_run_excluderoot_runtimefarm_name}"
+        response="${path_root}/${path_run_excluderoot_runtimefarm_name}"
+        ;;
+    "${path_devrun_runtimefarm_name}")
+        if [[ ! -f "${path_root}/${path_devrun_runtimefarm_name}/farm-info/ready-py${python_full_version}" ]]; then
+            installation_type="build"
+            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_devrun_runtimefarm_name}${end}"
+            build_runtimefarm_icarus_python3 "${path_devrun_runtimefarm_name}"
+            install_user_space_runtime
+            link_user_space_runtime_into_runtimefarm "${path_devrun_runtimefarm_name}"
+            install_python_runtime
+            link_python_runtime_into_python_farm "${path_devrun_runtimefarm_name}"
+        else
+            installation_type="sync"
+            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_devrun_runtimefarm_name}${end}"
+            deactivate_farm_icarus_python3
+        fi
+        activate_farm_icarus_python3 "${path_devrun_runtimefarm_name}"
+        pip_pip "${path_devrun_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies "${path_devrun_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies_legacy "${path_devrun_runtimefarm_name}" "${installation_type}"
+        pip_dev_dependencies "${path_devrun_runtimefarm_name}" "${installation_type}"
+        pip_target_package "${path_devrun_runtimefarm_name}" "build" # This will install a fresh pkg
+        write_python_packages_release_info "${path_devrun_runtimefarm_name}"
+        fix_shebang_shim "${path_devrun_runtimefarm_name}"
+        mark_farm_ready_icarus_python3 "${path_devrun_runtimefarm_name}" "${installation_type}"
+        deactivate_farm_icarus_python3
+        if [[ "${is_python_default}" == true ]]; then
+            link_python_runtime_into_runtimefarm "${path_devrun_runtimefarm_name}"
+        fi
+        validate_farm_integrity "${path_devrun_runtimefarm_name}"
+        response="${path_root}/${path_devrun_runtimefarm_name}"
+        ;;
+    "${path_devrun_excluderoot_runtimefarm_name}")
+        if [[ ! -f "${path_root}/${path_devrun_excluderoot_runtimefarm_name}/farm-info/ready-py${python_full_version}" ]]; then
+            installation_type="build"
+            echo -e "${bold_blue}${hammer_and_wrench} Building farm ${path_devrun_excluderoot_runtimefarm_name}${end}"
+            build_runtimefarm_icarus_python3 "${path_devrun_excluderoot_runtimefarm_name}"
+            install_user_space_runtime
+            link_user_space_runtime_into_runtimefarm "${path_devrun_excluderoot_runtimefarm_name}"
+            install_python_runtime
+            link_python_runtime_into_python_farm "${path_devrun_excluderoot_runtimefarm_name}"
+        else
+            installation_type="sync"
+            echo -e "${bold_blue}${hammer_and_wrench} Syncing farm ${path_devrun_excluderoot_runtimefarm_name}${end}"
+        fi
+        activate_farm_icarus_python3 "${path_devrun_excluderoot_runtimefarm_name}"
+        pip_pip "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
+        pip_run_dependencies_legacy "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
+        pip_dev_dependencies "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
+        write_python_packages_release_info "${path_devrun_excluderoot_runtimefarm_name}"
+        fix_shebang_shim "${path_devrun_excluderoot_runtimefarm_name}"
+        mark_farm_ready_icarus_python3 "${path_devrun_excluderoot_runtimefarm_name}" "${installation_type}"
+        deactivate_farm_icarus_python3
+        if [[ "${is_python_default}" == true ]]; then
+            link_python_runtime_into_runtimefarm "${path_devrun_excluderoot_runtimefarm_name}"
+        fi
+        validate_farm_integrity "${path_devrun_excluderoot_runtimefarm_name}"
+        response="${path_root}/${path_devrun_excluderoot_runtimefarm_name}"
         ;;
     *)
-        echo_error "Unknown path: '${path}'"
+        echo_error "Unknown p_name: '${p_name}'"
         exit_code=1
         ;;
     esac
