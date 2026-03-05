@@ -696,7 +696,7 @@
         <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&lt;subcommand&gt;&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">builder_cache_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cache-root&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;root&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;returns the path to the package cache root&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -704,6 +704,12 @@
     <span class="n">builder_cache_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clean up the packages cached on local disk&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">builder_cache_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;show the size of the package cache&#39;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>

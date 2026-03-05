@@ -622,7 +622,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         metavar='<subcommand>',
     )
     builder_cache_cmd_par.add_parser(
-        name='cache-root',
+        name='root',
         help='returns the path to the package cache root',
         description='',
         allow_abbrev=False,
@@ -630,6 +630,12 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_cache_cmd_par.add_parser(
         name='clean',
         help='clean up the packages cached on local disk',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_cache_cmd_par.add_parser(
+        name='size',
+        help='show the size of the package cache',
         description='',
         allow_abbrev=False,
     )

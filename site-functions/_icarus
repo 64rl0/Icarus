@@ -396,8 +396,9 @@ _icarus() {
                 ;;
             cache)
                 completions+=(
-                    'cache-root:returns the path to the package cache root'
                     'clean:clean up the packages cached on local disk'
+                    'root:returns the path to the package cache root'
+                    'size:show the size of the package cache'
                     '--help:show help message'
                     '-h:show help message'
                 )

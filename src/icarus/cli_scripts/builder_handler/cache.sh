@@ -61,16 +61,27 @@ function clean_cache() {
     echo -e "Cache cleaned successfully."
 }
 
+function calculate_cache_size() {
+    size_cache_bytes=$(find "${path_to_cache_root}" -type f -ls | awk '{s+=$7} END {print s+0}')
+    size_cache_human=$(du -sh "${path_to_cache_root}" 2>/dev/null | awk '{print $1}')
+
+    echo -e "Cache size: ${size_cache_human:-0} (${size_cache_bytes} bytes)"
+}
+
 ####################################################################################################
 # DISPATCHERS
 ####################################################################################################
 function dispatch_build_system() {
+    if [[ "${cache_clean}" == "Y" ]]; then
+        clean_cache
+    fi
+
     if [[ "${cache_root}" == "Y" ]]; then
         printf "%s\n" "${path_to_cache_root}"
     fi
 
-    if [[ "${cache_clean}" == "Y" ]]; then
-        clean_cache
+    if [[ "${cache_size}" == "Y" ]]; then
+        calculate_cache_size
     fi
 }
 

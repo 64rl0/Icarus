@@ -261,10 +261,13 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
 
     cache_hooks: dict[str, Union[str, list[str]]] = {
         'cache_root': (
-            args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'cache-root' else ''
+            args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'root' else ''
         ),
         'cache_clean': (
             args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'clean' else ''
+        ),
+        'cache_size': (
+            args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'size' else ''
         ),
     }
 
@@ -545,6 +548,8 @@ def _process_cli_ib_args(
         ib_arg.is_only_build_hook = 'Y'
 
     # Path CLI
+    if cli_ib_arg.get('list_paths'):
+        ib_arg.list_paths = 'Y'
     if cli_ib_arg.get('path_name'):
         assert isinstance(cli_ib_arg['path_name'], str)
         ib_arg.path_name = cli_ib_arg['path_name']
@@ -554,6 +559,8 @@ def _process_cli_ib_args(
         ib_arg.cache_root = 'Y'
     if cli_ib_arg.get('cache_clean'):
         ib_arg.cache_clean = 'Y'
+    if cli_ib_arg.get('cache_size'):
+        ib_arg.cache_size = 'Y'
 
 
 def _read_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:

@@ -347,10 +347,13 @@
 
     <span class="n">cache_hooks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;cache_root&#39;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">cache_subcommands</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;cache_subcommands&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;cache-root&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">cache_subcommands</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;cache_subcommands&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;root&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
         <span class="p">),</span>
         <span class="s1">&#39;cache_clean&#39;</span><span class="p">:</span> <span class="p">(</span>
             <span class="n">args</span><span class="o">.</span><span class="n">cache_subcommands</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;cache_subcommands&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;clean&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="p">),</span>
+        <span class="s1">&#39;cache_size&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">cache_subcommands</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;cache_subcommands&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;size&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
         <span class="p">),</span>
     <span class="p">}</span>
 
@@ -638,6 +641,8 @@
         <span class="n">ib_arg</span><span class="o">.</span><span class="n">is_only_build_hook</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
 
     <span class="c1"># Path CLI</span>
+    <span class="k">if</span> <span class="n">cli_ib_arg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;list_paths&#39;</span><span class="p">):</span>
+        <span class="n">ib_arg</span><span class="o">.</span><span class="n">list_paths</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
     <span class="k">if</span> <span class="n">cli_ib_arg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;path_name&#39;</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cli_ib_arg</span><span class="p">[</span><span class="s1">&#39;path_name&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
         <span class="n">ib_arg</span><span class="o">.</span><span class="n">path_name</span> <span class="o">=</span> <span class="n">cli_ib_arg</span><span class="p">[</span><span class="s1">&#39;path_name&#39;</span><span class="p">]</span>
@@ -647,6 +652,8 @@
         <span class="n">ib_arg</span><span class="o">.</span><span class="n">cache_root</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
     <span class="k">if</span> <span class="n">cli_ib_arg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_clean&#39;</span><span class="p">):</span>
         <span class="n">ib_arg</span><span class="o">.</span><span class="n">cache_clean</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
+    <span class="k">if</span> <span class="n">cli_ib_arg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_size&#39;</span><span class="p">):</span>
+        <span class="n">ib_arg</span><span class="o">.</span><span class="n">cache_size</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_read_icarus_build_cfg</span><span class="p">(</span><span class="n">ib_arg</span><span class="p">:</span> <span class="n">IcarusBuilderArg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

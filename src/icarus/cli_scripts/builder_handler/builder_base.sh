@@ -253,4 +253,5 @@ function declare_global_vars() {
     declare -r -g list_paths
     declare -r -g cache_root
     declare -r -g cache_clean
+    declare -r -g cache_size
 }

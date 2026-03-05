@@ -182,6 +182,7 @@ class IcarusBuilderArg:
     # Cache CLI
     cache_root: str = ''
     cache_clean: str = ''
+    cache_size: str = ''
 
     def as_dict(self) -> dict[str, Any]:
         """
