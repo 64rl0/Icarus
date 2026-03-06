@@ -44,7 +44,7 @@ python_package_init() {
     chmod 755 "${package_absolute_path}"
     echo
 
-    git clone "git@github.com:64rl0/PythonTemplatePackage.git" "${package_absolute_path}"
+    git clone "https://github.com/64rl0/PythonTemplatePackage.git" "${package_absolute_path}"
 
     # Remove git folder from cloned template
     rm -rf "${package_absolute_path}/.git"
