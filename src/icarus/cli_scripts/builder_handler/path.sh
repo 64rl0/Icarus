@@ -401,17 +401,24 @@ function install_python_runtime() {
                 single_run_status=1
                 exit_code=1
             }
-            # Download
-            curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
-                echo_error "Failed to download '${python_pkg_name}'."
+            # Check if python version is available on https://github.com/64rl0/PythonRuntime
+            if curl -s -f -L -I "${python_pkg_download_url}" -o "/dev/null"; then
+                # Download
+                curl -L "${python_pkg_download_url}" -o "${dest_tar}" || {
+                    echo_error "Failed to download '${python_pkg_name}'."
+                    single_run_status=1
+                    exit_code=1
+                    # Remove partial download
+                    rm -rf "${dest_tar}" || {
+                        echo_error "Failed to remove '${dest_tar}'."
+                    }
+                }
+                echo
+            else
+                echo_error "${python_pkg_full_name} not available on https://github.com/64rl0/PythonRuntime"
                 single_run_status=1
                 exit_code=1
-                # Remove partial download
-                rm -rf "${dest_tar}" || {
-                    echo_error "Failed to remove '${dest_tar}'."
-                }
-            }
-            echo
+            fi
             # Always release the lock before breaking the loop
             rm -rf "${dest_tar}.lock" || {
                 echo_error "Failed to remove '${dest_tar}.lock'."
