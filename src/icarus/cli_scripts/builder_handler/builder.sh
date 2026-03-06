@@ -1134,7 +1134,7 @@ function resolve_path() {
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}. Have you built it?" "errexit"
         }
         path_bin="$(_internal_icarus_builder_path_cmd "${path_pkg_bin_name}")" || {
             path_summary_status="${failed}"
@@ -1246,8 +1246,8 @@ function workspace_merge() (
     # Using a subshell to avoid mutating existing variables from the ready-* file.
     # Variables set inside this subshell (like exit_code) do not propagate to the
     # parent shell. Failures are signaled via exit code and handled at the call site.
-    local farm_ready p_name
-    local -a farms_to_merge
+    local farm_ready p_name _p_name
+    local -a farms_to_merge _unique_farms
 
     farms_to_merge=()
 
@@ -1264,16 +1264,25 @@ function workspace_merge() (
         farms_to_merge+=("${farm_name}")
     done
 
+    # Deduplicate farms (same farm can appear once per Python version)
+    _unique_farms=()
+    while IFS= read -r _p_name; do
+        if [[ -n "${_p_name}" ]]; then
+            _unique_farms+=("${_p_name}")
+        fi
+    done < <(printf '%s\n' "${farms_to_merge[@]}" | sort -u)
+    farms_to_merge=("${_unique_farms[@]}")
+
     if (("${#farms_to_merge[@]}" == 0)); then
-        echo -e "Detected farms: [NONE]"
+        echo -e "Detected runtimefarms: [NONE]"
         echo -e "Done!"
         echo
         exit 0
     fi
 
-    echo -e "Detected farms: ${farms_to_merge[*]}"
+    echo -e "Detected runtimefarms: $(printf '%s\n' "${farms_to_merge[@]}" | paste -s -d ';' -)"
 
-    echo -e "Merging workspace"
+    echo -e "Merging workspace (this can take a while)..."
     rm -rf "${path_root}" || {
         echo_error "Failed to merge workspace."
         exit 1
