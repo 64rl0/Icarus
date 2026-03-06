@@ -172,7 +172,7 @@ class IcarusBuilderArg:
     exectool: str = ''
     execrun: str = ''
     execdev: str = ''
-    initial_command_received: str = 'icarus builder'
+    initial_command_received: str = 'icarus builder hook'
     initial_exectool_command_received: list[str] = dataclasses.field(default_factory=list)
     initial_execrun_command_received: list[str] = dataclasses.field(default_factory=list)
     initial_execdev_command_received: list[str] = dataclasses.field(default_factory=list)
