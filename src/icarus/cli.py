@@ -63,7 +63,7 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     tl_par = utils.IcarusArgumentParser(
         prog=config.CLI_NAME,
-        description=config.CLI_DESCRIPTION,
+        description=config.CLI_DESCRIPTION_BETA,
         epilog=config.CLI_EPILOG,
         allow_abbrev=False,
     )

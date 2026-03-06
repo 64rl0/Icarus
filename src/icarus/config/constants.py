@@ -56,10 +56,16 @@ CLI_DESCRIPTION = (
     '  |  (     (   |  |     |   | \\__ \\ \n'
     ' _| \\___| \\__,_| _|    \\__,_| ____/  '
 )
+CLI_DESCRIPTION_BETA = (
+    '▄▀▀▄  ▄▀▀▄    _)                                   \n'
+    '█  ▀██▀  █     |   __|   _` |   __|  |   |   __|   \n'
+    '▀█▄████▄█▀     |  (     (   |  |     |   | \\__ \\ \n'
+    '  ▀▀██▀▀      _| \\___| \\__,_| _|    \\__,_| ____/  '
+)
 CLI_EPILOG = ''
 
 _SEMANTIC_VERSION = importlib.metadata.version(CLI_NAME)
-CLI_VERSION = f'build {_SEMANTIC_VERSION} built on 03/05/2026'
+CLI_VERSION = f'build {_SEMANTIC_VERSION} built on 03/06/2026'
 
 ROOT_DIR = pathlib.Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 CLI_SCRIPTS_DIR = pathlib.Path(
