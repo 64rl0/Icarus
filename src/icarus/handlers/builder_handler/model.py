@@ -180,7 +180,7 @@ class IcarusBuilderArg:
     path_name: str = ''
     list_paths: str = ''
     # Cache CLI
-    cache_root: str = ''
+    cache_root_dir: str = ''
     cache_clean: str = ''
     cache_size: str = ''
 

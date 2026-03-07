@@ -38,36 +38,10 @@ function set_constants() {
     # Declaring global vars from `builder_base`
     # This must be done after the `eval "${@}"` call
     declare_global_vars
+    declare_path_names
 
     exit_code=0
     response=''
-}
-
-function ensure_icarus_build_root_env() {
-    local dir
-    local -a root_tree
-
-    runtime_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/runtime"
-    path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
-    path_cache_root="${path_root}/path-cache"
-
-    root_tree=(
-        "${path_to_cache_root}"
-        "${runtime_root}"
-        "${path_root}"
-        "${path_cache_root}"
-    )
-
-    for dir in "${root_tree[@]}"; do
-        mkdir -p "${dir}" || {
-            echo_error "Failed to create '${dir}'."
-            exit_code=1
-        }
-    done
-
-    declare -g -r runtime_root
-    declare -g -r path_root
-    declare -g -r path_cache_root
 }
 
 function set_icarus_python3_constants() {
@@ -352,11 +326,11 @@ function install_python_runtime() {
     # Initializing single_run_status per python version.
     single_run_status=0
 
-    dest_tar="${path_to_cache_root}/CPython/${python_pkg_full_name}"
+    dest_tar="${cache_root}/CPython/${python_pkg_full_name}"
     build_info_file="${runtime_root}/CPython/${python_full_version}/build-py${python_full_version}"
     python_dir="${runtime_root}/CPython/${python_full_version}/runtime"
     root_tree=(
-        "${path_to_cache_root}/CPython"
+        "${cache_root}/CPython"
         "${runtime_root}/CPython/${python_full_version}"
     )
 
@@ -1705,7 +1679,7 @@ function main() {
     validate_prerequisites
 
     set_constants "${@}"
-    ensure_icarus_build_root_env
+    bootstrap_workspace
 
     dispatch_build_system
 

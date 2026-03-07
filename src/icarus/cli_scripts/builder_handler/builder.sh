@@ -253,6 +253,7 @@ function set_constants() {
     # Declaring global vars from `builder_base`
     # This must be done after the `eval "${@}"` call
     declare_global_vars
+    declare_path_names
 
     exit_code=0
 
@@ -267,11 +268,6 @@ function set_constants() {
     declare -g -r warned
 
     path_called="N"
-    path_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/env/path"
-    declare -g -r path_root
-
-    report_filepath="file://${project_root_dir_abs}/.icarus/report/index.html"
-    declare -g -r report_filepath
 
     index_summary_status="${passed}"
     path_summary_status="${passed}"
@@ -2002,7 +1998,9 @@ function main() {
     validate_prerequisites
 
     dispatch_set_constants "${@}"
-    dispatch_build_system "${@}"
+    bootstrap_workspace
+
+    dispatch_build_system
 
     return "${exit_code}"
 }

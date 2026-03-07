@@ -260,7 +260,7 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
     builder_hooks_count = sum(1 for el in builder_hooks.values() if el)
 
     cache_hooks: dict[str, Union[str, list[str]]] = {
-        'cache_root': (
+        'cache_root_dir': (
             args.cache_subcommands if getattr(args, 'cache_subcommands', '') == 'root' else ''
         ),
         'cache_clean': (
@@ -555,8 +555,8 @@ def _process_cli_ib_args(
         ib_arg.path_name = cli_ib_arg['path_name']
 
     # Cache CLI
-    if cli_ib_arg.get('cache_root'):
-        ib_arg.cache_root = 'Y'
+    if cli_ib_arg.get('cache_root_dir'):
+        ib_arg.cache_root_dir = 'Y'
     if cli_ib_arg.get('cache_clean'):
         ib_arg.cache_clean = 'Y'
     if cli_ib_arg.get('cache_size'):

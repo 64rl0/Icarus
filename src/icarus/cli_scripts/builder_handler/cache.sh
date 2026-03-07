@@ -38,6 +38,7 @@ function set_constants() {
     # Declaring global vars from `builder_base`
     # This must be done after the `eval "${@}"` call
     declare_global_vars
+    declare_path_names
 
     exit_code=0
 }
@@ -46,13 +47,13 @@ function set_constants() {
 # TOOLS
 ####################################################################################################
 function clean_cache() {
-    rm -rf "${path_to_cache_root}" || {
-        echo_error "Failed to clean '${path_to_cache_root}'."
+    rm -rf "${cache_root}" || {
+        echo_error "Failed to clean '${cache_root}'."
         exit_code=1
         return
     }
 
-    mkdir -p "${path_to_cache_root}" || {
+    mkdir -p "${cache_root}" || {
         echo_error "Failed to create cache root directory."
         exit_code=1
         return
@@ -62,8 +63,8 @@ function clean_cache() {
 }
 
 function calculate_cache_size() {
-    size_cache_bytes=$(find "${path_to_cache_root}" -type f -ls | awk '{s+=$7} END {print s+0}')
-    size_cache_human=$(du -sh "${path_to_cache_root}" 2>/dev/null | awk '{print $1}')
+    size_cache_bytes=$(find "${cache_root}" -type f -ls | awk '{s+=$7} END {print s+0}')
+    size_cache_human=$(du -sh "${cache_root}" 2>/dev/null | awk '{print $1}')
 
     echo -e "Cache size: ${size_cache_human:-0} (${size_cache_bytes} bytes)"
 }
@@ -76,8 +77,8 @@ function dispatch_build_system() {
         clean_cache
     fi
 
-    if [[ "${cache_root}" == "Y" ]]; then
-        printf "%s\n" "${path_to_cache_root}"
+    if [[ "${cache_root_dir}" == "Y" ]]; then
+        printf "%s\n" "${cache_root}"
     fi
 
     if [[ "${cache_size}" == "Y" ]]; then
