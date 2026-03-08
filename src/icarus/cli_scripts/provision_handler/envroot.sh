@@ -106,6 +106,11 @@ function install_envroot() {
 
     echo -e "done!"
     echo
+    echo -e "Envroot installed at: ${opt_dir}"
+    echo
+    echo -e "If you are on macOS you need to configure 'synthetic.conf'"
+    echo -e "For more information, please see the 'synthetic.conf' man page."
+    echo
 }
 
 install_envroot "$@"
