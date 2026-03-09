@@ -13,6 +13,8 @@ function declare_path_names() {
     # SIMPLE RECIPE
     path_platform_identifier_name="platform-identifier"
     declare -g -r path_platform_identifier_name
+    path_ws_name_name="workspace.name"
+    declare -g -r path_ws_name_name
     path_ws_root_name="workspace.root"
     declare -g -r path_ws_root_name
     path_ws_src_root_name="workspace.src-root"
@@ -130,6 +132,7 @@ function declare_path_names() {
 
     path_all_names=(
         "${path_platform_identifier_name}"
+        "${path_ws_name_name}"
         "${path_ws_root_name}"
         "${path_ws_src_root_name}"
         "${path_ws_build_root_name}"
@@ -198,6 +201,7 @@ function declare_global_vars() {
     declare -r -g icarus_config_filename
     declare -r -g icarus_config_filepath
     declare -r -g project_root_dir_abs
+    declare -r -g project_workspace_name
     declare -r -g package_name_pascal_case
     declare -r -g package_name_snake_case
     declare -r -g package_name_dashed

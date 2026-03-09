@@ -670,6 +670,12 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
+        name='workspace.name',
+        help='returns the name of the local workspace',
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
         name='workspace.root',
         help='returns the path to the local workspace root',
         description='',

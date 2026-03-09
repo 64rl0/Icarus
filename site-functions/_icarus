@@ -341,6 +341,7 @@ _icarus() {
             path)
                 completions+=(
                     'platform-identifier:returns the name of the platform'
+                    'workspace.name:returns the name of the local workspace'
                     'workspace.root:returns the path to the local workspace root'
                     'workspace.src-root:returns the path to the local workspace source directory'
                     'workspace.build-root:returns the path to the local workspace build directory'

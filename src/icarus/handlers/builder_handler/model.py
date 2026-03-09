@@ -128,6 +128,7 @@ class IcarusBuilderArg:
     icarus_config_filename: str = ''
     icarus_config_filepath: str = ''
     project_root_dir_abs: str = ''
+    project_workspace_name: str = ''
     build_root_dir: str = ''
     package_name_pascal_case: str = ''
     package_name_snake_case: str = ''

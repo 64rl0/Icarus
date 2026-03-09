@@ -35,7 +35,7 @@ import json
 import pathlib
 import re
 from string import Template
-from typing import Any
+from typing import Any, Optional
 
 # Local Application Imports
 from icarus import config
@@ -53,12 +53,17 @@ __all__ = [
 module_logger = config.master_logger.get_child_logger(__name__)
 
 
-def generate_report(project_root: pathlib.Path) -> None:
+def generate_report(script_args: Optional[list[str]] = None) -> None:
     """
     Generate the builder HTML report from the trace log.
 
-    :param project_root: Path to the project root directory.
+    :param script_args: List of script argument strings.
     """
+
+    if script_args is None:
+        raise ValueError("script_args cannot be None")
+
+    project_root = pathlib.Path(_extract_project_root(script_args))
 
     control_plane = project_root / config.ICARUS_CONTROL_PLANE_DIRNAME
     log_dir = control_plane / config.ICARUS_LOG_DIRNAME
@@ -67,31 +72,46 @@ def generate_report(project_root: pathlib.Path) -> None:
     trace_path = log_dir / config.ICARUS_TRACE_LOG_FILENAME
 
     entries = _read_trace_log(trace_path)
-    html = _render_report(entries, log_dir)
+    html = _render_report(
+        entries=entries, log_dir=log_dir, project_root=project_root, script_args=script_args
+    )
 
     report_path.write_text(html, encoding='utf-8')
 
     module_logger.debug(f"Report generated at {report_path}")
 
 
-def _render_report(entries: list[dict[str, Any]], log_dir: pathlib.Path) -> str:
+def _render_report(
+    entries: list[dict[str, Any]],
+    log_dir: pathlib.Path,
+    project_root: pathlib.Path,
+    script_args: list[str],
+) -> str:
     """
     Render the full HTML report from trace entries.
 
     :param entries: List of trace entry dictionaries.
     :param log_dir: Path to the log directory.
+    :param project_root: Path to the project root directory.
+    :param script_args: List of script argument strings.
     :return: Complete HTML string.
     """
 
     stats = _compute_stats(entries)
     duration_bars = _build_duration_bars(entries)
     table_rows = _build_run_table_rows(entries, log_dir)
+    package_name = _extract_package_name(script_args)
+    workspace_name = _extract_workspace_name(script_args)
+    workspace_root = project_root
 
     now = datetime.datetime.now(datetime.timezone.utc).astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
 
     template = Template(_HTML_TEMPLATE)
 
     response = template.safe_substitute(
+        package_name=package_name,
+        workspace_name=workspace_name,
+        workspace_root=workspace_root,
         report_generated=now,
         total_runs=stats['total'],
         passed_runs=stats['passed'],
@@ -329,6 +349,61 @@ def _read_trace_log(trace_path: pathlib.Path) -> list[dict[str, Any]]:
     return entries
 
 
+def _extract_package_name(script_args: list[str]) -> str:
+    """
+    Extract the package name from script arguments.
+
+    :param script_args: List of script argument strings.
+    :return: The package name in PascalCase, or empty string if not
+        found.
+    """
+
+    if not script_args:
+        return ''
+
+    match = re.search(r"package_name_pascal_case='([^']*)'", script_args[0])
+    if match:
+        return match.group(1)
+
+    return ''
+
+
+def _extract_workspace_name(script_args: list[str]) -> str:
+    """
+    Extract the workspace name from script arguments.
+
+    :param script_args: List of script argument strings.
+    :return: The workspace name.
+    """
+
+    if not script_args:
+        return ''
+
+    match = re.search(r"project_workspace_name='([^']*)'", script_args[0])
+    if match:
+        return match.group(1)
+
+    return ''
+
+
+def _extract_project_root(script_args: list[str]) -> str:
+    """
+    Extract the project root from script arguments.
+
+    :param script_args: List of script argument strings.
+    :return: The project root path, or empty string if not found.
+    """
+
+    if not script_args:
+        return ''
+
+    match = re.search(r"project_root_dir_abs='([^']*)'", script_args[0])
+    if match:
+        return match.group(1)
+
+    return ''
+
+
 def _extract_initial_command(entry: dict[str, Any]) -> str:
     """
     Extract initial_command_received from a trace entry's command_args.
@@ -427,7 +502,11 @@ _HTML_TEMPLATE = """\
   .subtitle {
     color: var(--text-muted);
     font-size: 0.85rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .subtitle + .stats {
+    margin-top: 2rem;
   }
 
   /* Stats cards */
@@ -622,6 +701,9 @@ _HTML_TEMPLATE = """\
 <body>
 
 <h1>Icarus Builder Report</h1>
+<div class="subtitle">Package: $package_name</div>
+<div class="subtitle">Workspace: $workspace_name</div>
+<div class="subtitle">Root: $workspace_root</div>
 <div class="subtitle">Generated $report_generated</div>
 
 <div class="stats">

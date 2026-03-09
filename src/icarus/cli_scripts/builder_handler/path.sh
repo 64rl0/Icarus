@@ -1262,6 +1262,10 @@ function build_path_icarus_python3() {
         only_with_python_default=true
         response="${platform_identifier}"
         ;;
+    "${path_ws_name_name}")
+        only_with_python_default=true
+        response="${project_workspace_name}"
+        ;;
     "${path_ws_root_name}")
         only_with_python_default=true
         response="${project_root_dir_abs}"

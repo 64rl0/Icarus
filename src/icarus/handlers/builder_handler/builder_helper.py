@@ -203,7 +203,7 @@ def run_bash_script_with_logging(
 
     # Regenerate the HTML report from trace log
     try:
-        generate_report(pathlib.Path(_find_project_root_dir()))
+        generate_report(script_args)
     except Exception as ex:
         module_logger.debug(f"Failed to generate report: {repr(ex)}")
 
@@ -577,6 +577,7 @@ def _read_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:
     ib_arg.icarus_config_filename = config.ICARUS_CFG_FILENAME
     ib_arg.icarus_config_filepath = config_filepath
     ib_arg.project_root_dir_abs = project_root_dir_abs
+    ib_arg.project_workspace_name = os.path.basename(project_root_dir_abs)
 
 
 def _parse_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> None:

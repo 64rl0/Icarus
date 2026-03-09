@@ -65,7 +65,7 @@ CLI_DESCRIPTION_BETA = (
 CLI_EPILOG = ''
 
 _SEMANTIC_VERSION = importlib.metadata.version(CLI_NAME)
-CLI_VERSION = f'build {_SEMANTIC_VERSION} built on 03/08/2026'
+CLI_VERSION = f'build {_SEMANTIC_VERSION} built on 03/09/2026'
 
 ROOT_DIR = pathlib.Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 CLI_SCRIPTS_DIR = pathlib.Path(

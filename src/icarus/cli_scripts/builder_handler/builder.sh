@@ -129,9 +129,10 @@ function echo_summary() {
     echo -e "${bold_blue}Command:${end}\n--| ${initial_command_received}"
     echo
 
-    echo -e "${bold_blue}Runtime:${end} \
+    echo -e "${bold_blue}Environment:${end} \
         \n--| Package ${bold_green}${package_name_pascal_case}${end} \
-        \n--| ${project_root_dir_abs} \
+        \n--| Workspace ${bold_green}${project_workspace_name}${end} \
+        \n--| Root ${bold_green}${project_root_dir_abs}${end} \
         \n--| Interpreters enabled ${bold_green}${python_versions_pretty}${end} \
         \n--| Interpreter default ${bold_green}Python${python_default_version}${end}"
     echo
@@ -1303,7 +1304,7 @@ function clean_icarus_root() {
         "${project_root_dir_abs}/${build_root_dir}"
     )
     for path in "${dirs_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}$(basename "${path}")${end}'"
+        echo -e "Cleaning '${blue}${build_root_dir}${end}'"
         echo -e "${path}"
         rm -rf "${path}" || {
             echo_error "Failed to clean '${path}'."
@@ -1341,7 +1342,7 @@ function clean_python() {
         "${project_root_dir_abs}/src/"*".egg-info"
     )
     for path in "${dirs_to_clean[@]}"; do
-        echo -e "Cleaning '${blue}$(basename ${path})${end}'"
+        echo -e "Cleaning '${blue}$(basename "${path}")${end}'"
         echo -e "${path}"
         rm -rf "${path}" || {
             echo_error "Failed to clean '${path}'."
