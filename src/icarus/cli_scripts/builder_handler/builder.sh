@@ -1199,7 +1199,7 @@ function resolve_path() {
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}. Have you built it?" "errexit"
         }
         pkg_pythonpath="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonpath_name}")" || {
             path_summary_status="${failed}"
