@@ -1029,7 +1029,9 @@ function run_build_icarus_python3() {
         build_single_run_status=1
         exit_code=1
     }
-    tar -xzf "${artifact_root}/${package_name_snake_case}"*.tar.gz -C "${artifact_root}/sdist" || {
+    # Python's tarfile module handles PAX headers natively on every platform
+    # since it's what created them in the first place.
+    "${PYTHONBIN}" -m tarfile -e "${artifact_root}/${package_name_snake_case}"*.tar.gz "${artifact_root}/sdist" || {
         echo_error "Failed to unpack sdist."
         build_summary_status="${failed}"
         build_single_run_status=1
