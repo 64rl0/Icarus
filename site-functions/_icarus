@@ -346,7 +346,7 @@ _icarus() {
                     'workspace.src-root:returns the path to the local workspace source directory'
                     'workspace.build-root:returns the path to the local workspace build directory'
                     'workspace.user-space-root:returns the path to the runtime user-space prefix directory'
-                    'workspace.python-interpreters:returns semicolon-delimited list of the configured python interpreters for the workspace'
+                    'workspace.python-interpreters:returns semicolon-delimited list of the configured python interpreters for the workspace (python-default is always at index 0)'
                     'pkg.config:returns the path to the `icarus.cfg` file of the local workspace package'
                     'pkg.language:returns the language of the current package'
                     'pkg.name-pascal:returns the name of the current package in PascalCase'

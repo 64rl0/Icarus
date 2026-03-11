@@ -703,7 +703,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='workspace.python-interpreters',
         help=(
             'returns semicolon-delimited list of the configured python interpreters for the'
-            ' workspace'
+            ' workspace (python-default is always at index 0)'
         ),
         description='',
         allow_abbrev=False,
