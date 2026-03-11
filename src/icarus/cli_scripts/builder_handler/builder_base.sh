@@ -23,6 +23,8 @@ function declare_path_names() {
     declare -g -r path_ws_build_root_name
     path_ws_user_space_root_name="workspace.user-space-root"
     declare -g -r path_ws_user_space_root_name
+    path_ws_python_versions_name="workspace.python-interpreters"
+    declare -g -r path_ws_python_versions_name
 
     # CONFIG RECIPE
     path_pkg_config_name="pkg.config"
@@ -137,6 +139,7 @@ function declare_path_names() {
         "${path_ws_src_root_name}"
         "${path_ws_build_root_name}"
         "${path_ws_user_space_root_name}"
+        "${path_ws_python_versions_name}"
 
         "${path_pkg_config_name}"
 

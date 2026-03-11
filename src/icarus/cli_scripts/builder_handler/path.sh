@@ -41,6 +41,10 @@ function set_constants() {
     declare_path_names
 
     exit_code=0
+
+    delimiter_char=';'
+    declare -r delimiter_char
+
     response=''
 }
 
@@ -1212,10 +1216,10 @@ function join_deps() {
 
     # Split on space so local imports will be clean
     # exclude empty lines and lines starting with #
-    cut -d ' ' -f 1 "${python_packages_release_info}" | grep '^[a-zA-Z]' | paste -s -d ';' -
+    cut -d ' ' -f 1 "${python_packages_release_info}" | grep '^[a-zA-Z]' | paste -s -d ${delimiter_char} -
 }
 
-join_deps_names() {
+function join_deps_names() {
     local p_name farm_path python_packages_release_info farm_ready_file
 
     p_name="$1"
@@ -1237,7 +1241,13 @@ join_deps_names() {
 
     # Split on space so local imports will be clean
     # exclude empty lines and lines starting with #
-    cut -d ' ' -f 1 "${python_packages_release_info}" | cut -d '=' -f 1 | grep '^[a-zA-Z]' | paste -s -d ';' -
+    cut -d ' ' -f 1 "${python_packages_release_info}" | cut -d '=' -f 1 | grep '^[a-zA-Z]' | paste -s -d ${delimiter_char} -
+}
+
+function join_python_versions() {
+    local IFS="${delimiter_char}"
+
+    echo "${python_versions[*]}"
 }
 
 ####################################################################################################
@@ -1281,6 +1291,10 @@ function build_path_icarus_python3() {
     "${path_ws_user_space_root_name}")
         only_with_python_default=true
         response="${runtime_root}/local"
+        ;;
+    "${path_ws_python_versions_name}")
+        only_with_python_default=true
+        response="$(join_python_versions)" || exit_code=1
         ;;
     # #############
     # CONFIG RECIPE
@@ -1374,94 +1388,70 @@ function build_path_icarus_python3() {
     # PYTHONHOME RECIPE
     # #################
     "${path_tool_pythonhome_name}")
-        response="${response:+${response}:}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_pkg_pythonhome_name}")
-        response="${response:+${response}:}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_run_pythonhome_name}")
-        response="${response:+${response}:}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_run_excluderoot_pythonhome_name}")
-        response="${response:+${response}:}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_devrun_pythonhome_name}")
-        response="${response:+${response}:}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     "${path_devrun_excluderoot_pythonhome_name}")
-        response="${response:+${response}:}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}"
         ;;
     # #################
     # PYTHONPATH RECIPE
     # #################
     "${path_tool_pythonpath_name}")
-        response="${response:+${response}:}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_pkg_pythonpath_name}")
-        response="${response:+${response}:}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_run_pythonpath_name}")
-        response="${response:+${response}:}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_run_excluderoot_pythonpath_name}")
-        response="${response:+${response}:}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_devrun_pythonpath_name}")
-        response="${response:+${response}:}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     "${path_devrun_excluderoot_pythonpath_name}")
-        response="${response:+${response}:}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
         ;;
     # ##########
     # BIN RECIPE
     # ##########
     "${path_tool_bin_name}")
-        response="${response:+${response}:}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/bin"
-        # Only append the runtimefarm-level /bin on the first iteration.
-        if [[ "${response}" != *"${path_root}/${path_tool_runtimefarm_name}/bin"* ]]; then
-            response="${response}:${path_root}/${path_tool_runtimefarm_name}/bin"
-        fi
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_tool_runtimefarm_name}/bin"
         ;;
     "${path_pkg_bin_name}")
-        response="${response:+${response}:}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/bin"
-        # Only append the runtimefarm-level /bin on the first iteration.
-        if [[ "${response}" != *"${path_root}/${path_pkg_runtimefarm_name}/bin"* ]]; then
-            response="${response}:${path_root}/${path_pkg_runtimefarm_name}/bin"
-        fi
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_pkg_runtimefarm_name}/bin"
         ;;
     "${path_run_bin_name}")
-        response="${response:+${response}:}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/bin"
-        # Only append the runtimefarm-level /bin on the first iteration.
-        if [[ "${response}" != *"${path_root}/${path_run_runtimefarm_name}/bin"* ]]; then
-            response="${response}:${path_root}/${path_run_runtimefarm_name}/bin"
-        fi
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_run_runtimefarm_name}/bin"
         ;;
     "${path_run_excluderoot_bin_name}")
-        response="${response:+${response}:}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin"
-        # Only append the runtimefarm-level /bin on the first iteration.
-        if [[ "${response}" != *"${path_root}/${path_run_excluderoot_runtimefarm_name}/bin"* ]]; then
-            response="${response}:${path_root}/${path_run_excluderoot_runtimefarm_name}/bin"
-        fi
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_run_excluderoot_runtimefarm_name}/bin"
         ;;
     "${path_devrun_bin_name}")
-        response="${response:+${response}:}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/bin"
-        # Only append the runtimefarm-level /bin on the first iteration.
-        if [[ "${response}" != *"${path_root}/${path_devrun_runtimefarm_name}/bin"* ]]; then
-            response="${response}:${path_root}/${path_devrun_runtimefarm_name}/bin"
-        fi
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_devrun_runtimefarm_name}/bin"
         ;;
     "${path_devrun_excluderoot_bin_name}")
-        response="${response:+${response}:}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin"
-        # Only append the runtimefarm-level /bin on the first iteration.
-        if [[ "${response}" != *"${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin"* ]]; then
-            response="${response}:${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin"
-        fi
+        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin"
         ;;
     # ###############
     # ARTIFACT RECIPE
     # ###############
     "${path_pkg_artifact_name}")
-        response="${response:+${response}:}${artifact_root}"
+        response="${response:+${response}${delimiter_char}}${artifact_root}"
         ;;
     # ##################
     # RUNTIMEFARM RECIPE

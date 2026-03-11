@@ -700,6 +700,15 @@ def initialize_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
+        name='workspace.python-interpreters',
+        help=(
+            'returns semicolon-delimited list of the configured python interpreters for the'
+            ' workspace'
+        ),
+        description='',
+        allow_abbrev=False,
+    )
+    builder_path_cmd_par.add_parser(
         name='pkg.config',
         help='returns the path to the `icarus.cfg` file of the local workspace package',
         description='',
@@ -764,28 +773,37 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_path_cmd_par.add_parser(
         name='pkg.pythonhome',
-        help='creates colon-delimited list of PYTHONHOME paths for the current package',
+        help=(
+            'creates the PYTHONHOME path for the current package (semicolon-delimited across Python'
+            ' versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='pkg.pythonpath',
         help=(
-            'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' current package'
+            'creates the `.../lib/pythonX.Y/site-packages` path for the'
+            ' current package (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='pkg.bin',
-        help='creates colon-delimited list of bin directory for the current package',
+        help=(
+            'creates colon-delimited list of bin directory for the current package'
+            ' (semicolon-delimited across Python versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='pkg.artifact',
-        help='returns the path to the build artifacts for the current package',
+        help=(
+            'returns the path to the build artifacts for the current package (semicolon-delimited'
+            ' across Python versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
@@ -818,22 +836,28 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_path_cmd_par.add_parser(
         name='tool.pythonhome',
-        help='creates colon-delimited list of PYTHONHOME paths for the build-tools dependencies',
+        help=(
+            'creates the PYTHONHOME path for the build-tools dependencies'
+            ' (semicolon-delimited across Python versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='tool.pythonpath',
         help=(
-            'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' build-tools dependencies'
+            'creates the `.../lib/pythonX.Y/site-packages` path for the'
+            ' build-tools dependencies (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='tool.bin',
-        help='creates colon-delimited list of bin directory for the build-tools dependencies',
+        help=(
+            'creates colon-delimited list of bin directory for the build-tools dependencies'
+            ' (semicolon-delimited across Python versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
@@ -866,22 +890,28 @@ def initialize_parser() -> argparse.ArgumentParser:
     )
     builder_path_cmd_par.add_parser(
         name='run.pythonhome',
-        help='creates colon-delimited list of PYTHONHOME paths for the runtime dependencies',
+        help=(
+            'creates the PYTHONHOME path for the runtime dependencies'
+            ' (semicolon-delimited across Python versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='run.pythonpath',
         help=(
-            'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' runtime dependencies'
+            'creates the `.../lib/pythonX.Y/site-packages` path for the'
+            ' runtime dependencies (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
     )
     builder_path_cmd_par.add_parser(
         name='run.bin',
-        help='creates colon-delimited list of bin directory for the runtime dependencies',
+        help=(
+            'creates colon-delimited list of bin directory for the runtime dependencies'
+            ' (semicolon-delimited across Python versions)'
+        ),
         description='',
         allow_abbrev=False,
     )
@@ -915,8 +945,8 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='run_excluderoot.pythonhome',
         help=(
-            'creates colon-delimited list of PYTHONHOME paths for the runtime dependencies'
-            ' excluding the root package'
+            'creates the PYTHONHOME path for the runtime dependencies'
+            ' excluding the root package (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -924,8 +954,9 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='run_excluderoot.pythonpath',
         help=(
-            'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' runtime dependencies excluding the root package'
+            'creates the `.../lib/pythonX.Y/site-packages` path for the'
+            ' runtime dependencies excluding the root package (semicolon-delimited across Python'
+            ' versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -934,7 +965,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='run_excluderoot.bin',
         help=(
             'creates colon-delimited list of bin directory for the runtime dependencies excluding'
-            ' the current package'
+            ' the current package (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -969,8 +1000,8 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='devrun.pythonhome',
         help=(
-            'creates colon-delimited list of PYTHONHOME paths for the runtime and development'
-            ' dependencies'
+            'creates the PYTHONHOME path for the runtime and development'
+            ' dependencies (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -978,8 +1009,8 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='devrun.pythonpath',
         help=(
-            'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' runtime and development dependencies'
+            'creates the `.../lib/pythonX.Y/site-packages` path for the'
+            ' runtime and development dependencies (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -988,7 +1019,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun.bin',
         help=(
             'creates colon-delimited list of bin directory for the runtime and development'
-            ' dependencies'
+            ' dependencies (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -1023,8 +1054,8 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='devrun_excluderoot.pythonhome',
         help=(
-            'creates colon-delimited list of PYTHONHOME paths for the runtime and development'
-            ' dependencies excluding the root package'
+            'creates the PYTHONHOME path for the runtime and development'
+            ' dependencies excluding the root package (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -1032,8 +1063,9 @@ def initialize_parser() -> argparse.ArgumentParser:
     builder_path_cmd_par.add_parser(
         name='devrun_excluderoot.pythonpath',
         help=(
-            'creates colon-delimited list of `.../lib/pythonX.Y/site-packages` paths for the'
-            ' runtime and development dependencies excluding the root package'
+            'creates the `.../lib/pythonX.Y/site-packages` path for the'
+            ' runtime and development dependencies excluding the root package (semicolon-delimited'
+            ' across Python versions)'
         ),
         description='',
         allow_abbrev=False,
@@ -1042,7 +1074,7 @@ def initialize_parser() -> argparse.ArgumentParser:
         name='devrun_excluderoot.bin',
         help=(
             'creates colon-delimited list of bin directory for the runtime and development'
-            ' dependencies excluding the root package'
+            ' dependencies excluding the root package (semicolon-delimited across Python versions)'
         ),
         description='',
         allow_abbrev=False,

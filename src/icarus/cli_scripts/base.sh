@@ -71,6 +71,9 @@ declare -r package="\xF0\x9F\x93\xA6"
 declare -r network_world="\xF0\x9F\x8C\x90"
 declare -r bar_chart="\xF0\x9F\x93\x8A"
 
+# New line character
+declare -r nl=$'\n'
+
 # Sourcing existing bashrc to export current PATH
 if [[ -f "${HOME}/.bashrc" ]]; then
     . "${HOME}/.bashrc" || {
