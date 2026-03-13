@@ -55,7 +55,7 @@ function set_icarus_python3_constants() {
     python_version="$(echo "${1}" | cut -d ':' -f 1)"
     python_full_version="$(echo "${1}" | cut -d ':' -f 2)"
 
-    only_with_python_default=false
+    run_once=false
 
     if [[ "${python_full_version}" == "${python_default_full_version}" ]]; then
         is_python_default=true
@@ -63,7 +63,7 @@ function set_icarus_python3_constants() {
         is_python_default=false
     fi
 
-    artifact_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/CPython/${python_full_version}/${package_name_snake_case}-${package_version_full}"
+    artifacts_root="${project_root_dir_abs}/${build_root_dir}/${platform_identifier}/dist/${package_name_snake_case}-${package_version_full}"
 
     python_pkg_name="cpython-${python_full_version}-${platform_identifier}"
     python_pkg_full_name="${python_pkg_name}.tar.gz"
@@ -749,40 +749,32 @@ function pip_target_package() {
     p_ver="py-${python_full_version}"
 
     report_path="${path_cache_root}/${package_name_dashed}_${p_graph}_${p_recipe}_${p_ver}"
-    pkg=("${artifact_root}/${package_name_snake_case}"*.whl)
 
-    if [[ ! -f "${pkg[0]}" ]]; then
-        echo_error "Package artifact '${package_name_snake_case}' not found! Have you built it?"
-        exit_code=1
-        return
-    fi
-    if [[ "${#pkg[@]}" -gt 1 ]]; then
-        echo_error "Multiple wheels found for '${package_name_snake_case}'."
-        exit_code=1
-        return
-    fi
-
-    echo -e "${bold_green}${sparkles} Caching [${installation_type}] [target:${package_name_snake_case}] dependencies graph${end}"
+    echo -e "${bold_green}${sparkles} Caching [${installation_type}] [target:${package_name_dashed}] dependencies graph${end}"
     "${PYTHONBIN}" -m pip install \
         --no-deps \
         --dry-run \
         --ignore-installed \
         --report "${report_path}.${installation_type}" \
-        "${artifact_root}/${package_name_snake_case}"*.whl || {
+        --no-index \
+        --find-links "${artifacts_root}/" \
+        "${package_name_dashed}" || {
         echo_error "Failed to cache [${installation_type}] dependencies graph."
         exit_code=1
     }
     echo
 
     if [[ "${installation_type}" == "build" ]]; then
-        echo -e "${bold_green}${sparkles} Installing ${package_name_snake_case}${end}"
+        echo -e "${bold_green}${sparkles} Installing ${package_name_dashed}${end}"
         "${PYTHONBIN}" -m pip install \
             --force-reinstall \
             --no-deps \
             --no-compile \
             --no-warn-script-location \
-            "${artifact_root}/${package_name_snake_case}"*.whl || {
-            echo_error "Failed to install ${package_name_snake_case}."
+            --no-index \
+            --find-links "${artifacts_root}/" \
+            "${package_name_dashed}" || {
+            echo_error "Failed to install ${package_name_dashed}."
             exit_code=1
         }
         echo
@@ -1269,120 +1261,154 @@ function build_path_icarus_python3() {
     # SIMPLE RECIPE
     # #############
     "${path_platform_identifier_name}")
-        only_with_python_default=true
+        run_once=true
         response="${platform_identifier}"
         ;;
     "${path_ws_name_name}")
-        only_with_python_default=true
+        run_once=true
         response="${project_workspace_name}"
         ;;
     "${path_ws_root_name}")
-        only_with_python_default=true
+        run_once=true
         response="${project_root_dir_abs}"
         ;;
     "${path_ws_src_root_name}")
-        only_with_python_default=true
+        run_once=true
         response="${project_root_dir_abs}/src"
         ;;
     "${path_ws_build_root_name}")
-        only_with_python_default=true
+        run_once=true
         response="${project_root_dir_abs}/${build_root_dir}"
         ;;
     "${path_ws_user_space_root_name}")
-        only_with_python_default=true
+        run_once=true
         response="${runtime_root}/local"
         ;;
     "${path_ws_python_versions_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_python_versions)" || exit_code=1
         ;;
     # #############
     # CONFIG RECIPE
     # #############
     "${path_pkg_config_name}")
-        only_with_python_default=true
+        run_once=true
         response="${project_root_dir_abs}/icarus.cfg"
         ;;
     # ###############
     # LANGUAGE RECIPE
     # ###############
     "${path_pkg_language_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_language}"
         ;;
     # ###########
     # NAME RECIPE
     # ###########
     "${path_pkg_name_pascal_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_name_pascal_case}"
         ;;
     "${path_pkg_name_snake_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_name_snake_case}"
         ;;
     "${path_pkg_name_dashed_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_name_dashed}"
         ;;
     "${path_tool_name_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps_names "${path_tool_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_name_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps_names "${path_run_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_excluderoot_name_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps_names "${path_run_excluderoot_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_devrun_name_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps_names "${path_devrun_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_devrun_excluderoot_name_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps_names "${path_devrun_excluderoot_runtimefarm_name}")" || exit_code=1
         ;;
     # ##############
     # VERSION RECIPE
     # ##############
     "${path_pkg_version_full_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_version_full}"
         ;;
     "${path_pkg_version_major_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_version_major}"
         ;;
     "${path_pkg_version_minor_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_version_minor}"
         ;;
     "${path_pkg_version_patch_name}")
-        only_with_python_default=true
+        run_once=true
         response="${package_version_patch}"
         ;;
     "${path_tool_version_full_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps "${path_tool_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_version_full_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps "${path_run_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_run_excluderoot_version_full_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps "${path_run_excluderoot_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_devrun_version_full_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps "${path_devrun_runtimefarm_name}")" || exit_code=1
         ;;
     "${path_devrun_excluderoot_version_full_name}")
-        only_with_python_default=true
+        run_once=true
         response="$(join_deps "${path_devrun_excluderoot_runtimefarm_name}")" || exit_code=1
+        ;;
+    # ##########
+    # BIN RECIPE
+    # ##########
+    "${path_tool_bin_name}")
+        run_once=true
+        response="${path_root}/${path_tool_runtimefarm_name}/bin:${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_pkg_bin_name}")
+        run_once=true
+        response="${path_root}/${path_pkg_runtimefarm_name}/bin:${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_run_bin_name}")
+        run_once=true
+        response="${path_root}/${path_run_runtimefarm_name}/bin:${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_run_excluderoot_bin_name}")
+        run_once=true
+        response="${path_root}/${path_run_excluderoot_runtimefarm_name}/bin:${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_devrun_bin_name}")
+        run_once=true
+        response="${path_root}/${path_devrun_runtimefarm_name}/bin:${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/bin"
+        ;;
+    "${path_devrun_excluderoot_bin_name}")
+        run_once=true
+        response="${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin:${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin"
+        ;;
+    # ###############
+    # ARTIFACT RECIPE
+    # ###############
+    "${path_pkg_artifact_name}")
+        run_once=true
+        response="${artifacts_root}"
         ;;
     # #################
     # PYTHONHOME RECIPE
@@ -1425,33 +1451,6 @@ function build_path_icarus_python3() {
         ;;
     "${path_devrun_excluderoot_pythonpath_name}")
         response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/lib/python${python_version}/site-packages"
-        ;;
-    # ##########
-    # BIN RECIPE
-    # ##########
-    "${path_tool_bin_name}")
-        response="${response:+${response}${delimiter_char}}${path_root}/${path_tool_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_tool_runtimefarm_name}/bin"
-        ;;
-    "${path_pkg_bin_name}")
-        response="${response:+${response}${delimiter_char}}${path_root}/${path_pkg_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_pkg_runtimefarm_name}/bin"
-        ;;
-    "${path_run_bin_name}")
-        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_run_runtimefarm_name}/bin"
-        ;;
-    "${path_run_excluderoot_bin_name}")
-        response="${response:+${response}${delimiter_char}}${path_root}/${path_run_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_run_excluderoot_runtimefarm_name}/bin"
-        ;;
-    "${path_devrun_bin_name}")
-        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_devrun_runtimefarm_name}/bin"
-        ;;
-    "${path_devrun_excluderoot_bin_name}")
-        response="${response:+${response}${delimiter_char}}${path_root}/${path_devrun_excluderoot_runtimefarm_name}/CPython/${python_full_version}/bin:${path_root}/${path_devrun_excluderoot_runtimefarm_name}/bin"
-        ;;
-    # ###############
-    # ARTIFACT RECIPE
-    # ###############
-    "${path_pkg_artifact_name}")
-        response="${response:+${response}${delimiter_char}}${artifact_root}"
         ;;
     # ##################
     # RUNTIMEFARM RECIPE
@@ -1649,9 +1648,9 @@ function dispatch_build_system() {
             for python_version_composite in "${python_versions[@]}"; do
                 set_icarus_python3_constants "${python_version_composite}"
                 build_path_icarus_python3 "${path_name}"
-                if [[ "${only_with_python_default}" == true ]]; then
-                    # Those command that set only_with_python_default, only runs
-                    # with the python-default which is the first in the loop.
+                if [[ "${run_once}" == true ]]; then
+                    # Those command that set run_once, only runs with the
+                    # python-default which is the first in the loop.
                     break
                 fi
             done

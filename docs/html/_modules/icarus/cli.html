@@ -777,7 +777,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;workspace.python-interpreters&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;returns semicolon-delimited list of the configured python interpreters for the&#39;</span>
-            <span class="s1">&#39; workspace (python-default is always at index 0)&#39;</span>
+            <span class="s1">&#39; workspace (python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -849,7 +849,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the PYTHONHOME path for the current package (semicolon-delimited across Python&#39;</span>
-            <span class="s1">&#39; versions)&#39;</span>
+            <span class="s1">&#39; versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -858,7 +858,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.pythonpath&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the `.../lib/pythonX.Y/site-packages` path for the&#39;</span>
-            <span class="s1">&#39; current package (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; current package (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -867,7 +867,6 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the current package&#39;</span>
-            <span class="s1">&#39; (semicolon-delimited across Python versions)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -875,8 +874,7 @@
     <span class="n">builder_path_cmd_par</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pkg.artifact&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;returns the path to the build artifacts for the current package (semicolon-delimited&#39;</span>
-            <span class="s1">&#39; across Python versions)&#39;</span>
+            <span class="s1">&#39;creates the path to the build artifacts for the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -912,7 +910,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the PYTHONHOME path for the build-tools dependencies&#39;</span>
-            <span class="s1">&#39; (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -921,7 +919,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.pythonpath&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the `.../lib/pythonX.Y/site-packages` path for the&#39;</span>
-            <span class="s1">&#39; build-tools dependencies (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; build-tools dependencies (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -930,7 +928,6 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tool.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the build-tools dependencies&#39;</span>
-            <span class="s1">&#39; (semicolon-delimited across Python versions)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -966,7 +963,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the PYTHONHOME path for the runtime dependencies&#39;</span>
-            <span class="s1">&#39; (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -975,7 +972,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.pythonpath&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the `.../lib/pythonX.Y/site-packages` path for the&#39;</span>
-            <span class="s1">&#39; runtime dependencies (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; runtime dependencies (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -984,7 +981,6 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime dependencies&#39;</span>
-            <span class="s1">&#39; (semicolon-delimited across Python versions)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1020,7 +1016,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the PYTHONHOME path for the runtime dependencies&#39;</span>
-            <span class="s1">&#39; excluding the root package (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; excluding the root package (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1030,7 +1026,7 @@
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the `.../lib/pythonX.Y/site-packages` path for the&#39;</span>
             <span class="s1">&#39; runtime dependencies excluding the root package (semicolon-delimited across Python&#39;</span>
-            <span class="s1">&#39; versions)&#39;</span>
+            <span class="s1">&#39; versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1039,7 +1035,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;run_excluderoot.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime dependencies excluding&#39;</span>
-            <span class="s1">&#39; the current package (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; the current package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1075,7 +1071,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the PYTHONHOME path for the runtime and development&#39;</span>
-            <span class="s1">&#39; dependencies (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; dependencies (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1084,7 +1080,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.pythonpath&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the `.../lib/pythonX.Y/site-packages` path for the&#39;</span>
-            <span class="s1">&#39; runtime and development dependencies (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; runtime and development dependencies (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1093,7 +1089,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development&#39;</span>
-            <span class="s1">&#39; dependencies (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; dependencies&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1129,7 +1125,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.pythonhome&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the PYTHONHOME path for the runtime and development&#39;</span>
-            <span class="s1">&#39; dependencies excluding the root package (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; dependencies excluding the root package (semicolon-delimited across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1139,7 +1135,7 @@
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates the `.../lib/pythonX.Y/site-packages` path for the&#39;</span>
             <span class="s1">&#39; runtime and development dependencies excluding the root package (semicolon-delimited&#39;</span>
-            <span class="s1">&#39; across Python versions)&#39;</span>
+            <span class="s1">&#39; across Python versions; python-default at index 0)&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1148,7 +1144,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;devrun_excluderoot.bin&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
             <span class="s1">&#39;creates colon-delimited list of bin directory for the runtime and development&#39;</span>
-            <span class="s1">&#39; dependencies excluding the root package (semicolon-delimited across Python versions)&#39;</span>
+            <span class="s1">&#39; dependencies excluding the root package&#39;</span>
         <span class="p">),</span>
         <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
         <span class="n">allow_abbrev</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
