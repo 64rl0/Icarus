@@ -135,21 +135,21 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">stru</span> <span class="o">=</span> <span class="n">mylib</span><span class="o">.</span><span class="n">StringUtils</span><span class="p">()</span>
-    <span class="n">name_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[A-Za-z0-9]*$&#39;</span><span class="p">)</span>
+    <span class="n">name_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[A-Za-z0-9]{1,64}$&#39;</span><span class="p">)</span>
 
     <span class="n">package_language_normalized</span> <span class="o">=</span> <span class="n">package_language</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">package_name_pascal_case_normalized</span> <span class="o">=</span> <span class="n">package_name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">name_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid input: only alphanumeric characters are allowed in the package name&quot;</span>
+            <span class="s2">&quot;Invalid input: package name must be 1-64 alphanumeric characters&quot;</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">name_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">package_language_normalized</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid input: only alphanumeric characters are allowed in the package language&quot;</span>
+            <span class="s2">&quot;Invalid input: package language must be 1-64 alphanumeric characters&quot;</span>
         <span class="p">)</span>
 
-    <span class="n">package_name_snake_case</span> <span class="o">=</span> <span class="n">stru</span><span class="o">.</span><span class="n">snake_case</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">)</span>
+    <span class="n">package_name_snake_case</span> <span class="o">=</span> <span class="n">stru</span><span class="o">.</span><span class="n">snake_case_v2</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">)</span>
     <span class="n">package_name_dashed</span> <span class="o">=</span> <span class="n">package_name_snake_case</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 
     <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span>
@@ -158,6 +158,24 @@
         <span class="n">package_name_snake_case</span><span class="p">,</span>
         <span class="n">package_name_dashed</span><span class="p">,</span>
     <span class="p">]</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">min</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">package_name_snake_case</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">package_name_dashed</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="o">&lt;</span> <span class="mi">1</span>
+        <span class="ow">or</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">package_name_snake_case</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">package_name_dashed</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="o">&gt;</span> <span class="mi">64</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
+            <span class="s2">&quot;Invalid input: package name must be 1-64 alphanumeric characters&quot;</span>
+        <span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;Package name mapping:</span><span class="se">\n</span><span class="s2">--| User input:  </span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">--| PascalCase:&quot;</span>

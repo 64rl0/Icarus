@@ -61,21 +61,21 @@ def get_argv(package_name: str, package_language: str) -> list[str]:
     """
 
     stru = mylib.StringUtils()
-    name_re = re.compile(r'^[A-Za-z0-9]*$')
+    name_re = re.compile(r'^[A-Za-z0-9]{1,64}$')
 
     package_language_normalized = package_language.strip()
     package_name_pascal_case_normalized = package_name.strip()
 
     if not name_re.match(package_name_pascal_case_normalized):
         raise utils.IcarusParserException(
-            "Invalid input: only alphanumeric characters are allowed in the package name"
+            "Invalid input: package name must be 1-64 alphanumeric characters"
         )
     if not name_re.match(package_language_normalized):
         raise utils.IcarusParserException(
-            "Invalid input: only alphanumeric characters are allowed in the package language"
+            "Invalid input: package language must be 1-64 alphanumeric characters"
         )
 
-    package_name_snake_case = stru.snake_case(package_name_pascal_case_normalized)
+    package_name_snake_case = stru.snake_case_v2(package_name_pascal_case_normalized)
     package_name_dashed = package_name_snake_case.replace('_', '-')
 
     argv = [
@@ -84,6 +84,24 @@ def get_argv(package_name: str, package_language: str) -> list[str]:
         package_name_snake_case,
         package_name_dashed,
     ]
+
+    if (
+        min(
+            len(package_name_pascal_case_normalized),
+            len(package_name_snake_case),
+            len(package_name_dashed),
+        )
+        < 1
+        or max(
+            len(package_name_pascal_case_normalized),
+            len(package_name_snake_case),
+            len(package_name_dashed),
+        )
+        > 64
+    ):
+        raise utils.IcarusParserException(
+            "Invalid input: package name must be 1-64 alphanumeric characters"
+        )
 
     print(
         f"Package name mapping:\n--| User input:  {package_name}\n--| PascalCase:"

@@ -915,7 +915,7 @@ def _normalize_and_set_defaults_icarus_build_cfg(ib_arg: IcarusBuilderArg) -> No
 
     # Add pkg name snake anf dashed
     try:
-        ib_arg.package_name_snake_case = stru.snake_case(ib_arg.package_name_pascal_case)
+        ib_arg.package_name_snake_case = stru.snake_case_v2(ib_arg.package_name_pascal_case)
         ib_arg.package_name_dashed = ib_arg.package_name_snake_case.replace("_", "-")
     except Exception:
         raise utils.IcarusParserException(f"Invalid package name in {config.ICARUS_CFG_FILENAME}")

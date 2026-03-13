@@ -998,9 +998,9 @@ function run_build_icarus_python3() {
     }
 
     # Building local package.
-    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_snake_case}' artifacts${end}"
+    echo -e "${bold_green}${hammer_and_wrench}  Building '${package_name_dashed}' artifacts${end}"
     "${PYTHONBIN}" -m build --no-isolation --outdir "${artifacts_root}" "${project_root_dir_abs}" || {
-        echo_error "Failed to build '${package_name_snake_case}'."
+        echo_error "Failed to build '${package_name_dashed}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
@@ -1048,12 +1048,12 @@ function run_build_icarus_python3() {
     }
 
     # This will install the pkg just built in the pkg.runtimefarm.
-    echo -e "${bold_green}${sparkles} Installing '${package_name_snake_case}' artifacts${end}"
+    echo -e "${bold_green}${sparkles} Installing '${package_name_dashed}' artifacts${end}"
     if resolve_path "${path_pkg_runtimefarm_name}"; then
-        echo -e "Installed $(basename "${artifacts_root}/"*".tar.gz" ".tar.gz")"
+        echo -e "Installed ${package_name_dashed}-${ICARUS_PACKAGE_VERSION}"
         echo
     else
-        echo_error "Failed to install '${package_name_snake_case}'."
+        echo_error "Failed to install '${package_name_dashed}'."
         build_summary_status="${failed}"
         build_single_run_status=1
         exit_code=1
@@ -1901,6 +1901,8 @@ function dispatch_icarus_python3_tools() {
     fi
 
     if [[ "${pypi}" == "Y" ]]; then
+        run_once=true
+
         start_block=$(date +%s.%N)
         echo_title "Running PyPi"
         if [[ "${is_python_default}" == true ]]; then
