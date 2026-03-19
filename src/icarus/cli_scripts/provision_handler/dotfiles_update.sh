@@ -22,7 +22,9 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 function dotfiles_update() {
-    local -a dotfiles=(
+    local -a repos
+
+    repos=(
         "${HOME}/.bash/config"
         "${HOME}/.bash/completion"
         "${HOME}/.zsh/config"
@@ -31,6 +33,7 @@ function dotfiles_update() {
         "${HOME}/.carlogtt_script"
         "${HOME}/.aws"
         "${HOME}/.vim"
+        "${HOME}/.ssh/ssh-config"
         "${HOME}/.config/alacritty"
         "${HOME}/.config/apple-terminal"
         "${HOME}/.config/bat"
@@ -43,11 +46,11 @@ function dotfiles_update() {
         "${HOME}/.config/yazi"
     )
 
-    for dotfile in "${dotfiles[@]}"; do
-        if [[ -d "${dotfile}/.git" ]]; then
+    for repo in "${repos[@]}"; do
+        if [[ -d "${repo}/.git" ]]; then
             echo_time ""
-            echo -e "${sparkles}${bold_yellow}${dotfile}${end}"
-            pushd "${dotfile}" >/dev/null
+            echo -e "${sparkles}${bold_yellow}${repo}${end}"
+            pushd "${repo}" >/dev/null
             git fetch --all --prune
             git pull --rebase=false
             git status
