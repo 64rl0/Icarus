@@ -1058,7 +1058,7 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1097,7 +1097,7 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1137,7 +1137,7 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1180,7 +1180,7 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1223,7 +1223,7 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1266,7 +1266,7 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1309,7 +1309,7 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1352,7 +1352,7 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
-            if [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
