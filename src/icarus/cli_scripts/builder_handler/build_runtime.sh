@@ -1053,7 +1053,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1092,7 +1092,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1131,7 +1131,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1174,7 +1174,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1217,7 +1217,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1260,7 +1260,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1303,7 +1303,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1346,7 +1346,7 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'el9'* ]]; then
+            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
