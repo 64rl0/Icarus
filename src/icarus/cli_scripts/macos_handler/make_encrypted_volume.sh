@@ -30,9 +30,11 @@ macos_make_encrypted_volume() {
     # Spotlight indexing is disabled on the volumes by default to avoid CPU time contention
     # during package caching or checkout.
 
-    echo -e "We need to briefly run as root (through sudo) to execute some commands."
-    echo -e "If prompted, please enter your user password."
-    sudo -v
+    if ! sudo -n true 2>/dev/null; then
+        echo -e "We need to briefly run as root (through sudo) to execute some commands."
+        echo -e "If prompted, please enter your user password."
+        sudo -v
+    fi
 
     local volume_name="$1"
     if [[ -z $volume_name ]]; then

@@ -171,9 +171,11 @@ function echo_time() {
 }
 
 function echo_need_sudo() {
-    echo -e "We need to briefly run as root (through sudo) to execute some commands."
-    echo -e "If prompted, please enter your user password."
-    sudo -v
+    if ! sudo -n true 2>/dev/null; then
+        echo -e "We need to briefly run as root (through sudo) to execute some commands."
+        echo -e "If prompted, please enter your user password."
+        sudo -v
+    fi
     echo
 }
 

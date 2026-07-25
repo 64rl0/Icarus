@@ -22,9 +22,11 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 
 # User defined variables
 brazil_setup_volumes() {
-    echo -e "We need to briefly run as root (through sudo) to execute some commands."
-    echo -e "If prompted, please enter your user password."
-    sudo -v
+    if ! sudo -n true 2>/dev/null; then
+        echo -e "We need to briefly run as root (through sudo) to execute some commands."
+        echo -e "If prompted, please enter your user password."
+        sudo -v
+    fi
 
     echo -e "\nCreating case-sensitive volumes ('workplace' and 'brazil-pkg-cache')."
 

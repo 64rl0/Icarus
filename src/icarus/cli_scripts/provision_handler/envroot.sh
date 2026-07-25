@@ -25,9 +25,11 @@ function install_envroot() {
     local dir compression dest_tar download_url host_platform platform host_arch arch opt_dir envroot_version
     local -a root_tree
 
-    echo -e "We need to briefly run as root (through sudo) to execute some commands."
-    echo -e "If prompted, please enter your user password."
-    sudo -v
+    if ! sudo -n true 2>/dev/null; then
+        echo -e "We need to briefly run as root (through sudo) to execute some commands."
+        echo -e "If prompted, please enter your user password."
+        sudo -v
+    fi
 
     host_platform="$(uname -s)"
     if [[ "${host_platform}" == "Darwin" ]]; then

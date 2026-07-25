@@ -106,7 +106,7 @@ def update_hots() -> int:
             " please enter your user password.",
             flush=True,
         )
-        subprocess.run(["sudo", "-v"])
+        subprocess.run(["sudo", "true"])
         print("Thanks! We'll continue in a moment...\n", flush=True)
 
         result = subprocess.run(

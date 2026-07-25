@@ -26,9 +26,11 @@ macos_encrypt_volume() {
     # generated passphrase and stores the passphrase in the System keychain so that
     # the volume can be automatically mounted at startup.
 
-    echo -e "We need to briefly run as root (through sudo) to execute some commands."
-    echo -e "If prompted, please enter your user password."
-    sudo -v
+    if ! sudo -n true 2>/dev/null; then
+        echo -e "We need to briefly run as root (through sudo) to execute some commands."
+        echo -e "If prompted, please enter your user password."
+        sudo -v
+    fi
 
     local volume_name="$1"
     if [[ -z $volume_name ]]; then
