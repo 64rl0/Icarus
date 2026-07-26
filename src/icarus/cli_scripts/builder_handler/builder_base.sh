@@ -200,6 +200,7 @@ function declare_path_names() {
 function declare_global_vars() {
     # These variables are passed in by the cli parser
     declare -r -g verbose
+    declare -r -g run_log_filepath
     declare -r -g all_hooks
     declare -r -g icarus_config_filename
     declare -r -g icarus_config_filepath
@@ -277,6 +278,49 @@ function declare_global_vars() {
 
     report_filepath="file://${project_root_dir_abs}/.icarus/report/index.html"
     declare -g -r report_filepath
+}
+
+function echo_help_verbose() {
+    # This function will display a hint to re-run the failed command with
+    # --verbose, followed by the run log filepath when available.
+    local errexit="${1}"
+    local rerun_command
+
+    # The --verbose flag is only accepted before the <command>, so the cli
+    # parser already places it right after the cli name. Already verbose runs
+    # have nothing to re-run, they only get the log filepath.
+    if [[ "${verbose}" == "Y" ]]; then
+        rerun_command=""
+    else
+        rerun_command="${initial_command_received/#${cli_name}/${cli_name} --verbose}"
+    fi
+
+    # The message is printed under every error that caused it, so the user
+    # does not have to scroll back to the first one.
+    if [[ -n "${rerun_command}" || -n "${run_log_filepath}" ]]; then
+        {
+            echo -e "${bold_black}${bg_cyan} HELP! ${end}"
+            echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+            if [[ -n "${rerun_command}" ]]; then
+                echo -e " Run the command with --verbose to get more info about the failure:"
+                echo -e " --| ${bold_white}${rerun_command}${end}"
+            fi
+            if [[ -n "${run_log_filepath}" ]]; then
+                if [[ -n "${rerun_command}" ]]; then
+                    echo
+                fi
+                echo -e " Full output of this run:"
+                echo -e " --| ${yellow}file://${run_log_filepath}${end}"
+            fi
+            echo
+        } 1>&2
+    fi
+
+    if [[ "${errexit}" == "errexit" ]]; then
+        return 1
+    else
+        return 0
+    fi
 }
 
 function bootstrap_workspace() {

@@ -922,6 +922,7 @@ function run_pypi() {
         pypi_summary_status="${failed}"
         exit_code=1
         echo_error "Failed to resolve path ${path_pkg_artifact_name}."
+        echo_help_verbose
         return
     }
 
@@ -986,6 +987,7 @@ function run_build_icarus_python3() {
         build_single_run_status=1
         exit_code=1
         echo_error "Failed to resolve path ${path_pkg_artifact_name}."
+        echo_help_verbose
         return
     }
 
@@ -1134,70 +1136,82 @@ function resolve_path() {
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}. Have you built it?" "errexit"
+            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}. Have you built it?"
+            echo_help_verbose "errexit"
         }
         path_python_home="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonhome_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_pythonhome_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_pythonhome_name}."
+            echo_help_verbose "errexit"
         }
         ;;
     "${path_tool_runtimefarm_name}")
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_tool_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_tool_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_tool_runtimefarm_name}."
+            echo_help_verbose "errexit"
         }
         path_python_home="$(_internal_icarus_builder_path_cmd "${path_tool_pythonhome_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_tool_pythonhome_name}." "errexit"
+            echo_error "Failed to resolve path ${path_tool_pythonhome_name}."
+            echo_help_verbose "errexit"
         }
         ;;
     "${path_run_runtimefarm_name}")
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_run_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_run_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_run_runtimefarm_name}."
+            echo_help_verbose "errexit"
         }
         path_python_home="$(_internal_icarus_builder_path_cmd "${path_run_pythonhome_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_run_pythonhome_name}." "errexit"
+            echo_error "Failed to resolve path ${path_run_pythonhome_name}."
+            echo_help_verbose "errexit"
         }
         ;;
     "${path_devrun_runtimefarm_name}")
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_devrun_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_devrun_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_devrun_runtimefarm_name}."
+            echo_help_verbose "errexit"
         }
         path_python_home="$(_internal_icarus_builder_path_cmd "${path_devrun_pythonhome_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_devrun_pythonhome_name}." "errexit"
+            echo_error "Failed to resolve path ${path_devrun_pythonhome_name}."
+            echo_help_verbose "errexit"
         }
         ;;
     "${path_devrun_excluderoot_runtimefarm_name}")
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}. Have you built it?" "errexit"
+            echo_error "Failed to resolve path ${path_pkg_runtimefarm_name}. Have you built it?"
+            echo_help_verbose "errexit"
         }
         pkg_pythonpath="$(_internal_icarus_builder_path_cmd "${path_pkg_pythonpath_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_pkg_pythonpath_name}." "errexit"
+            echo_error "Failed to resolve path ${path_pkg_pythonpath_name}."
+            echo_help_verbose "errexit"
         }
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_devrun_excluderoot_runtimefarm_name}." "errexit"
+            echo_error "Failed to resolve path ${path_devrun_excluderoot_runtimefarm_name}."
+            echo_help_verbose "errexit"
         }
         path_python_home="$(_internal_icarus_builder_path_cmd "${path_devrun_excluderoot_pythonhome_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
-            echo_error "Failed to resolve path ${path_devrun_excluderoot_pythonhome_name}." "errexit"
+            echo_error "Failed to resolve path ${path_devrun_excluderoot_pythonhome_name}."
+            echo_help_verbose "errexit"
         }
         ;;
     *)

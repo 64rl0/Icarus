@@ -257,6 +257,11 @@
     <span class="n">run_log_path</span> <span class="o">=</span> <span class="n">log_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">.log&quot;</span>
     <span class="n">trace_log_path</span> <span class="o">=</span> <span class="n">log_dir</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">ICARUS_TRACE_LOG_FILENAME</span>
 
+    <span class="c1"># The run log path is only known here, so it is appended to the argv</span>
+    <span class="c1"># the bash script evals. Overwrite values MUST be at the end so that</span>
+    <span class="c1"># they can overwrite any previous value!</span>
+    <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="p">(</span><span class="n">script_args</span> <span class="ow">or</span> <span class="p">[]),</span> <span class="sa">f</span><span class="s2">&quot;run_log_filepath=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">run_log_path</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">]</span>
+
     <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span>
         <span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">,</span> <span class="n">log_path</span><span class="o">=</span><span class="n">run_log_path</span>
     <span class="p">)</span>
@@ -621,12 +626,15 @@
                 <span class="s1">&#39; build systems&#39;</span>
             <span class="p">)</span>
 
+    <span class="c1"># The {verbose} placeholder must be resolved before any argument is</span>
+    <span class="c1"># appended, because exec commands can carry braces {} of their own.</span>
+    <span class="n">ib_arg</span><span class="o">.</span><span class="n">initial_command_received</span> <span class="o">=</span> <span class="n">ib_arg</span><span class="o">.</span><span class="n">initial_command_received</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="s1">&#39;--verbose &#39;</span> <span class="k">if</span> <span class="n">ib_arg</span><span class="o">.</span><span class="n">verbose</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="p">)</span>
+
     <span class="k">for</span> <span class="n">arg_name</span><span class="p">,</span> <span class="n">arg_value</span> <span class="ow">in</span> <span class="n">cli_ib_arg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">arg_name</span> <span class="o">==</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg_value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">arg_value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">ib_arg</span><span class="o">.</span><span class="n">initial_command_received</span> <span class="o">+=</span> <span class="s2">&quot; -v&quot;</span>
-                <span class="k">continue</span>
+            <span class="k">continue</span>
         <span class="k">if</span> <span class="n">arg_value</span><span class="p">:</span>
             <span class="n">ib_arg</span><span class="o">.</span><span class="n">initial_command_received</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">arg_value</span><span class="si">}</span><span class="s2">&quot;</span>
 

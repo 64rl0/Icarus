@@ -125,6 +125,7 @@ class IcarusBuilderArg:
     running_hooks_count: str = ''
     platform_identifier: str = utils.platform_id()
     verbose: str = 'N'
+    run_log_filepath: str = ''
     icarus_config_filename: str = ''
     icarus_config_filepath: str = ''
     project_root_dir_abs: str = ''
@@ -173,7 +174,7 @@ class IcarusBuilderArg:
     exectool: str = ''
     execrun: str = ''
     execdev: str = ''
-    initial_command_received: str = 'icarus builder hook'
+    initial_command_received: str = 'icarus {verbose}builder hook'
     initial_exectool_command_received: list[str] = dataclasses.field(default_factory=list)
     initial_execrun_command_received: list[str] = dataclasses.field(default_factory=list)
     initial_execdev_command_received: list[str] = dataclasses.field(default_factory=list)

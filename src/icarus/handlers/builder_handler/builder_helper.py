@@ -174,6 +174,11 @@ def run_bash_script_with_logging(
     run_log_path = log_dir / f"{run_id}.log"
     trace_log_path = log_dir / config.ICARUS_TRACE_LOG_FILENAME
 
+    # The run log path is only known here, so it is appended to the argv
+    # the bash script evals. Overwrite values MUST be at the end so that
+    # they can overwrite any previous value!
+    script_args = [*(script_args or []), f"run_log_filepath={str(run_log_path)!r}"]
+
     return_code = utils.run_bash_script(
         script_path=script_path, script_args=script_args, log_path=run_log_path
     )
@@ -528,12 +533,15 @@ def _process_cli_ib_args(
                 ' build systems'
             )
 
+    # The {verbose} placeholder must be resolved before any argument is
+    # appended, because exec commands can carry braces {} of their own.
+    ib_arg.initial_command_received = ib_arg.initial_command_received.format(
+        verbose='--verbose ' if ib_arg.verbose == 'Y' else ''
+    )
+
     for arg_name, arg_value in cli_ib_arg.items():
         if arg_name == 'verbose':
-            assert isinstance(arg_value, int)
-            if arg_value > 0:
-                ib_arg.initial_command_received += " -v"
-                continue
+            continue
         if arg_value:
             ib_arg.initial_command_received += f" {arg_value}"
 

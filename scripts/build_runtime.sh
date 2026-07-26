@@ -27,7 +27,7 @@ function build_runtime() {
     platform_id="$(platform_id)"
 
     venv_name="runtime"
-    python_full_version_for_venv="3.13.11"
+    python_full_version_for_venv="3.13.14"
     download_url="https://github.com/64rl0/PythonRuntime/releases/download/cpython-${python_full_version_for_venv}-${platform_id}/cpython-${python_full_version_for_venv}-${platform_id}.tar.gz"
     pybin="${project_root_dir_abs}/${venv_name}/env/bin/python3"
 
