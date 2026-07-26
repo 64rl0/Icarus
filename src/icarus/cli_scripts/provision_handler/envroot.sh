@@ -110,8 +110,29 @@ function install_envroot() {
     echo
     echo -e "Envroot installed at: ${opt_dir}"
     echo
-    echo -e "If you are on macOS you need to configure 'synthetic.conf'"
-    echo -e "For more information, please see the 'synthetic.conf' man page."
+    echo -e "${bold_yellow}${warning_sign} Required: '/${cli_name}' must be a symlink to '${opt_dir}'${end}"
+    echo -e "Envroot is invoked from shebangs by absolute path, and the shebangs are"
+    echo -e "written as '#!/${cli_name}/bin/envroot ...', so the '/${cli_name}' symlink must"
+    echo -e "resolve or every shimmed binary fails to launch."
+    echo
+
+    if [[ "${platform}" == "macos" ]]; then
+        echo -e "On macOS the root directory is read-only, so the symlink cannot be"
+        echo -e "created directly. It must be declared in 'synthetic.conf', where the"
+        echo -e "target takes ${bold_white}no leading slash${end} and the two columns are separated by a"
+        echo -e "${bold_white}tab${end} character:"
+        echo
+        echo -e "--| ${bold_white}printf '${cli_name}\\\\t${opt_dir#/}\\\\n' | sudo tee -a /etc/synthetic.conf${end}"
+        echo
+        echo -e "Synthetic entities are created by the kernel during early system boot,"
+        echo -e "so reboot to apply it."
+        echo
+        echo -e "For more information, please see the 'synthetic.conf' man page."
+    elif [[ "${platform}" == "linux" ]]; then
+        echo -e "--| ${bold_white}sudo ln -f -s -n '${opt_dir}' '/${cli_name}'${end}"
+    else
+        echo -e ""
+    fi
     echo
 }
 
