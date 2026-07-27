@@ -31,6 +31,7 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 ####################################################################################################
 function validate_prerequisites() {
     validate_command "bc"
+    validate_envroot
 }
 
 function echo_title() {

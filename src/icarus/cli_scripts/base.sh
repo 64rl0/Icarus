@@ -188,3 +188,15 @@ function validate_command() {
         echo_error "[NOT FOUND] \`${command_to_validate}\` not found in PATH" "errexit"
     fi
 }
+
+function validate_envroot() {
+    local envroot_fullpath
+
+    envroot_fullpath="/${cli_name}/bin/envroot"
+
+    # Envroot is referenced by absolute path from the shebang of every
+    # binary in a runtimefarm, so a missing one is a hard stop.
+    if [[ ! -x "${envroot_fullpath}" ]]; then
+        echo_error "[NOT FOUND] \`${envroot_fullpath}\` not found or not executable.\n Run \`${cli_name} provision envroot\` to install it." "errexit"
+    fi
+}

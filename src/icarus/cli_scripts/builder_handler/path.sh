@@ -25,8 +25,7 @@ set -o pipefail # Exit status of a pipeline is the status of the last cmd to exi
 # SYSTEM
 ####################################################################################################
 function validate_prerequisites() {
-    # Nothing to do here
-    :
+    validate_envroot
 }
 
 ####################################################################################################
