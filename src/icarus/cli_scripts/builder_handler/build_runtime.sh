@@ -223,6 +223,188 @@ function prepare_sysroot_macos() {
     }
 }
 
+function linux_pkg_family() {
+    # Detect which package-manager family this Linux host belongs to.
+    # Echoes 'apt' (Debian/Ubuntu) or 'yum' (Fedora/RHEL/CentOS/Amazon Linux).
+    #
+    # Gating on the family rather than on a hard-coded platform_identifier
+    # (e.g. 'debian13-') means new releases of either family are picked up
+    # without touching this script.
+
+    if command -v apt-get >/dev/null 2>&1; then
+        echo "apt"
+    elif command -v yum >/dev/null 2>&1; then
+        echo "yum"
+    else
+        echo "unknown"
+    fi
+}
+
+function linux_multiarch_triplet() {
+    # Echo the Debian multiarch triplet for this host, e.g.
+    # 'aarch64-linux-gnu' or 'x86_64-linux-gnu'.
+    #
+    # On Debian, libraries and arch-specific headers live in
+    # <prefix>/lib/<triplet> and <prefix>/include/<triplet> rather than in
+    # the flat lib64/include layout used by the RPM distros, so several of
+    # the Debian-only functions below need this value.
+    #
+    # `gcc -print-multiarch` is preferred over
+    # `dpkg-architecture -qDEB_HOST_MULTIARCH` because gcc is already a
+    # build prerequisite while dpkg-dev is not. Note this is the *compiler*
+    # spelling of the architecture (aarch64-...), which differs from the
+    # dpkg spelling (arm64) — the triplet is the one we need for paths.
+    #
+    # This is called via $(...), so it must signal failure through its exit
+    # status: an `exit_code=1` assignment here would happen in the
+    # substitution subshell and be discarded. Callers use "errexit" to abort.
+
+    local triplet
+
+    triplet="$(gcc -print-multiarch 2>/dev/null)" || triplet=""
+
+    if [[ -z "${triplet}" ]]; then
+        echo_error "Failed to determine multiarch triplet via 'gcc -print-multiarch'." "errexit"
+        return 1
+    fi
+
+    echo "${triplet}"
+}
+
+function prerequisites_for_debian() {
+    echo -e "Redirecting output to '${path_to_log_root}/prepare_os_linux.log'"
+
+    # Non-interactive so no package can stop the build on a debconf prompt,
+    # and a generous dpkg lock timeout because `main` may launch several
+    # builds concurrently and apt — unlike dnf — fails immediately rather
+    # than waiting when another process holds the lock.
+    export DEBIAN_FRONTEND=noninteractive
+
+    sudo -E apt-get -y -o DPkg::Lock::Timeout=600 update \
+        >"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
+        echo_error "Failed to apt-get update."
+        exit_code=1
+    }
+
+    # NOTE: deliberately no blanket `apt-get upgrade` here (the yum branch
+    # does one). Upgrading every package on each invocation risks kernel and
+    # initramfs churn on the build host for no build-related benefit.
+    #
+    # build-essential brings gcc, g++ and make in one package. g++ matters:
+    # create_compiler_wrapper defaults REAL_CXX to g++, and the yum branch
+    # installs gcc without gcc-c++, so that default can be missing there.
+    sudo -E apt-get -y -o DPkg::Lock::Timeout=600 install \
+        mmdebstrap \
+        patchelf \
+        perl \
+        binutils \
+        file \
+        rsync \
+        findutils \
+        bash \
+        git \
+        coreutils \
+        sed \
+        tar \
+        gzip \
+        build-essential \
+        libc6-dev \
+        >>"${path_to_log_root}/prepare_os_linux.log" 2>&1 || {
+        echo_error "Failed to apt-get install prerequisites."
+        exit_code=1
+    }
+}
+
+function prepare_sysroot_debian() {
+    # Build the compile-time sysroot with mmdebstrap.
+    #
+    # Why mmdebstrap and not `apt-get -o RootDir=` or debootstrap:
+    #   - `apt-get -o RootDir=` cannot bootstrap from an empty directory; it
+    #     needs a pre-seeded dpkg status DB, sources.list and keyrings.
+    #   - debootstrap runs maintainer scripts and takes host locks, which
+    #     collides with building several Python versions in parallel.
+    #   - mmdebstrap --variant=extract resolves dependencies and unpacks
+    #     them without configuring anything, never consulting what is
+    #     installed on the host. That is the closest match to
+    #     `yum --installroot --setopt=tsflags=nodocs`.
+    #
+    # --variant=extract (not =custom) is required: =custom runs dpkg inside
+    # the target and fails on an empty tree.
+    #
+    # This sysroot is intentionally far leaner than the yum one, which also
+    # installs bash/coreutils/sed/tar/gzip/gcc/make. Nothing is ever
+    # *executed* from the sysroot — it is consumed only via --sysroot at
+    # compile and link time and is deleted before packaging — so shipping
+    # only the C runtime is both sufficient and strictly more
+    # pollution-proof: anything the build reaches for that is not glibc must
+    # come from our own local/ tree or fail loudly.
+    #
+    # No `rpm --initdb` equivalent is needed; mmdebstrap requires no
+    # pre-existing package database.
+
+    local codename gcc_major
+
+    rm -rf "${path_to_sysroot}" || {
+        echo_error "Failed to remove '${path_to_sysroot}'."
+        exit_code=1
+    }
+
+    mkdir -p "${path_to_sysroot}" || {
+        echo_error "Failed to create '${path_to_sysroot}'."
+        exit_code=1
+    }
+
+    codename="$(debian_codename)" || {
+        exit_code=1
+        return 1
+    }
+
+    # libstdc++ dev headers are versioned after the compiler
+    # (libstdc++-14-dev on trixie), so derive the major from the host gcc
+    # rather than pinning a version that would silently break on the next
+    # Debian release.
+    gcc_major="$(gcc -dumpversion 2>/dev/null | cut -d '.' -f 1)" || gcc_major=""
+
+    if [[ -z "${gcc_major}" ]]; then
+        echo_error "Failed to determine gcc major version for libstdc++ dev package."
+        exit_code=1
+        return 1
+    fi
+
+    echo -e "Redirecting output to '${path_to_log_root}/prepare_sysroot_linux.log'"
+    sudo mmdebstrap \
+        --variant=extract \
+        --include="libc6-dev,linux-libc-dev,libgcc-s1,libstdc++-${gcc_major}-dev" \
+        "${codename}" \
+        "${path_to_sysroot}" \
+        "http://deb.debian.org/debian" \
+        >"${path_to_log_root}/prepare_sysroot_linux.log" 2>&1 || {
+        echo_error "Failed to bootstrap sysroot with mmdebstrap."
+        exit_code=1
+    }
+}
+
+function debian_codename() {
+    # Echo this host's Debian suite codename (e.g. 'trixie') for mmdebstrap.
+    # Building against the running release keeps the produced runtime's
+    # glibc requirement aligned with the host it was built on.
+    #
+    # Like linux_multiarch_triplet, this is called via $(...) and so reports
+    # failure through its exit status rather than by setting exit_code, which
+    # would be lost with the substitution subshell.
+
+    local codename
+
+    codename=$(grep '^VERSION_CODENAME=' /etc/os-release 2>/dev/null | head -n1 | cut -d= -f2 | tr -d '"') || codename=""
+
+    if [[ -z "${codename}" ]]; then
+        echo_error "Failed to determine Debian codename from /etc/os-release." "errexit"
+        return 1
+    fi
+
+    echo "${codename}"
+}
+
 function prerequisites_for_linux() {
     echo -e "Redirecting output to '${path_to_log_root}/prepare_os_linux.log'"
 
@@ -305,8 +487,20 @@ function prepare_sysroot() {
     if [[ $(uname -s) == "Darwin" ]]; then
         prepare_sysroot_macos
     elif [[ $(uname -s) == "Linux" ]]; then
-        prerequisites_for_linux
-        prepare_sysroot_linux
+        case "$(linux_pkg_family)" in
+        apt)
+            prerequisites_for_debian
+            prepare_sysroot_debian
+            ;;
+        yum)
+            prerequisites_for_linux
+            prepare_sysroot_linux
+            ;;
+        *)
+            echo_error "Unsupported Linux package manager: neither apt-get nor yum found."
+            exit_code=1
+            ;;
+        esac
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
@@ -866,6 +1060,173 @@ function build_uuid_macos() {
     echo
 }
 
+function build_debian_base_dependencies() {
+    echo_time
+    echo -e "${bold_green}${sparkles} Installing Debian dependencies${end}"
+
+    local codename triplet
+
+    rm -rf "${path_to_linux_dependencies_root}" || {
+        echo_error "Failed to remove '${path_to_linux_dependencies_root}'."
+        exit_code=1
+    }
+
+    mkdir -p "${path_to_linux_dependencies_root}" || {
+        echo_error "Failed to create '${path_to_linux_dependencies_root}'."
+        exit_code=1
+    }
+
+    codename="$(debian_codename)" || {
+        exit_code=1
+        return 1
+    }
+    triplet="$(linux_multiarch_triplet)" || {
+        exit_code=1
+        return 1
+    }
+
+    # Debian equivalents of the -devel packages used by the yum branch.
+    #
+    # Dependency resolution is mandatory, not incidental: extracting
+    # e.g. libreadline-dev alone would give us the libreadline.so dev
+    # symlink with no target, which rsync would copy as a dangling link and
+    # check_broken_links would (correctly) reject. mmdebstrap pulls the
+    # runtime packages alongside the -dev ones, so the SONAME chain
+    # (libreadline.so -> .so.8 -> .so.8.2) arrives intact.
+    #
+    # Three entries have no counterpart in the yum list because Debian
+    # splits things up differently, and each one would otherwise surface as
+    # a missing module in check_python_build_logs:
+    #   - libcrypt-dev         glibc no longer provides crypt(3) (libxcrypt) => _crypt
+    #   - libgdbm-compat-dev   ndbm.h is split out of libgdbm-dev           => _dbm
+    #   - libnsl-dev           Debian packages libnsl separately            => nis
+    #
+    # There is deliberately no pcre1 (libpcre3-dev): it is EOL and absent
+    # from trixie onwards. pcre2 only.
+    local debian_packages
+    debian_packages="zlib1g-dev"
+    debian_packages+=",libzstd-dev"
+    debian_packages+=",libbz2-dev"
+    debian_packages+=",liblzma-dev"
+    debian_packages+=",libreadline-dev"
+    debian_packages+=",libncurses-dev"
+    debian_packages+=",libgdbm-dev"
+    debian_packages+=",libgdbm-compat-dev"
+    debian_packages+=",libffi-dev"
+    debian_packages+=",libtirpc-dev"
+    debian_packages+=",uuid-dev"
+    debian_packages+=",libcrypt-dev"
+    debian_packages+=",libnsl-dev"
+    debian_packages+=",libgirepository1.0-dev"
+    debian_packages+=",libpixman-1-dev"
+    debian_packages+=",libpcre2-dev"
+    debian_packages+=",libicu-dev"
+    debian_packages+=",libharfbuzz-dev"
+    debian_packages+=",libxext-dev"
+    debian_packages+=",libxrender-dev"
+    debian_packages+=",libxrandr-dev"
+    debian_packages+=",libxi-dev"
+    debian_packages+=",libxft-dev"
+    debian_packages+=",libx11-dev"
+    debian_packages+=",libxcb1-dev"
+    debian_packages+=",libxau-dev"
+    debian_packages+=",libxdmcp-dev"
+
+    echo -e "Redirecting output to '${path_to_log_root}/build_linux_base_dependencies.log'"
+    sudo mmdebstrap \
+        --variant=extract \
+        --include="${debian_packages}" \
+        "${codename}" \
+        "${path_to_linux_dependencies_root}" \
+        "http://deb.debian.org/debian" \
+        >"${path_to_log_root}/build_linux_base_dependencies.log" 2>&1 || {
+        echo_error "Failed to extract Debian dependencies with mmdebstrap."
+        exit_code=1
+    }
+
+    # Same allowlist as the yum branch, plus the two libraries that only
+    # exist as separate packages on Debian (see the package list above).
+    local -a libs=(
+        "girepository"
+        "glib"
+        "libX11"
+        "libXau"
+        "libXdmcp"
+        "libXext"
+        "libXft"
+        "libXi"
+        "libXrandr"
+        "libXrender"
+        "libbrotli"
+        "libbz2"
+        "libcrypt"
+        "libcurse"
+        "libexpat"
+        "libffi"
+        "libfontconfig"
+        "libform"
+        "libfreetype"
+        "libgdbm"
+        "libgdbm_compat"
+        "libglib"
+        "libgobject"
+        "libgraphite2"
+        "libharfbuzz"
+        "libhistory"
+        "libicu"
+        "liblzma"
+        "libncurse"
+        "libnsl"
+        "libpanel"
+        "libpcre"
+        "libpixman"
+        "libpng"
+        "libreadline"
+        "libtinfo"
+        "libtirpc"
+        "libuuid"
+        "libxcb"
+        "libz"
+        "libzstd"
+    )
+
+    # Copy only required dependencies to local dir.
+    #
+    # Unlike the RPM distros, Debian keeps arch-specific headers in
+    # include/<triplet> (glibc's bits/*.h in particular), so that directory
+    # comes across too and is added to CPPFLAGS by build_python_runtime.
+    rsync -aHAXE "${path_to_linux_dependencies_root}/usr/include/" "${path_to_local}/include/" || {
+        echo_error "Failed to copy '${path_to_linux_dependencies_root}/usr/include/'."
+        exit_code=1
+    }
+
+    # Libraries live in usr/lib/<triplet> rather than usr/lib64. They are
+    # flattened into local/lib exactly as the yum branch does, so nothing
+    # downstream needs to know about the multiarch layout.
+    for lib in "${libs[@]}"; do
+        rsync -aHAXE "${path_to_linux_dependencies_root}/usr/lib/${triplet}/${lib}"* "${path_to_local}/lib/" || {
+            echo_warning "Failed to copy '${path_to_linux_dependencies_root}/usr/lib/${triplet}/${lib}'."
+        }
+    done
+
+    # Clean tmp dir
+    rm -rf "${path_to_linux_dependencies_root}" || {
+        echo_error "Failed to remove '${path_to_linux_dependencies_root}'."
+        exit_code=1
+    }
+
+    echo -e "done!"
+    echo
+
+    # Fix rpath to the deps copied in from mmdebstrap.
+    #
+    # This is load-bearing, not cosmetic: the Debian .so files carry no
+    # RPATH of their own, so without this a library such as libreadline
+    # would resolve its own libtinfo dependency against the *host*
+    # /usr/lib/<triplet> copy instead of the one in local/lib.
+    fix_runtime_paths
+}
+
 function build_linux_base_dependencies() {
     echo_time
     echo -e "${bold_green}${sparkles} Installing Linux dependencies${end}"
@@ -1020,23 +1381,62 @@ function build_python_runtime() {
         # Be paranoid and strip the system include/library hints
         unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
     elif [[ $(uname -s) == "Linux" ]]; then
-        # Linux C compiler and Linker options for python dependencies
-        export LD_LIBRARY_PATH="${path_to_local}/lib"
+        case "$(linux_pkg_family)" in
+        apt)
+            # Debian C compiler and Linker options for python dependencies.
+            #
+            # Differs from the yum branch in the multiarch paths: arch
+            # headers are in include/<triplet> and libraries in
+            # lib/<triplet>, and there is no usr/lib64 at all.
+            local dep_triplet
+            dep_triplet="$(linux_multiarch_triplet)" || {
+                exit_code=1
+                return 1
+            }
 
-        export CPPFLAGS="--sysroot=${path_to_sysroot} \
-                         -I${path_to_local}/include \
-                         -I${path_to_local}/include/tirpc \
-                         -I${path_to_sysroot}/usr/include"
+            export LD_LIBRARY_PATH="${path_to_local}/lib"
 
-        export LDFLAGS="--sysroot=${path_to_sysroot} \
-                        -L${path_to_local}/lib \
-                        -L${path_to_sysroot}/usr/lib \
-                        -L${path_to_sysroot}/usr/lib64 \
-                        -Wl,-rpath,${path_to_local}/lib \
-                        -Wl,-rpath-link,${path_to_local}/lib"
+            export CPPFLAGS="--sysroot=${path_to_sysroot} \
+                             -I${path_to_local}/include \
+                             -I${path_to_local}/include/${dep_triplet} \
+                             -I${path_to_local}/include/tirpc \
+                             -I${path_to_sysroot}/usr/include \
+                             -I${path_to_sysroot}/usr/include/${dep_triplet}"
 
-        # Be paranoid and strip the system include/library hints
-        unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
+            export LDFLAGS="--sysroot=${path_to_sysroot} \
+                            -L${path_to_local}/lib \
+                            -L${path_to_sysroot}/usr/lib \
+                            -L${path_to_sysroot}/usr/lib/${dep_triplet} \
+                            -Wl,-rpath,${path_to_local}/lib \
+                            -Wl,-rpath-link,${path_to_local}/lib"
+
+            # Be paranoid and strip the system include/library hints
+            unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
+            ;;
+        yum)
+            # Linux C compiler and Linker options for python dependencies
+            export LD_LIBRARY_PATH="${path_to_local}/lib"
+
+            export CPPFLAGS="--sysroot=${path_to_sysroot} \
+                             -I${path_to_local}/include \
+                             -I${path_to_local}/include/tirpc \
+                             -I${path_to_sysroot}/usr/include"
+
+            export LDFLAGS="--sysroot=${path_to_sysroot} \
+                            -L${path_to_local}/lib \
+                            -L${path_to_sysroot}/usr/lib \
+                            -L${path_to_sysroot}/usr/lib64 \
+                            -Wl,-rpath,${path_to_local}/lib \
+                            -Wl,-rpath-link,${path_to_local}/lib"
+
+            # Be paranoid and strip the system include/library hints
+            unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
+            ;;
+        *)
+            echo_error "Unsupported Linux package manager: neither apt-get nor yum found."
+            exit_code=1
+            ;;
+        esac
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
@@ -1053,7 +1453,12 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                build_debian_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1068,6 +1473,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1092,7 +1500,12 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                build_debian_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1107,6 +1520,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1131,7 +1547,14 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                # No build_libnsl here: Debian ships libnsl-dev, which
+                # build_debian_base_dependencies already pulls in.
+                build_debian_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1148,6 +1571,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1174,7 +1600,14 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                # No build_libnsl here: Debian ships libnsl-dev, which
+                # build_debian_base_dependencies already pulls in.
+                build_debian_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1191,6 +1624,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1217,7 +1653,14 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                # No build_libnsl here: Debian ships libnsl-dev, which
+                # build_debian_base_dependencies already pulls in.
+                build_debian_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1234,6 +1677,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1277,6 +1723,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1320,6 +1769,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1363,6 +1815,9 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
             fi
         else
             echo_error "Unsupported platform: $(uname -s)"
@@ -1422,7 +1877,23 @@ function build_python_runtime() {
         # Linux C compiler and Linker options for Python
         export LD_LIBRARY_PATH="${path_to_local}/lib"
 
+        # On Debian glibc's arch headers (bits/*.h) live in
+        # include/<triplet>, so that directory has to be searched too or
+        # configure fails to find basic system headers. Libraries were
+        # already flattened into local/lib by
+        # build_debian_base_dependencies, so LDFLAGS needs no triplet.
+        local py_triplet_inc=""
+        if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+            local py_triplet
+            py_triplet="$(linux_multiarch_triplet)" || {
+                exit_code=1
+                return 1
+            }
+            py_triplet_inc="-I${path_to_local}/include/${py_triplet}"
+        fi
+
         export CPPFLAGS="-I${path_to_local}/include \
+                         ${py_triplet_inc} \
                          -I${path_to_local}/include/tirpc \
                          -I${path_to_local}/include/uuid"
 
@@ -1814,6 +2285,139 @@ function check_loadable_refs_macos() {
         done
 }
 
+function check_loadable_refs_debian() {
+    # Debian counterpart of check_loadable_refs_linux.
+    #
+    # The logic is identical; only the "core system libraries" allowlist
+    # differs, because Debian resolves libraries through multiarch paths
+    # (/lib/<triplet>/libc.so.6) rather than the flat /lib64 used by the RPM
+    # distros. Without the triplet-aware patterns every core system library
+    # would fall through to the catch-all and fail the build.
+    #
+    # The patterns stay per-library on purpose: a blanket
+    # /lib/*-linux-gnu/* would defeat the point of this check, which is to
+    # catch one of our own libraries silently resolving against the host's
+    # copy instead of the one in local/lib.
+
+    local file lib rpath dynamic_section ldd_failed response
+    local forbidden_paths=()
+
+    find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
+        | while IFS= read -r -d '' file; do
+            if file "${file}" | grep -q ' ELF'; then
+                response=""
+                dynamic_section=$(readelf -d "${file}")
+                if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
+                    response="there-is-no-dynamic-section-in-this-file"
+                else
+                    ldd_failed=0
+                    ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
+                    if [[ "${ldd_failed}" -eq 0 ]]; then
+                        response=$(ldd -v "${file}" | awk '/=>/ {print $3}')
+                    else
+                        response="failed-to-run-ldd-on-file."
+                        exit_code=1
+                    fi
+                fi
+            else
+                # Short-circuit non-ELF files right away
+                continue
+            fi
+            # everything echo inside the if/else gets lost unless it's the last thing before the
+            # back-slashed pipe so we use the response variable for this purpose
+            printf '%s\n' "${response}" \
+                | while read -r lib; do
+                    case "${lib}" in
+                    /lib/*/ld-linux* | /usr/lib/*/ld-linux* | \
+                        /lib/ld-linux* | /usr/lib/ld-linux* | \
+                        /lib/*/libc[.-]* | /usr/lib/*/libc[.-]* | \
+                        /lib/*/libcom_err* | /usr/lib/*/libcom_err* | \
+                        /lib/*/libcrypt[.-]* | /usr/lib/*/libcrypt[.-]* | \
+                        /lib/*/libdl[.-]* | /usr/lib/*/libdl[.-]* | \
+                        /lib/*/libgcc_s* | /usr/lib/*/libgcc_s* | \
+                        /lib/*/libgssapi_krb5* | /usr/lib/*/libgssapi_krb5* | \
+                        /lib/*/libk5crypto* | /usr/lib/*/libk5crypto* | \
+                        /lib/*/libkeyutils* | /usr/lib/*/libkeyutils* | \
+                        /lib/*/libkrb5[.-]* | /usr/lib/*/libkrb5[.-]* | \
+                        /lib/*/libkrb5support* | /usr/lib/*/libkrb5support* | \
+                        /lib/*/libm[.-]* | /usr/lib/*/libm[.-]* | \
+                        /lib/*/libpthread[.-]* | /usr/lib/*/libpthread[.-]* | \
+                        /lib/*/libresolv[.-]* | /usr/lib/*/libresolv[.-]* | \
+                        /lib/*/librt[.-]* | /usr/lib/*/librt[.-]* | \
+                        /lib/*/libselinux* | /usr/lib/*/libselinux* | \
+                        /lib/*/libstdc++* | /usr/lib/*/libstdc++* | \
+                        /lib/*/libutil[.-]* | /usr/lib/*/libutil[.-]*)
+                        # Core "system" libraries we can assume exist on the host machine
+                        ;;
+                    "${path_to_python_home}"/lib* | \
+                        "${path_to_python_home}"/local/bin* | \
+                        "${path_to_python_home}"/local/lib*)
+                        rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
+                        if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
+                            # this are definitely our relative reference – OK
+                            :
+                        else
+                            # file doesn't have an RPATH or
+                            # file has an hard coded absolute rpath - NOT OK
+                            # however if the file is in the sysroot we will ignore it
+                            if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                                # if the file is in the sysroot itself ignore it as will get deleted
+                                :
+                            else
+                                # absolute rpath pointing at our path_to_python_home/...
+                                echo -e "Match case Debian_01"
+                                echo_lib_ref "${file}" "${lib}"
+                                exit_code=1
+                            fi
+                        fi
+                        ;;
+                    "${path_to_sysroot}"/*)
+                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                            # if the file is in the sysroot itself ignore it as will get deleted
+                            :
+                        else
+                            # this is one of our local dir lib pointing at the sysroot - NOT OK
+                            echo -e "Match case Debian_02"
+                            echo_lib_ref "${file}" "${lib}"
+                            exit_code=1
+                        fi
+                        ;;
+                    *)
+                        # any extra "forbidden" prefixes
+                        for p in "${forbidden_paths[@]}"; do
+                            if [[ "${lib}" == "${p}"* ]]; then
+                                echo -e "Match case Debian_03"
+                                echo_lib_ref "${file}" "${lib}"
+                                exit_code=1
+                            fi
+                        done
+                        if [[ -z "${lib}" ]]; then
+                            # response has not been set here above so it's ''
+                            continue
+                        fi
+                        if [[ "${lib}" == '=>' ]]; then
+                            # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare "=>"
+                            # when there's no third field, so skip it
+                            continue
+                        fi
+                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                            # if the file is in the sysroot ignore it as will get deleted
+                            continue
+                        fi
+                        if [[ "${file}" == *".a" ]]; then
+                            # static library – OK
+                            continue
+                        fi
+                        # Not sure what this is so let's log it
+                        echo -e "Match case Debian_04"
+                        echo_lib_ref "${file}" "${lib}"
+                        exit_code=1
+                        ;;
+                    esac
+                done
+        done
+}
+
 function check_loadable_refs_linux() {
     local file lib rpath dynamic_section ldd_failed response
     local forbidden_paths=()
@@ -1939,7 +2543,18 @@ function check_loadable_refs() {
     if [[ $(uname -s) == "Darwin" ]]; then
         check_loadable_refs_macos
     elif [[ $(uname -s) == "Linux" ]]; then
-        check_loadable_refs_linux
+        case "$(linux_pkg_family)" in
+        apt)
+            check_loadable_refs_debian
+            ;;
+        yum)
+            check_loadable_refs_linux
+            ;;
+        *)
+            echo_error "Unsupported Linux package manager: neither apt-get nor yum found."
+            exit_code=1
+            ;;
+        esac
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
@@ -2000,12 +2615,16 @@ function check_hardcoded_paths() {
         "carlogtt"
         "carlo"
         "ec2-user"
+        "admin"
+        "debian"
         "/Users/carlogtt"
         "/home/carlogtt"
         "/Users/carlo"
         "/home/carlo"
         "/Users/ec2-user"
         "/home/ec2-user"
+        "/home/admin"
+        "/home/debian"
     )
 
     while IFS= read -r -d '' file; do
