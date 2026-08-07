@@ -1165,9 +1165,14 @@ function build_debian_base_dependencies() {
 
     # Same allowlist as the yum branch, plus the two libraries that only
     # exist as separate packages on Debian (see the package list above).
+    #
+    # Note the bare "girepository" and "glib" entries the yum branch uses are
+    # deliberately absent. On the RPM distros those globs match only
+    # libgirepository*.so / libglib*.so, but on Debian
+    # usr/lib/<triplet>/glib-2.0 and .../girepository-1.0 are *directories* of
+    # developer executables (glib-compile-schemas, gi-compile-repository, …)
+    # and typelibs.
     local -a libs=(
-        "girepository"
-        "glib"
         "libX11"
         "libXau"
         "libXdmcp"
@@ -1176,6 +1181,7 @@ function build_debian_base_dependencies() {
         "libXi"
         "libXrandr"
         "libXrender"
+        "libatomic"
         "libbrotli"
         "libbz2"
         "libcrypt"
@@ -1187,6 +1193,7 @@ function build_debian_base_dependencies() {
         "libfreetype"
         "libgdbm"
         "libgdbm_compat"
+        "libgirepository"
         "libglib"
         "libgobject"
         "libgraphite2"
@@ -2033,11 +2040,16 @@ function clean_build() {
     }
 
     # Existing cache/file cleanup
+    #
+    # cmake joins pkgconfig here: both are build-time metadata directories
+    # that describe where headers and libraries live, so they are useless at
+    # runtime and their contents embed absolute build paths.
     local dirs_to_clean=(
         ".mypy_cache"
         ".pytest_cache"
         "__pycache__"
         "pkgconfig"
+        "cmake"
     )
     for dir in "${dirs_to_clean[@]}"; do
         find "${path_to_python_home}" -type d -name "${dir}" -print -exec rm -rf {} + || {
@@ -2046,11 +2058,16 @@ function clean_build() {
         }
     done
 
+    # *.cmake joins *.pc for the same reason: build-time metadata. The
+    # dirs_to_clean pass above only catches a directory actually named
+    # "cmake" (as OpenSSL installs), so the glob is still needed for packages
+    # that drop their .cmake files elsewhere (libpng uses lib/libpng/).
     local files_to_clean=(
         ".DS_Store"
         "Thumbs.db"
         "*.pyc"
         "*.pc"
+        "*.cmake"
     )
     for file in "${files_to_clean[@]}"; do
         find "${path_to_python_home}" \( -type f -o -type l \) -name "${file}" -print -exec rm -rf {} + || {
@@ -2138,39 +2155,42 @@ function make_tar() {
 }
 
 function fix_runtime_paths_macos() {
-    # Make every dylib install-name relative @rpath
-    find "${path_to_python_home}" \
-        \( -path "${path_to_python_home}/sysroot" -prune \) -o \
-        \( \( -type f -o -type l \) \
-        \( -perm -111 \
-        -o -name '*.so*' \
-        -o -name '*.dylib' \
-        -o -name '*.bundle' \
-        -o -name '*.sl' \) \
-        -print0 \
-        \) \
-        | while IFS= read -r -d '' bin; do
-            if file "${bin}" | grep -q 'Mach-O'; then
-                extension=$(echo "${bin}" | sed "s|${path_to_python_home}/||g")
-                install_name_tool -id "@rpath/${extension}" "${bin}"
+    # Make every dylib install-name relative @rpath.
+    #
+    # Process substitution, not a pipe, to match the other fix_/check_
+    # helpers: a `find … | while` pipeline runs the loop body in a subshell,
+    # so anything assigned in there (exit_code included) would be discarded.
+    while IFS= read -r -d '' bin; do
+        if file "${bin}" | grep -q 'Mach-O'; then
+            extension=$(echo "${bin}" | sed "s|${path_to_python_home}/||g")
+            install_name_tool -id "@rpath/${extension}" "${bin}"
 
-                if otool -L "${bin}" | tail -n +2 | grep -q "${path_to_local}/lib/"; then
-                    otool -L "${bin}" | tail -n +2 | grep "${path_to_local}/lib/" | awk '{print $1}' \
-                        | while read -r lib; do
-                            extension=$(echo "${lib}" | sed "s|${path_to_local}/lib/||g")
-                            install_name_tool -change "${lib}" "@rpath/local/lib/${extension}" "${bin}"
-                        done
-                fi
-
-                if otool -L "${bin}" | tail -n +2 | grep -q '^[[:space:]]*/Library/Frameworks/'; then
-                    otool -L "${bin}" | tail -n +2 | grep '^[[:space:]]*/Library/Frameworks/' | awk '{print $1}' \
-                        | while read -r fw; do
-                            extension=$(echo "${fw}" | sed "s|/Library/Frameworks/||g")
-                            install_name_tool -change "${fw}" "@rpath/local/Frameworks/${extension}" "${bin}"
-                        done
-                fi
+            if otool -L "${bin}" | tail -n +2 | grep -q "${path_to_local}/lib/"; then
+                while read -r lib; do
+                    extension=$(echo "${lib}" | sed "s|${path_to_local}/lib/||g")
+                    install_name_tool -change "${lib}" "@rpath/local/lib/${extension}" "${bin}"
+                done < <(otool -L "${bin}" | tail -n +2 | grep "${path_to_local}/lib/" | awk '{print $1}')
             fi
-        done
+
+            if otool -L "${bin}" | tail -n +2 | grep -q '^[[:space:]]*/Library/Frameworks/'; then
+                while read -r fw; do
+                    extension=$(echo "${fw}" | sed "s|/Library/Frameworks/||g")
+                    install_name_tool -change "${fw}" "@rpath/local/Frameworks/${extension}" "${bin}"
+                done < <(otool -L "${bin}" | tail -n +2 | grep '^[[:space:]]*/Library/Frameworks/' | awk '{print $1}')
+            fi
+        fi
+    done < <(
+        find "${path_to_python_home}" \
+            \( -path "${path_to_python_home}/sysroot" -prune \) -o \
+            \( \( -type f -o -type l \) \
+            \( -perm -111 \
+            -o -name '*.so*' \
+            -o -name '*.dylib' \
+            -o -name '*.bundle' \
+            -o -name '*.sl' \) \
+            -print0 \
+            \)
+    )
 
     # Add rpath to the python launcher if it is missing
     for exe in "${path_to_python_home}/bin/"*; do
@@ -2192,32 +2212,36 @@ function fix_runtime_paths_linux() {
 
     local new_path='$ORIGIN:$ORIGIN/..:$ORIGIN/../..:$ORIGIN/../../..:$ORIGIN/../../../..:$ORIGIN/../../../../..:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib:$ORIGIN/../local/lib:$ORIGIN/../../local/lib:$ORIGIN/../../../local/lib:$ORIGIN/../../../../local/lib:$ORIGIN/../../../../../local/lib'
 
-    # Make all .so files look for libraries in new_path
-    find "${path_to_python_home}" \
-        \( -path "${path_to_python_home}/sysroot" -prune \) -o \
-        \( \( -type f -o -type l \) \
-        -print0 \
-        \) \
-        | while IFS= read -r -d '' fh; do
-            if file "${fh}" | grep -q ' ELF'; then
-                if file "${fh}" | grep -q 'relocatable'; then
-                    # Disabling debugging log
-                    # echo -e "skipping file-is-relocatable '${fh}'"
-                    continue
-                fi
-                dynamic_section=$(readelf -d "${fh}")
-                if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                    # Disabling debugging log
-                    # echo -e "skipping there-is-no-dynamic-section-in-this-file '${fh}'"
-                    continue
-                else
-                    patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
-                        echo_error "Failed to patch '${fh}'."
-                        exit_code=1
-                    }
-                fi
+    # Make all .so files look for libraries in new_path.
+    #
+    # Process substitution, not a pipe, so a failed patchelf sets exit_code in
+    # this shell instead of in a subshell that throws it away.
+    while IFS= read -r -d '' fh; do
+        if file "${fh}" | grep -q ' ELF'; then
+            if file "${fh}" | grep -q 'relocatable'; then
+                # Disabling debugging log
+                # echo -e "skipping file-is-relocatable '${fh}'"
+                continue
             fi
-        done
+            dynamic_section=$(readelf -d "${fh}")
+            if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
+                # Disabling debugging log
+                # echo -e "skipping there-is-no-dynamic-section-in-this-file '${fh}'"
+                continue
+            else
+                patchelf --force-rpath --set-rpath "${new_path}" "${fh}" || {
+                    echo_error "Failed to patch '${fh}'."
+                    exit_code=1
+                }
+            fi
+        fi
+    done < <(
+        find "${path_to_python_home}" \
+            \( -path "${path_to_python_home}/sysroot" -prune \) -o \
+            \( \( -type f -o -type l \) \
+            -print0 \
+            \)
+    )
 }
 
 function fix_runtime_paths() {
@@ -2254,52 +2278,54 @@ function check_loadable_refs_macos() {
     local file lib
     local forbidden_paths=("/Library/Developer/CommandLineTools")
 
-    find "${path_to_python_home}" -type f \
-        \( -perm -111 \
-        -o -name '*.so*' \
-        -o -name '*.dylib' \
-        -o -name '*.bundle' \
-        -o -name '*.sl' \) \
-        -print0 \
-        | while IFS= read -r -d '' file; do
-            # Skip the header line from otool -L, grab only the referenced install names
-            otool -L "${file}" | tail -n +2 | awk '{print $1}' \
-                | while read -r lib; do
-                    case "${lib}" in
-                    @*)
-                        # relative reference – OK
-                        ;;
-                    /System/* | \
-                        /usr/lib/*)
-                        # system lib – OK
-                        ;;
-                    "${path_to_sysroot}"/*)
-                        # this is one of our local dir lib pointing at the sysroot - NOT OK
-                        echo -e "Match case macOS_01"
+    # Process substitution, not a pipe, so exit_code assignments below happen
+    # in this shell rather than in a subshell that discards them.
+    while IFS= read -r -d '' file; do
+        # Skip the header line from otool -L, grab only the referenced install names
+        while read -r lib; do
+            case "${lib}" in
+            @*)
+                # relative reference – OK
+                ;;
+            /System/* | \
+                /usr/lib/*)
+                # system lib – OK
+                ;;
+            "${path_to_sysroot}"/*)
+                # this is one of our local dir lib pointing at the sysroot - NOT OK
+                echo -e "Match case macOS_01"
+                echo_lib_ref "${file}" "${lib}"
+                exit_code=1
+                ;;
+            *)
+                # any extra "forbidden" prefixes
+                for p in "${forbidden_paths[@]}"; do
+                    if [[ "${lib}" == "${p}"* ]]; then
+                        echo -e "Match case macOS_02"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
-                        ;;
-                    *)
-                        # any extra "forbidden" prefixes
-                        for p in "${forbidden_paths[@]}"; do
-                            if [[ "${lib}" == "${p}"* ]]; then
-                                echo -e "Match case macOS_02"
-                                echo_lib_ref "${file}" "${lib}"
-                                exit_code=1
-                            fi
-                        done
-                        if [[ "${file}" == *".a" ]]; then
-                            # static library – OK
-                            continue
-                        fi
-                        # Not sure what this is so let's log it
-                        echo -e "Match case macOS_03"
-                        echo_lib_ref "${file}" "${lib}"
-                        exit_code=1
-                        ;;
-                    esac
+                    fi
                 done
-        done
+                if [[ "${file}" == *".a" ]]; then
+                    # static library – OK
+                    continue
+                fi
+                # Not sure what this is so let's log it
+                echo -e "Match case macOS_03"
+                echo_lib_ref "${file}" "${lib}"
+                exit_code=1
+                ;;
+            esac
+        done < <(otool -L "${file}" | tail -n +2 | awk '{print $1}')
+    done < <(
+        find "${path_to_python_home}" -type f \
+            \( -perm -111 \
+            -o -name '*.so*' \
+            -o -name '*.dylib' \
+            -o -name '*.bundle' \
+            -o -name '*.sl' \) \
+            -print0
+    )
 }
 
 function check_loadable_refs_debian() {
@@ -2319,238 +2345,236 @@ function check_loadable_refs_debian() {
     local file lib rpath dynamic_section ldd_failed response
     local forbidden_paths=()
 
-    find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
-        | while IFS= read -r -d '' file; do
-            if file "${file}" | grep -q ' ELF'; then
-                response=""
-                dynamic_section=$(readelf -d "${file}")
-                if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                    response="there-is-no-dynamic-section-in-this-file"
+    # Both loops are fed by process substitution rather than a pipe so that
+    # they run in *this* shell: a `find … | while` pipeline puts the loop
+    # body in a subshell, where every exit_code=1 below would be discarded
+    # and the build would report success despite finding bad references.
+    while IFS= read -r -d '' file; do
+        if file "${file}" | grep -q ' ELF'; then
+            response=""
+            dynamic_section=$(readelf -d "${file}")
+            if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
+                response="there-is-no-dynamic-section-in-this-file"
+            else
+                ldd_failed=0
+                ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
+                if [[ "${ldd_failed}" -eq 0 ]]; then
+                    response=$(ldd -v "${file}" | awk '/=>/ {print $3}')
                 else
-                    ldd_failed=0
-                    ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
-                    if [[ "${ldd_failed}" -eq 0 ]]; then
-                        response=$(ldd -v "${file}" | awk '/=>/ {print $3}')
+                    response="failed-to-run-ldd-on-file."
+                    exit_code=1
+                fi
+            fi
+        else
+            # Short-circuit non-ELF files right away
+            continue
+        fi
+        while read -r lib; do
+            case "${lib}" in
+            /lib/*/ld-linux* | /usr/lib/*/ld-linux* | \
+                /lib/ld-linux* | /usr/lib/ld-linux* | \
+                /lib/*/libc[.-]* | /usr/lib/*/libc[.-]* | \
+                /lib/*/libcom_err* | /usr/lib/*/libcom_err* | \
+                /lib/*/libcrypt[.-]* | /usr/lib/*/libcrypt[.-]* | \
+                /lib/*/libdl[.-]* | /usr/lib/*/libdl[.-]* | \
+                /lib/*/libgcc_s* | /usr/lib/*/libgcc_s* | \
+                /lib/*/libgssapi_krb5* | /usr/lib/*/libgssapi_krb5* | \
+                /lib/*/libk5crypto* | /usr/lib/*/libk5crypto* | \
+                /lib/*/libkeyutils* | /usr/lib/*/libkeyutils* | \
+                /lib/*/libkrb5[.-]* | /usr/lib/*/libkrb5[.-]* | \
+                /lib/*/libkrb5support* | /usr/lib/*/libkrb5support* | \
+                /lib/*/libm[.-]* | /usr/lib/*/libm[.-]* | \
+                /lib/*/libpthread[.-]* | /usr/lib/*/libpthread[.-]* | \
+                /lib/*/libresolv[.-]* | /usr/lib/*/libresolv[.-]* | \
+                /lib/*/librt[.-]* | /usr/lib/*/librt[.-]* | \
+                /lib/*/libselinux* | /usr/lib/*/libselinux* | \
+                /lib/*/libstdc++* | /usr/lib/*/libstdc++* | \
+                /lib/*/libutil[.-]* | /usr/lib/*/libutil[.-]*)
+                # Core "system" libraries we can assume exist on the host machine
+                ;;
+            "${path_to_python_home}"/lib* | \
+                "${path_to_python_home}"/local/bin* | \
+                "${path_to_python_home}"/local/lib*)
+                rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
+                if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
+                    # this are definitely our relative reference – OK
+                    :
+                else
+                    # file doesn't have an RPATH or
+                    # file has an hard coded absolute rpath - NOT OK
+                    # however if the file is in the sysroot we will ignore it
+                    if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                        # if the file is in the sysroot itself ignore it as will get deleted
+                        :
                     else
-                        response="failed-to-run-ldd-on-file."
+                        # absolute rpath pointing at our path_to_python_home/...
+                        echo -e "Match case Debian_01"
+                        echo_lib_ref "${file}" "${lib}"
                         exit_code=1
                     fi
                 fi
-            else
-                # Short-circuit non-ELF files right away
-                continue
-            fi
-            # everything echo inside the if/else gets lost unless it's the last thing before the
-            # back-slashed pipe so we use the response variable for this purpose
-            printf '%s\n' "${response}" \
-                | while read -r lib; do
-                    case "${lib}" in
-                    /lib/*/ld-linux* | /usr/lib/*/ld-linux* | \
-                        /lib/ld-linux* | /usr/lib/ld-linux* | \
-                        /lib/*/libc[.-]* | /usr/lib/*/libc[.-]* | \
-                        /lib/*/libcom_err* | /usr/lib/*/libcom_err* | \
-                        /lib/*/libcrypt[.-]* | /usr/lib/*/libcrypt[.-]* | \
-                        /lib/*/libdl[.-]* | /usr/lib/*/libdl[.-]* | \
-                        /lib/*/libgcc_s* | /usr/lib/*/libgcc_s* | \
-                        /lib/*/libgssapi_krb5* | /usr/lib/*/libgssapi_krb5* | \
-                        /lib/*/libk5crypto* | /usr/lib/*/libk5crypto* | \
-                        /lib/*/libkeyutils* | /usr/lib/*/libkeyutils* | \
-                        /lib/*/libkrb5[.-]* | /usr/lib/*/libkrb5[.-]* | \
-                        /lib/*/libkrb5support* | /usr/lib/*/libkrb5support* | \
-                        /lib/*/libm[.-]* | /usr/lib/*/libm[.-]* | \
-                        /lib/*/libpthread[.-]* | /usr/lib/*/libpthread[.-]* | \
-                        /lib/*/libresolv[.-]* | /usr/lib/*/libresolv[.-]* | \
-                        /lib/*/librt[.-]* | /usr/lib/*/librt[.-]* | \
-                        /lib/*/libselinux* | /usr/lib/*/libselinux* | \
-                        /lib/*/libstdc++* | /usr/lib/*/libstdc++* | \
-                        /lib/*/libutil[.-]* | /usr/lib/*/libutil[.-]*)
-                        # Core "system" libraries we can assume exist on the host machine
-                        ;;
-                    "${path_to_python_home}"/lib* | \
-                        "${path_to_python_home}"/local/bin* | \
-                        "${path_to_python_home}"/local/lib*)
-                        rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
-                        if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
-                            # this are definitely our relative reference – OK
-                            :
-                        else
-                            # file doesn't have an RPATH or
-                            # file has an hard coded absolute rpath - NOT OK
-                            # however if the file is in the sysroot we will ignore it
-                            if [[ "${file}" == "${path_to_sysroot}"* ]]; then
-                                # if the file is in the sysroot itself ignore it as will get deleted
-                                :
-                            else
-                                # absolute rpath pointing at our path_to_python_home/...
-                                echo -e "Match case Debian_01"
-                                echo_lib_ref "${file}" "${lib}"
-                                exit_code=1
-                            fi
-                        fi
-                        ;;
-                    "${path_to_sysroot}"/*)
-                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
-                            # if the file is in the sysroot itself ignore it as will get deleted
-                            :
-                        else
-                            # this is one of our local dir lib pointing at the sysroot - NOT OK
-                            echo -e "Match case Debian_02"
-                            echo_lib_ref "${file}" "${lib}"
-                            exit_code=1
-                        fi
-                        ;;
-                    *)
-                        # any extra "forbidden" prefixes
-                        for p in "${forbidden_paths[@]}"; do
-                            if [[ "${lib}" == "${p}"* ]]; then
-                                echo -e "Match case Debian_03"
-                                echo_lib_ref "${file}" "${lib}"
-                                exit_code=1
-                            fi
-                        done
-                        if [[ -z "${lib}" ]]; then
-                            # response has not been set here above so it's ''
-                            continue
-                        fi
-                        if [[ "${lib}" == '=>' ]]; then
-                            # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare "=>"
-                            # when there's no third field, so skip it
-                            continue
-                        fi
-                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
-                            # if the file is in the sysroot ignore it as will get deleted
-                            continue
-                        fi
-                        if [[ "${file}" == *".a" ]]; then
-                            # static library – OK
-                            continue
-                        fi
-                        # Not sure what this is so let's log it
-                        echo -e "Match case Debian_04"
+                ;;
+            "${path_to_sysroot}"/*)
+                if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                    # if the file is in the sysroot itself ignore it as will get deleted
+                    :
+                else
+                    # this is one of our local dir lib pointing at the sysroot - NOT OK
+                    echo -e "Match case Debian_02"
+                    echo_lib_ref "${file}" "${lib}"
+                    exit_code=1
+                fi
+                ;;
+            *)
+                # any extra "forbidden" prefixes
+                for p in "${forbidden_paths[@]}"; do
+                    if [[ "${lib}" == "${p}"* ]]; then
+                        echo -e "Match case Debian_03"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
-                        ;;
-                    esac
+                    fi
                 done
-        done
+                if [[ -z "${lib}" ]]; then
+                    # response has not been set here above so it's ''
+                    continue
+                fi
+                if [[ "${lib}" == '=>' ]]; then
+                    # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare "=>"
+                    # when there's no third field, so skip it
+                    continue
+                fi
+                if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                    # if the file is in the sysroot ignore it as will get deleted
+                    continue
+                fi
+                if [[ "${file}" == *".a" ]]; then
+                    # static library – OK
+                    continue
+                fi
+                # Not sure what this is so let's log it
+                echo -e "Match case Debian_04"
+                echo_lib_ref "${file}" "${lib}"
+                exit_code=1
+                ;;
+            esac
+        done < <(printf '%s\n' "${response}")
+    done < <(find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0)
 }
 
 function check_loadable_refs_linux() {
     local file lib rpath dynamic_section ldd_failed response
     local forbidden_paths=()
 
-    find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0 \
-        | while IFS= read -r -d '' file; do
-            if file "${file}" | grep -q ' ELF'; then
-                response=""
-                dynamic_section=$(readelf -d "${file}")
-                if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
-                    response="there-is-no-dynamic-section-in-this-file"
+    # Process substitution, not a pipe, so exit_code assignments below happen
+    # in this shell rather than in a subshell that discards them.
+    while IFS= read -r -d '' file; do
+        if file "${file}" | grep -q ' ELF'; then
+            response=""
+            dynamic_section=$(readelf -d "${file}")
+            if [[ "${dynamic_section}" == *"there is no dynamic section in this file"* ]]; then
+                response="there-is-no-dynamic-section-in-this-file"
+            else
+                ldd_failed=0
+                ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
+                if [[ "${ldd_failed}" -eq 0 ]]; then
+                    response=$(ldd -v "${file}" | awk '/=>/ {print $3}')
                 else
-                    ldd_failed=0
-                    ldd -v "${file}" >/dev/null 2>&1 || ldd_failed=1
-                    if [[ "${ldd_failed}" -eq 0 ]]; then
-                        response=$(ldd -v "${file}" | awk '/=>/ {print $3}')
+                    response="failed-to-run-ldd-on-file."
+                    exit_code=1
+                fi
+            fi
+        else
+            # Short-circuit non-ELF files right away
+            continue
+        fi
+        while read -r lib; do
+            case "${lib}" in
+            /lib/ld-linux* | /lib64/ld-linux* | \
+                /lib/libc* | /lib64/libc* | \
+                /lib/libcom_err* | /lib64/libcom_err* | \
+                /lib/libdl* | /lib64/libdl* | \
+                /lib/libgcc_s* | /lib64/libgcc_s* | \
+                /lib/libgssapi_krb5* | /lib64/libgssapi_krb5* | \
+                /lib/libk5crypto* | /lib64/libk5crypto* | \
+                /lib/libkeyutils* | /lib64/libkeyutils* | \
+                /lib/libkrb5* | /lib64/libkrb5* | \
+                /lib/libkrb5support* | /lib64/libkrb5support* | \
+                /lib/libm* | /lib64/libm* | \
+                /lib/libpthread* | /lib64/libpthread* | \
+                /lib/libresolv* | /lib64/libresolv* | \
+                /lib/librt* | /lib64/librt* | \
+                /lib/libselinux* | /lib64/libselinux* | \
+                /lib/libstdc++* | /lib64/libstdc++* | \
+                /lib/libutil* | /lib64/libutil*)
+                # Core "system" libraries we can assume exist on the host machine
+                ;;
+            "${path_to_python_home}"/lib* | \
+                "${path_to_python_home}"/local/bin* | \
+                "${path_to_python_home}"/local/lib*)
+                rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
+                if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
+                    # this are definitely our relative reference – OK
+                    :
+                else
+                    # file doesn't have an RPATH or
+                    # file has an hard coded absolute rpath - NOT OK
+                    # however if the file is in the sysroot we will ignore it
+                    if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                        # if the file is in the sysroot itself ignore it as will get deleted
+                        :
                     else
-                        response="failed-to-run-ldd-on-file."
+                        # absolute rpath pointing at our path_to_python_home/...
+                        echo -e "Match case Linux_01"
+                        echo_lib_ref "${file}" "${lib}"
                         exit_code=1
                     fi
                 fi
-            else
-                # Short-circuit non-ELF files right away
-                continue
-            fi
-            # everything echo inside the if/else gets lost unless it's the last thing before the
-            # back-slashed pipe so we use the response variable for this purpose
-            printf '%s\n' "${response}" \
-                | while read -r lib; do
-                    case "${lib}" in
-                    /lib/ld-linux* | /lib64/ld-linux* | \
-                        /lib/libc* | /lib64/libc* | \
-                        /lib/libcom_err* | /lib64/libcom_err* | \
-                        /lib/libdl* | /lib64/libdl* | \
-                        /lib/libgcc_s* | /lib64/libgcc_s* | \
-                        /lib/libgssapi_krb5* | /lib64/libgssapi_krb5* | \
-                        /lib/libk5crypto* | /lib64/libk5crypto* | \
-                        /lib/libkeyutils* | /lib64/libkeyutils* | \
-                        /lib/libkrb5* | /lib64/libkrb5* | \
-                        /lib/libkrb5support* | /lib64/libkrb5support* | \
-                        /lib/libm* | /lib64/libm* | \
-                        /lib/libpthread* | /lib64/libpthread* | \
-                        /lib/libresolv* | /lib64/libresolv* | \
-                        /lib/librt* | /lib64/librt* | \
-                        /lib/libselinux* | /lib64/libselinux* | \
-                        /lib/libstdc++* | /lib64/libstdc++* | \
-                        /lib/libutil* | /lib64/libutil*)
-                        # Core "system" libraries we can assume exist on the host machine
-                        ;;
-                    "${path_to_python_home}"/lib* | \
-                        "${path_to_python_home}"/local/bin* | \
-                        "${path_to_python_home}"/local/lib*)
-                        rpath="$(readelf -d "${file}" | awk -F '[][]' '/(RPATH|RUNPATH)/ {print $2}')"
-                        if [[ "${rpath}" == *'$ORIGIN/../local/lib'* ]]; then
-                            # this are definitely our relative reference – OK
-                            :
-                        else
-                            # file doesn't have an RPATH or
-                            # file has an hard coded absolute rpath - NOT OK
-                            # however if the file is in the sysroot we will ignore it
-                            if [[ "${file}" == "${path_to_sysroot}"* ]]; then
-                                # if the file is in the sysroot itself ignore it as will get deleted
-                                :
-                            else
-                                # absolute rpath pointing at our path_to_python_home/...
-                                echo -e "Match case Linux_01"
-                                echo_lib_ref "${file}" "${lib}"
-                                exit_code=1
-                            fi
-                        fi
-                        ;;
-                    "${path_to_sysroot}"/*)
-                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
-                            # if the file is in the sysroot itself ignore it as will get deleted
-                            :
-                        else
-                            # this is one of our local dir lib pointing at the sysroot - NOT OK
-                            echo -e "Match case Linux_02"
-                            echo_lib_ref "${file}" "${lib}"
-                            exit_code=1
-                        fi
-                        ;;
-                    *)
-                        # any extra "forbidden" prefixes
-                        for p in "${forbidden_paths[@]}"; do
-                            if [[ "${lib}" == "${p}"* ]]; then
-                                echo -e "Match case Linux_03"
-                                echo_lib_ref "${file}" "${lib}"
-                                exit_code=1
-                            fi
-                        done
-                        if [[ -z "${lib}" ]]; then
-                            # response has not been set here above so it's ''
-                            continue
-                        fi
-                        if [[ "${lib}" == '=>' ]]; then
-                            # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare "=>"
-                            # when there's no third field, so skip it
-                            continue
-                        fi
-                        if [[ "${file}" == "${path_to_sysroot}"* ]]; then
-                            # if the file is in the sysroot ignore it as will get deleted
-                            continue
-                        fi
-                        if [[ "${file}" == *".a" ]]; then
-                            # static library – OK
-                            continue
-                        fi
-                        # Not sure what this is so let's log it
-                        echo -e "Match case Linux_04"
+                ;;
+            "${path_to_sysroot}"/*)
+                if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                    # if the file is in the sysroot itself ignore it as will get deleted
+                    :
+                else
+                    # this is one of our local dir lib pointing at the sysroot - NOT OK
+                    echo -e "Match case Linux_02"
+                    echo_lib_ref "${file}" "${lib}"
+                    exit_code=1
+                fi
+                ;;
+            *)
+                # any extra "forbidden" prefixes
+                for p in "${forbidden_paths[@]}"; do
+                    if [[ "${lib}" == "${p}"* ]]; then
+                        echo -e "Match case Linux_03"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
-                        ;;
-                    esac
+                    fi
                 done
-        done
+                if [[ -z "${lib}" ]]; then
+                    # response has not been set here above so it's ''
+                    continue
+                fi
+                if [[ "${lib}" == '=>' ]]; then
+                    # sometimes `ldd … | awk '/=>/ {print $3}'` will emit a bare "=>"
+                    # when there's no third field, so skip it
+                    continue
+                fi
+                if [[ "${file}" == "${path_to_sysroot}"* ]]; then
+                    # if the file is in the sysroot ignore it as will get deleted
+                    continue
+                fi
+                if [[ "${file}" == *".a" ]]; then
+                    # static library – OK
+                    continue
+                fi
+                # Not sure what this is so let's log it
+                echo -e "Match case Linux_04"
+                echo_lib_ref "${file}" "${lib}"
+                exit_code=1
+                ;;
+            esac
+        done < <(printf '%s\n' "${response}")
+    done < <(find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0)
 }
 
 function check_loadable_refs() {
@@ -2684,14 +2708,16 @@ function check_broken_links() {
 
     local file broken_links
 
-    find "${path_to_python_home}" -type l -print0 \
-        | while IFS= read -r -d '' file; do
-            if [[ ! -e "${file}" ]]; then
-                echo -e "'${file}' is broken"
-                exit_code=1
-                broken_links=1
-            fi
-        done
+    # Process substitution, not a pipe: a `find … | while` pipeline runs the
+    # loop body in a subshell, which would discard both exit_code and
+    # broken_links and make this check silently always pass.
+    while IFS= read -r -d '' file; do
+        if [[ ! -e "${file}" ]]; then
+            echo -e "'${file}' is broken"
+            exit_code=1
+            broken_links=1
+        fi
+    done < <(find "${path_to_python_home}" -type l -print0)
 
     if [[ "${broken_links}" -eq 1 ]]; then
         echo_error "Broken links found."
