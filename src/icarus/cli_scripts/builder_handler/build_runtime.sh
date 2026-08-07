@@ -1180,6 +1180,14 @@ function build_debian_base_dependencies() {
         "libatomic"
         "libbrotli"
         "libbz2"
+        # libtirpc links against the krb5/GSSAPI stack, and libnsl links
+        # against libtirpc. Without these, ld cannot resolve the
+        # libnsl -> libtirpc -> libgssapi_krb5 chain inside the sysroot, so
+        # CPython's AC_SEARCH_LIBS([yp_match],[nsl]) probe fails and nis is
+        # reported missing (<=3.12 only; nis was removed in 3.13).
+        # The RPM sysroot happens to provide these already; Debian's minimal
+        # one does not, so we ship them.
+        "libcom_err"
         "libcrypt"
         "libcurse"
         "libexpat"
@@ -1192,6 +1200,7 @@ function build_debian_base_dependencies() {
         "libglib"
         "libgobject"
         "libgraphite2"
+        "libgssapi_krb5"
         # ".so" suffix on purpose: the bare "libharfbuzz" prefix would also
         # match libharfbuzz-cairo, the one file here that needs libcairo,
         # which we do not ship (nor does the yum build). Only libharfbuzz.so
@@ -1200,6 +1209,9 @@ function build_debian_base_dependencies() {
         "libharfbuzz.so"
         "libhistory"
         "libicu"
+        "libk5crypto"
+        "libkeyutils"
+        "libkrb5"
         "liblzma"
         "libncurse"
         "libnsl"
@@ -1472,7 +1484,53 @@ function build_python_runtime() {
         exit_code=1
     fi
 
-    if [[ "${python_full_version}" == "3.14."* ]]; then
+    if [[ "${python_full_version}" == "3.15."* ]]; then
+        if [[ $(uname) == "Darwin" ]]; then
+            build_tcltk
+            build_openssl
+            build_readline
+            build_gdbm
+            build_xz
+            build_zstd
+            build_uuid_macos
+            build_sqlite3
+        elif [[ $(uname -s) == "Linux" ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                build_debian_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
+            else
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
+            fi
+        else
+            echo_error "Unsupported platform: $(uname -s)"
+            exit_code=1
+        fi
+
+        flags="--prefix=${path_to_python_home} \
+               :--enable-optimizations \
+               :--with-lto \
+               :--with-computed-gotos \
+               :--with-openssl=${path_to_local} \
+               :--with-openssl-rpath=no \
+               :--enable-loadable-sqlite-extensions"
+
+    elif [[ "${python_full_version}" == "3.14."* ]]; then
         if [[ $(uname) == "Darwin" ]]; then
             build_tcltk
             build_openssl
@@ -1578,12 +1636,11 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'debian13-'* ]]; then
-                # No build_libnsl here: Debian ships libnsl-dev, which
-                # build_debian_base_dependencies already pulls in.
                 build_debian_base_dependencies
                 build_tcltk
                 build_openssl
                 build_sqlite3
+                build_libnsl
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
@@ -1631,12 +1688,11 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'debian13-'* ]]; then
-                # No build_libnsl here: Debian ships libnsl-dev, which
-                # build_debian_base_dependencies already pulls in.
                 build_debian_base_dependencies
                 build_tcltk
                 build_openssl
                 build_sqlite3
+                build_libnsl
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
@@ -1684,12 +1740,11 @@ function build_python_runtime() {
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
             if [[ "${platform_identifier}" == *'debian13-'* ]]; then
-                # No build_libnsl here: Debian ships libnsl-dev, which
-                # build_debian_base_dependencies already pulls in.
                 build_debian_base_dependencies
                 build_tcltk
                 build_openssl
                 build_sqlite3
+                build_libnsl
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
@@ -1736,7 +1791,10 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1782,7 +1840,10 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1828,7 +1889,10 @@ function build_python_runtime() {
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
-            if [[ "${platform_identifier}" == *'centos9-'* ]]; then
+            if [[ "${platform_identifier}" == *'debian13-'* ]]; then
+                echo_error "Unsupported Linux platform: ${platform_identifier}"
+                exit_code=1
+            elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
