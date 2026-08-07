@@ -1167,11 +1167,7 @@ function build_debian_base_dependencies() {
     # exist as separate packages on Debian (see the package list above).
     #
     # Note the bare "girepository" and "glib" entries the yum branch uses are
-    # deliberately absent. On the RPM distros those globs match only
-    # libgirepository*.so / libglib*.so, but on Debian
-    # usr/lib/<triplet>/glib-2.0 and .../girepository-1.0 are *directories* of
-    # developer executables (glib-compile-schemas, gi-compile-repository, …)
-    # and typelibs.
+    # deliberately absent.
     local -a libs=(
         "libX11"
         "libXau"
@@ -1193,11 +1189,15 @@ function build_debian_base_dependencies() {
         "libfreetype"
         "libgdbm"
         "libgdbm_compat"
-        "libgirepository"
         "libglib"
         "libgobject"
         "libgraphite2"
-        "libharfbuzz"
+        # ".so" suffix on purpose: the bare "libharfbuzz" prefix would also
+        # match libharfbuzz-cairo, the one file here that needs libcairo,
+        # which we do not ship (nor does the yum build). Only libharfbuzz.so
+        # itself is ever linked against, so the -cairo/-gobject/-icu/-subset
+        # variants would be unloadable dead ends.
+        "libharfbuzz.so"
         "libhistory"
         "libicu"
         "liblzma"
