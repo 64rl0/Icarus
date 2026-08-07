@@ -1331,7 +1331,12 @@ function build_linux_base_dependencies() {
         "libglib"
         "libgobject"
         "libgraphite2"
-        "libharfbuzz"
+        # ".so" suffix on purpose: the bare "libharfbuzz" prefix also matches
+        # libharfbuzz-cairo, which needs libcairo — not shipped here and not
+        # present on the build hosts, so it arrives permanently unloadable.
+        # Only libharfbuzz.so itself is ever linked against, so the
+        # -cairo/-gobject/-icu/-subset variants are dead weight.
+        "libharfbuzz.so"
         "libicu"
         "liblzma"
         "libncurse"
@@ -2275,7 +2280,7 @@ function echo_lib_ref() {
 }
 
 function check_loadable_refs_macos() {
-    local file lib
+    local file lib bad_refs
     local forbidden_paths=("/Library/Developer/CommandLineTools")
 
     # Process substitution, not a pipe, so exit_code assignments below happen
@@ -2296,6 +2301,7 @@ function check_loadable_refs_macos() {
                 echo -e "Match case macOS_01"
                 echo_lib_ref "${file}" "${lib}"
                 exit_code=1
+                bad_refs=1
                 ;;
             *)
                 # any extra "forbidden" prefixes
@@ -2304,6 +2310,7 @@ function check_loadable_refs_macos() {
                         echo -e "Match case macOS_02"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
+                        bad_refs=1
                     fi
                 done
                 if [[ "${file}" == *".a" ]]; then
@@ -2314,6 +2321,7 @@ function check_loadable_refs_macos() {
                 echo -e "Match case macOS_03"
                 echo_lib_ref "${file}" "${lib}"
                 exit_code=1
+                bad_refs=1
                 ;;
             esac
         done < <(otool -L "${file}" | tail -n +2 | awk '{print $1}')
@@ -2326,6 +2334,10 @@ function check_loadable_refs_macos() {
             -o -name '*.sl' \) \
             -print0
     )
+
+    if [[ "${bad_refs}" -eq 1 ]]; then
+        echo_error "Bad loadable references found in Mach-O objects."
+    fi
 }
 
 function check_loadable_refs_debian() {
@@ -2342,7 +2354,7 @@ function check_loadable_refs_debian() {
     # catch one of our own libraries silently resolving against the host's
     # copy instead of the one in local/lib.
 
-    local file lib rpath dynamic_section ldd_failed response
+    local file lib rpath dynamic_section ldd_failed response bad_refs
     local forbidden_paths=()
 
     # Both loops are fed by process substitution rather than a pipe so that
@@ -2363,6 +2375,7 @@ function check_loadable_refs_debian() {
                 else
                     response="failed-to-run-ldd-on-file."
                     exit_code=1
+                    bad_refs=1
                 fi
             fi
         else
@@ -2411,6 +2424,7 @@ function check_loadable_refs_debian() {
                         echo -e "Match case Debian_01"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
+                        bad_refs=1
                     fi
                 fi
                 ;;
@@ -2423,6 +2437,7 @@ function check_loadable_refs_debian() {
                     echo -e "Match case Debian_02"
                     echo_lib_ref "${file}" "${lib}"
                     exit_code=1
+                    bad_refs=1
                 fi
                 ;;
             *)
@@ -2432,6 +2447,7 @@ function check_loadable_refs_debian() {
                         echo -e "Match case Debian_03"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
+                        bad_refs=1
                     fi
                 done
                 if [[ -z "${lib}" ]]; then
@@ -2455,14 +2471,19 @@ function check_loadable_refs_debian() {
                 echo -e "Match case Debian_04"
                 echo_lib_ref "${file}" "${lib}"
                 exit_code=1
+                bad_refs=1
                 ;;
             esac
         done < <(printf '%s\n' "${response}")
     done < <(find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0)
+
+    if [[ "${bad_refs}" -eq 1 ]]; then
+        echo_error "Bad loadable references found in ELF objects."
+    fi
 }
 
 function check_loadable_refs_linux() {
-    local file lib rpath dynamic_section ldd_failed response
+    local file lib rpath dynamic_section ldd_failed response bad_refs
     local forbidden_paths=()
 
     # Process substitution, not a pipe, so exit_code assignments below happen
@@ -2481,6 +2502,7 @@ function check_loadable_refs_linux() {
                 else
                     response="failed-to-run-ldd-on-file."
                     exit_code=1
+                    bad_refs=1
                 fi
             fi
         else
@@ -2527,6 +2549,7 @@ function check_loadable_refs_linux() {
                         echo -e "Match case Linux_01"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
+                        bad_refs=1
                     fi
                 fi
                 ;;
@@ -2539,6 +2562,7 @@ function check_loadable_refs_linux() {
                     echo -e "Match case Linux_02"
                     echo_lib_ref "${file}" "${lib}"
                     exit_code=1
+                    bad_refs=1
                 fi
                 ;;
             *)
@@ -2548,6 +2572,7 @@ function check_loadable_refs_linux() {
                         echo -e "Match case Linux_03"
                         echo_lib_ref "${file}" "${lib}"
                         exit_code=1
+                        bad_refs=1
                     fi
                 done
                 if [[ -z "${lib}" ]]; then
@@ -2571,10 +2596,15 @@ function check_loadable_refs_linux() {
                 echo -e "Match case Linux_04"
                 echo_lib_ref "${file}" "${lib}"
                 exit_code=1
+                bad_refs=1
                 ;;
             esac
         done < <(printf '%s\n' "${response}")
     done < <(find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0)
+
+    if [[ "${bad_refs}" -eq 1 ]]; then
+        echo_error "Bad loadable references found in ELF objects."
+    fi
 }
 
 function check_loadable_refs() {
