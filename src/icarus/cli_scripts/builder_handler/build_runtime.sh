@@ -2326,13 +2326,16 @@ function check_loadable_refs_macos() {
             esac
         done < <(otool -L "${file}" | tail -n +2 | awk '{print $1}')
     done < <(
-        find "${path_to_python_home}" -type f \
+        find "${path_to_python_home}" \
+            \( -path "${path_to_python_home}/sysroot" -prune \) -o \
+            \( -type f \
             \( -perm -111 \
             -o -name '*.so*' \
             -o -name '*.dylib' \
             -o -name '*.bundle' \
             -o -name '*.sl' \) \
-            -print0
+            -print0 \
+            \)
     )
 
     if [[ "${bad_refs}" -eq 1 ]]; then
@@ -2475,7 +2478,13 @@ function check_loadable_refs_debian() {
                 ;;
             esac
         done < <(printf '%s\n' "${response}")
-    done < <(find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0)
+    done < <(
+        find "${path_to_python_home}" \
+            \( -path "${path_to_python_home}/sysroot" -prune \) -o \
+            \( \( -type f -o -type l \) \( -perm -111 \) \
+            -print0 \
+            \)
+    )
 
     if [[ "${bad_refs}" -eq 1 ]]; then
         echo_error "Bad loadable references found in ELF objects."
@@ -2600,7 +2609,13 @@ function check_loadable_refs_linux() {
                 ;;
             esac
         done < <(printf '%s\n' "${response}")
-    done < <(find "${path_to_python_home}" \( -type f -o -type l \) \( -perm -111 \) -print0)
+    done < <(
+        find "${path_to_python_home}" \
+            \( -path "${path_to_python_home}/sysroot" -prune \) -o \
+            \( \( -type f -o -type l \) \( -perm -111 \) \
+            -print0 \
+            \)
+    )
 
     if [[ "${bad_refs}" -eq 1 ]]; then
         echo_error "Bad loadable references found in ELF objects."
