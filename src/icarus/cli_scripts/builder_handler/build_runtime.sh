@@ -265,7 +265,7 @@ function linux_multiarch_triplet() {
 
     if [[ -z "${triplet}" ]]; then
         echo_error "Failed to determine multiarch triplet via 'gcc -print-multiarch'." "errexit"
-        return 1
+        exit_code=1
     fi
 
     echo "${triplet}"
@@ -356,7 +356,6 @@ function prepare_sysroot_debian() {
 
     codename="$(debian_codename)" || {
         exit_code=1
-        return 1
     }
 
     # libstdc++ dev headers are versioned after the compiler
@@ -368,7 +367,6 @@ function prepare_sysroot_debian() {
     if [[ -z "${gcc_major}" ]]; then
         echo_error "Failed to determine gcc major version for libstdc++ dev package."
         exit_code=1
-        return 1
     fi
 
     # The --extract-hook recreates the merged-/usr symlinks. This is
@@ -422,7 +420,7 @@ function debian_codename() {
 
     if [[ -z "${codename}" ]]; then
         echo_error "Failed to determine Debian codename from /etc/os-release." "errexit"
-        return 1
+        exit_code=1
     fi
 
     echo "${codename}"
@@ -1101,11 +1099,9 @@ function build_debian_base_dependencies() {
 
     codename="$(debian_codename)" || {
         exit_code=1
-        return 1
     }
     triplet="$(linux_multiarch_triplet)" || {
         exit_code=1
-        return 1
     }
 
     # Debian equivalents of the -devel packages used by the yum branch.
@@ -1414,7 +1410,6 @@ function build_python_runtime() {
             local dep_triplet
             dep_triplet="$(linux_multiarch_triplet)" || {
                 exit_code=1
-                return 1
             }
 
             export LD_LIBRARY_PATH="${path_to_local}/lib"
@@ -1910,7 +1905,6 @@ function build_python_runtime() {
             local py_triplet
             py_triplet="$(linux_multiarch_triplet)" || {
                 exit_code=1
-                return 1
             }
             py_triplet_inc="-I${path_to_local}/include/${py_triplet}"
         fi
