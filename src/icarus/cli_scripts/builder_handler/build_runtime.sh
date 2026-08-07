@@ -371,10 +371,33 @@ function prepare_sysroot_debian() {
         return 1
     fi
 
+    # The --extract-hook recreates the merged-/usr symlinks. This is
+    # required, not cosmetic: glibc ships libc.so and libm.so as ld scripts
+    # holding *absolute* paths, e.g.
+    #
+    #   GROUP ( /lib/<triplet>/libc.so.6 ... AS_NEEDED ( /lib/ld-linux-<arch>.so.1 ) )
+    #
+    # and ld resolves those *inside* the sysroot. Without a lib -> usr/lib
+    # symlink every link fails with "cannot find /lib/<triplet>/libc.so.6
+    # inside <sysroot>", which autoconf reports only as the generic
+    # "C compiler cannot create executables".
+    #
+    # Debian is fully merged-/usr (/lib, /bin and /sbin are symlinks into
+    # /usr; there is no /lib64), but the symlinks are created by the usrmerge
+    # maintainer scripts, and --variant=extract deliberately runs no
+    # maintainer scripts. Neither the shipped merged-usr hook nor
+    # --include=usrmerge helps: both only relocate a top-level dir that
+    # already exists, and here everything is already unpacked under usr/.
+    #
+    # --extract-hook is the right phase: it runs after unpacking, which is
+    # the last phase --variant=extract executes (a --customize-hook would
+    # never fire). A failing hook makes mmdebstrap exit nonzero, so the
+    # existing error check below covers it.
     echo -e "Redirecting output to '${path_to_log_root}/prepare_sysroot_linux.log'"
     sudo mmdebstrap \
         --variant=extract \
         --include="libc6-dev,linux-libc-dev,libgcc-s1,libstdc++-${gcc_major}-dev" \
+        --extract-hook='for d in lib bin sbin; do ln -sfn "usr/${d}" "${1}/${d}"; done' \
         "${codename}" \
         "${path_to_sysroot}" \
         "http://deb.debian.org/debian" \
