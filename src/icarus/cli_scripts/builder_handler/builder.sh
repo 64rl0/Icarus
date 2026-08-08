@@ -1190,6 +1190,9 @@ function resolve_path() {
         }
         ;;
     "${path_devrun_excluderoot_runtimefarm_name}")
+        # We build pkg_runtimefarm so that we can get the PYTHONPATH from it and augment
+        # the default search path for module files. This is the only reason why we build
+        # the pkg_runtimefarm.
         path_runtime="$(_internal_icarus_builder_path_cmd "${path_pkg_runtimefarm_name}")" || {
             path_summary_status="${failed}"
             exit_code=1
