@@ -809,7 +809,7 @@ function run_readthedocs() {
     local local_packages filename filepath
 
     if [[ -z "${read_the_docs_requirements_path}" ]]; then
-        echo_error "read-the-docs requirements in icarus-python3 icarus.cfg must be a set."
+        echo_error "read-the-docs requirements in icarus-python3 icarus.cfg must be set."
         readthedocs_summary_status="${failed}"
         exit_code=1
         return
@@ -1050,17 +1050,19 @@ function run_build_icarus_python3() {
         exit_code=1
     }
 
+    # TODO(carlogtt): do we really need to leave this one here? this was disabled
+    #  on 08-09 wait till 12-31 to validate is not needed anymore
     # This will install the pkg just built in the pkg.runtimefarm.
-    echo -e "${bold_green}${sparkles} Installing '${package_name_dashed}' artifacts${end}"
-    if resolve_path "${path_pkg_runtimefarm_name}"; then
-        echo -e "Installed ${package_name_dashed}-${ICARUS_PACKAGE_VERSION}"
-        echo
-    else
-        echo_error "Failed to install '${package_name_dashed}'."
-        build_summary_status="${failed}"
-        build_single_run_status=1
-        exit_code=1
-    fi
+    # echo -e "${bold_green}${sparkles} Installing '${package_name_dashed}' artifacts${end}"
+    # if resolve_path "${path_pkg_runtimefarm_name}"; then
+    #     echo -e "Installed ${package_name_dashed}-${ICARUS_PACKAGE_VERSION}"
+    #     echo
+    # else
+    #     echo_error "Failed to install '${package_name_dashed}'."
+    #     build_summary_status="${failed}"
+    #     build_single_run_status=1
+    #     exit_code=1
+    # fi
 
     # Unsetting ICARUS_PACKAGE_VERSION var from the env.
     unset ICARUS_PACKAGE_VERSION
