@@ -126,14 +126,21 @@ icarus builder exec-tool <cmd>    # build-tool deps only
 `exec-dev` is almost always the right choice for development work.
 
 ```bash
-icarus builder exec-dev python -c 'import project_name_here'
+icarus builder exec-dev "python3 -c 'import project_name_here'"
 icarus builder exec-dev "pytest test/test_application.py -k my_case"
 icarus builder exec-dev "mypy src/project_name_here/main.py"
 ```
 
-Quote the command as a single string when it contains flags — an unquoted
-`-k` or `--foo` gets eaten by the argument parser. A single quoted string
-is split on whitespace, so both forms work otherwise.
+Two things to get right, both of which produce confusing failures:
+
+**Use `python3`, never `python`.** The interpreter Icarus ships provides
+`python3` and `python3.<minor>` (e.g. `python3.14`) only. A bare `python`
+either fails or silently hits a system interpreter that has none of this
+project's dependencies.
+
+**Quote the whole command as one string whenever it contains a flag.**
+Otherwise `-c`, `-k`, `-m` or `--foo` is claimed by Icarus's own parser and
+the run fails with `unrecognized arguments`.
 
 Use `exec-dev` for targeted, iterative checks (one test, one file). Use
 the top-level `test` / `release` commands for final verification, because
