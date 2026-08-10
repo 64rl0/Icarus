@@ -181,6 +181,7 @@
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">],</span>
         <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;bumpver&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;prayers&#39;</span><span class="p">],</span>
     <span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s1">&#39;build&#39;</span><span class="p">,</span>
         <span class="s1">&#39;clean&#39;</span><span class="p">,</span>
@@ -203,6 +204,7 @@
         <span class="s1">&#39;execrun&#39;</span><span class="p">,</span>
         <span class="s1">&#39;execdev&#39;</span><span class="p">,</span>
         <span class="s1">&#39;bumpver&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prayers&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">running_hooks_name</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">running_hooks_count</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -257,6 +259,7 @@
     <span class="n">exectool</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">execrun</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">execdev</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">prayers</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">initial_command_received</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;icarus </span><span class="si">{verbose}</span><span class="s1">builder hook&#39;</span>
     <span class="n">initial_exectool_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">initial_execrun_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>

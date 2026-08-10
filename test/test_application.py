@@ -60,3 +60,18 @@ def test_that_you_wrote_tests():
 
 def test_application_importable():
     import icarus.main
+
+
+def test_thoughts_and_prayers_toggle():
+    # Flip to False to make this test fail on purpose, then run:
+    #   icarus builder release --with-thoughts-and-prayers
+    # to see the condolence block. Flip back to True when done.
+    SHOULD_PASS = True
+
+    assertion_string = textwrap.dedent("""\
+    Failing on purpose because SHOULD_PASS is False.
+
+    This is the toggle in test_thoughts_and_prayers_toggle, used to
+    exercise a failing run. Set it back to True when you are done.
+    """)
+    assert SHOULD_PASS, assertion_string

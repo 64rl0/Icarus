@@ -229,6 +229,7 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
     too_many_args = 'too many arguments'
     args_required = 'the following arguments are required: <subcommand>'
     standalone_arg = '{hook} is a standalone argument and must be used alone'
+    release_only_arg = '{hook} can only be used with the release target and nothing else'
 
     base_args: dict[str, Union[int]] = {
         'verbose': args.verbose,
@@ -260,6 +261,7 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
         'execrun': getattr(args, 'exec-run', '') or getattr(args, 'exec_run', ''),
         'execdev': getattr(args, 'exec-dev', '') or getattr(args, 'exec_dev', ''),
         'bumpver': getattr(args, 'bumpver', ''),
+        'prayers': getattr(args, 'with_thoughts_and_prayers', ''),
     }
 
     builder_hooks_count = sum(1 for el in builder_hooks.values() if el)
@@ -345,6 +347,14 @@ def parse_icarus_builder_cli_arg(args: argparse.Namespace) -> IcarusBuilderCliAr
 
         if builder_hooks.get('pypi') and builder_hooks_count > 1:
             raise utils.IcarusParserException(standalone_arg.format(hook='--pypi'))
+
+        # Prayers accompany the release target and nothing else. The
+        # count is 2 because release itself is counted alongside it.
+        if builder_hooks.get('prayers'):
+            if not builder_hooks.get('release') or builder_hooks_count > 2:
+                raise utils.IcarusParserException(
+                    release_only_arg.format(hook='--with-thoughts-and-prayers')
+                )
 
         if builder_hooks.get('bumpver'):
             ib_cli_arg.operation = IcarusBuilderOperation.BUMPVER

@@ -98,6 +98,7 @@ class IcarusBuilderArg:
         Literal['execrun'],
         Literal['execdev'],
         Literal['bumpver'],
+        Literal['prayers'],
     ] = (
         'build',
         'clean',
@@ -120,6 +121,7 @@ class IcarusBuilderArg:
         'execrun',
         'execdev',
         'bumpver',
+        'prayers',
     )
     running_hooks_name: list[str] = dataclasses.field(default_factory=list)
     running_hooks_count: str = ''
@@ -174,6 +176,7 @@ class IcarusBuilderArg:
     exectool: str = ''
     execrun: str = ''
     execdev: str = ''
+    prayers: str = ''
     initial_command_received: str = 'icarus {verbose}builder hook'
     initial_exectool_command_received: list[str] = dataclasses.field(default_factory=list)
     initial_execrun_command_received: list[str] = dataclasses.field(default_factory=list)

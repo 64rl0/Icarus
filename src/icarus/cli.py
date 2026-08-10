@@ -301,8 +301,21 @@ def initialize_parser() -> argparse.ArgumentParser:
     # ===================
     # Builder subcommands
     # ===================
+    # Shared by the 'release' subcommand and the 'hook --release'
+    # flag, so both spellings accept the same arguments.
+    builder_release_parent_parser = utils.IcarusArgumentParser(add_help=False)
+    builder_release_parent_parser.add_argument(
+        '--with-thoughts-and-prayers',
+        required=False,
+        action='store_const',
+        const='--with-thoughts-and-prayers',
+        default='',
+        help=argparse.SUPPRESS,
+    )
+
     builder_hook_par = builder_sub.add_parser(
         name='hook',
+        parents=[builder_release_parent_parser],
         help='the hook(s) for the builder',
         description='',
         allow_abbrev=False,
@@ -521,6 +534,7 @@ def initialize_parser() -> argparse.ArgumentParser:
 
     builder_release = builder_sub.add_parser(
         name='release',
+        parents=[builder_release_parent_parser],
         help='run the full "release" pipeline',
         description='',
         allow_abbrev=False,

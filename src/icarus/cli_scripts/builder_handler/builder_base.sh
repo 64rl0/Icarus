@@ -248,6 +248,7 @@ function declare_global_vars() {
     declare -r -g execrun
     declare -r -g execdev
     declare -r -g bumpver
+    declare -r -g prayers
     declare -r -g initial_command_received
     declare -r -g initial_exectool_command_received
     declare -r -g initial_execrun_command_received
@@ -321,6 +322,27 @@ function echo_help_verbose() {
     else
         return 0
     fi
+}
+
+function echo_prayers() {
+    # This function will offer condolences for a failed run, and nothing
+    # else. It is called once per run, after the summary table.
+    local failed_count="${1}"
+    local -a messages
+
+    messages=(
+        "Thoughts and prayers completed successfully. It was never going to do otherwise."
+        "In lieu of flowers, please read the log."
+        "Your build fought bravely. It was doing what it loved: exiting non-zero."
+    )
+
+    {
+        echo -e "${bold_black}${bg_cyan} THOUGHTS AND PRAYERS ${end}"
+        echo -e " [$(date '+%Y-%m-%d %T %Z')]"
+        echo -e " ${messages[$((RANDOM % ${#messages[@]}))]}"
+        echo -e " ${failed_count} hook(s) did not make it. No further action will be taken."
+        echo
+    } 1>&2
 }
 
 function bootstrap_workspace() {

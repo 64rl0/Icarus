@@ -271,6 +271,7 @@ _icarus() {
                     '--exec-run:run a command inside the run.runtimefarm environment'
                     '--exec-dev:run a command inside the devrun.runtimefarm environment'
                     '--bumpver:interactively bump package version (major, minor, or patch)'
+                    '--with-thoughts-and-prayers:improve build reliability (has no effect, requires --release)'
                     '--help:show help message'
                     '-h:show help message'
                 )
@@ -289,6 +290,7 @@ _icarus() {
                 ;;
             release)
                 completions+=(
+                    '--with-thoughts-and-prayers:improve build reliability (has no effect)'
                     '--help:show help message'
                     '-h:show help message'
                 )

@@ -97,7 +97,7 @@ function echo_icarus_python3_project_info() {
 
 function echo_summary() {
     local execution_time execution_time_total execution_time_partial total_execution_time
-    local python_versions_pretty python_version_composite hook tool
+    local python_versions_pretty python_version_composite hook tool failed_count
     local -a all_running_hooks_name
 
     execution_time=""
@@ -106,6 +106,7 @@ function echo_summary() {
     tool=""
     total_execution_time=""
     python_versions_pretty=""
+    failed_count=0
 
     if [[ "${path_called}" == "Y" ]]; then
         all_running_hooks_name=("index" "path" "${running_hooks_name[@]}")
@@ -146,6 +147,9 @@ function echo_summary() {
         tool="$(printf '%s' "${hook} ..................................." | cut -c1-30)"
         eval status='$'"${hook}_summary_status"
         eval execution_time='$'"${hook}_execution_time"
+        if [[ "${status}" == "${failed}" ]]; then
+            failed_count=$((failed_count + 1))
+        fi
         if (($(echo "${execution_time} > 60" | bc))); then
             execution_time="$(echo "${execution_time} / 60" | bc -l)"
             execution_time="$(printf "%.3f" "${execution_time}")m"
@@ -170,6 +174,10 @@ function echo_summary() {
     printf "%-30s | %-7s\n" "${total_execution_time}" "${execution_time_total}"
     printf "%s-+-%s-+-%s\n" "------------------------------" "------" "--------"
     echo
+
+    if [[ "${prayers}" == "Y" && "${exit_code}" != 0 ]]; then
+        echo_prayers "${failed_count}"
+    fi
 }
 
 ####################################################################################################
@@ -293,6 +301,7 @@ function set_constants() {
     exectool_summary_status="${passed}"
     execrun_summary_status="${passed}"
     execdev_summary_status="${passed}"
+    prayers_summary_status="${passed}"
 
     index_execution_time=0
     path_execution_time=0
@@ -316,6 +325,7 @@ function set_constants() {
     exectool_execution_time=0
     execrun_execution_time=0
     execdev_execution_time=0
+    prayers_execution_time=0
 
     declare -a -g active_dirs_d1=()
     declare -a -g active_py_files_d1=()
@@ -965,6 +975,12 @@ function run_pypi() {
         pypi_summary_status="${failed}"
         exit_code=1
     }
+    echo
+}
+
+function run_prayers() {
+    # This hook cannot fail and never touches exit_code. That is the point.
+    echo -e "Praying for Python${python_version}..."
     echo
 }
 
@@ -1932,6 +1948,14 @@ function dispatch_icarus_python3_tools() {
         fi
         end_block=$(date +%s.%N)
         pypi_execution_time=$(echo "${pypi_execution_time}" + "${end_block} - ${start_block}" | bc)
+    fi
+
+    if [[ "${prayers}" == "Y" ]]; then
+        start_block=$(date +%s.%N)
+        echo_title "Running Thoughts and Prayers"
+        run_prayers
+        end_block=$(date +%s.%N)
+        prayers_execution_time=$(echo "${prayers_execution_time}" + "${end_block} - ${start_block}" | bc)
     fi
 
     dispatch_icarus_python3_after_tools_plugins
