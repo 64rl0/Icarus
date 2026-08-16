@@ -736,7 +736,7 @@ function build_generic() {
         exit_code=1
     }
     echo -e "Redirecting output to '${path_to_log_root}/${unpacked_dir_name}.install.log'"
-    sudo -E make -j "${ncpu:?}" install >"${path_to_log_root}/${unpacked_dir_name}.install.log" 2>&1 || {
+    sudo -E make install >"${path_to_log_root}/${unpacked_dir_name}.install.log" 2>&1 || {
         echo_error "Failed to install '${display_name}'."
         exit_code=1
     }
