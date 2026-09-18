@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/main.py</span>
 <span class="c1"># Created 1/18/25 - 5:46 PM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -113,7 +113,7 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;main&#39;</span><span class="p">,</span>
+    <span class="s1">'main'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -126,11 +126,11 @@
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../_apidoc/icarus.main.html#icarus.main.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    The main entry point of the application.</span>
 
 <span class="sd">    :return: Exit code of the script.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># Initialize parser and parse args</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">initialize_parser</span><span class="p">()</span>
@@ -142,7 +142,7 @@
     <span class="n">utils</span><span class="o">.</span><span class="n">set_logger_level</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
 
     <span class="c1"># Log parsed args</span>
-    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Arguments parsed:</span><span class="si">{</span><span class="n">args</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Arguments parsed:</span><span class="si">{</span><span class="n">args</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Execute the command</span>
     <span class="k">try</span><span class="p">:</span>
@@ -154,7 +154,7 @@
         <span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unexpected error: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unexpected error: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
 </pre></div>

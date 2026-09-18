@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/handlers/amazon_handler/update_hosts.py</span>
 <span class="c1"># Created 1/21/25 - 8:21 PM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -118,7 +118,7 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;update_hots&#39;</span><span class="p">,</span>
+    <span class="s1">'update_hots'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -131,73 +131,73 @@
 <div class="viewcode-block" id="update_hots">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.amazon_handler.update_hosts.html#icarus.handlers.amazon_handler.update_hosts.update_hots">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_hots</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Update the /etc/hosts file with the current DNS IP addresses</span>
 
 <span class="sd">    :return: Exit code of the function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://dns.google/resolve?name=cpgbackup.logitech.com&amp;type=A&quot;</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">"https://dns.google/resolve?name=cpgbackup.logitech.com&amp;type=A"</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
     <span class="n">result_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 
-    <span class="n">all_dns_ips</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;Answer&#39;</span><span class="p">]]</span>
+    <span class="n">all_dns_ips</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="p">[</span><span class="s1">'data'</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="p">[</span><span class="s1">'Answer'</span><span class="p">]]</span>
 
     <span class="n">all_dns_ips_padded</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">all_dns_ips</span><span class="p">:</span>
         <span class="n">ip_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-        <span class="n">padding</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20</span> <span class="o">-</span> <span class="n">ip_len</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span>
-        <span class="n">new_el</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">el</span><span class="si">}{</span><span class="n">padding</span><span class="si">}</span><span class="s2">cpgbackup.logitech.com</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20</span> <span class="o">-</span> <span class="n">ip_len</span><span class="p">)</span> <span class="o">*</span> <span class="s2">" "</span>
+        <span class="n">new_el</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">el</span><span class="si">}{</span><span class="n">padding</span><span class="si">}</span><span class="s2">cpgbackup.logitech.com</span><span class="se">\n</span><span class="s2">"</span>
         <span class="n">all_dns_ips_padded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_el</span><span class="p">)</span>
 
     <span class="n">hosts_lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">insert_idx</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/etc/hosts&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'/etc/hosts'</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="s2">&quot;## updated on&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"## updated on"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s2">&quot;## updated on UTC&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">"## updated on UTC"</span>
+                    <span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
                 <span class="p">)</span>
                 <span class="n">hosts_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                 <span class="k">continue</span>
 
-            <span class="k">if</span> <span class="s2">&quot;cpgbackup.logitech.com&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"cpgbackup.logitech.com"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">insert_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">insert_idx</span> <span class="o">=</span> <span class="n">idx</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">hosts_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
     <span class="n">hosts_lines</span><span class="p">[</span><span class="n">insert_idx</span><span class="p">:</span><span class="n">insert_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_dns_ips_padded</span>
-    <span class="n">new_hosts_file</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hosts_lines</span><span class="p">)</span>
+    <span class="n">new_hosts_file</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hosts_lines</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;We need to briefly run as root (through sudo) to execute some commands.</span><span class="se">\n</span><span class="s2">If prompted,&quot;</span>
-            <span class="s2">&quot; please enter your user password.&quot;</span><span class="p">,</span>
+            <span class="s2">"We need to briefly run as root (through sudo) to execute some commands.</span><span class="se">\n</span><span class="s2">If prompted,"</span>
+            <span class="s2">" please enter your user password."</span><span class="p">,</span>
             <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;sudo&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">])</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thanks! We&#39;ll continue in a moment...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">"sudo"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Thanks! We'll continue in a moment...</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;sudo&quot;</span><span class="p">,</span> <span class="s2">&quot;tee&quot;</span><span class="p">,</span> <span class="s2">&quot;/etc/hosts&quot;</span><span class="p">],</span> <span class="nb">input</span><span class="o">=</span><span class="n">new_hosts_file</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">[</span><span class="s2">"sudo"</span><span class="p">,</span> <span class="s2">"tee"</span><span class="p">,</span> <span class="s2">"/etc/hosts"</span><span class="p">],</span> <span class="nb">input</span><span class="o">=</span><span class="n">new_hosts_file</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
 
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Wrote /etc/hosts successfully with exit code: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wrote /etc/hosts successfully with exit code: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span>
 
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing /etc/hosts failed with exit code </span><span class="si">{</span><span class="n">ex</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Writing /etc/hosts failed with exit code </span><span class="si">{</span><span class="n">ex</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ex</span><span class="o">.</span><span class="n">returncode</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exception occurred while writing /etc/hosts | exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Exception occurred while writing /etc/hosts | exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="mi">1</span></div>
 

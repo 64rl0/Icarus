@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/handlers/builder_handler/builder_parser.py</span>
 <span class="c1"># Created 1/19/25 - 3:58 PM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -115,7 +115,7 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;handle_builder_command&#39;</span><span class="p">,</span>
+    <span class="s1">'handle_builder_command'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -128,8 +128,8 @@
 <div class="viewcode-block" id="handle_builder_command">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.builder_parser.html#icarus.handlers.builder_handler.builder_parser.handle_builder_command">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_builder_command</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Handle execution of subcommands under the &#39;builder&#39; top-level</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Handle execution of subcommands under the 'builder' top-level</span>
 <span class="sd">    command.</span>
 
 <span class="sd">    This function routes the parsed arguments to the appropriate logic</span>
@@ -139,14 +139,14 @@
 <span class="sd">        and any associated options or parameters.</span>
 <span class="sd">    :return: Exit code of the script.</span>
 <span class="sd">    :raise ValueError: If an unknown `builder_command` is provided.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">ib_cli</span> <span class="o">=</span> <span class="n">builder_helper</span><span class="o">.</span><span class="n">parse_icarus_builder_cli_arg</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ib_cli</span><span class="o">.</span><span class="n">operation</span> <span class="ow">is</span> <span class="n">IcarusBuilderOperation</span><span class="o">.</span><span class="n">BUILD_RUNTIME</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;build_runtime.sh&#39;</span>
+        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">'builder_handler'</span> <span class="o">/</span> <span class="s1">'build_runtime.sh'</span>
         <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">platform_id</span><span class="p">()]</span>
 
         <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
@@ -154,9 +154,9 @@
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">elif</span> <span class="n">ib_cli</span><span class="o">.</span><span class="n">operation</span> <span class="ow">is</span> <span class="n">IcarusBuilderOperation</span><span class="o">.</span><span class="n">CREATE</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;create.sh&#39;</span>
+        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">'builder_handler'</span> <span class="o">/</span> <span class="s1">'create.sh'</span>
         <span class="n">script_args</span> <span class="o">=</span> <span class="n">create_helper</span><span class="o">.</span><span class="n">get_argv</span><span class="p">(</span><span class="n">package_name</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">package_language</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">l</span><span class="p">)</span>
 
         <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
@@ -164,9 +164,9 @@
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">elif</span> <span class="n">ib_cli</span><span class="o">.</span><span class="n">operation</span> <span class="ow">is</span> <span class="n">IcarusBuilderOperation</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;cache.sh&#39;</span>
+        <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">'builder_handler'</span> <span class="o">/</span> <span class="s1">'cache.sh'</span>
         <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">builder_helper</span><span class="o">.</span><span class="n">get_ib_argv</span><span class="p">(</span><span class="n">ib_cli</span><span class="o">.</span><span class="n">args</span><span class="p">)]</span>
 
         <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
@@ -174,13 +174,13 @@
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">elif</span> <span class="n">ib_cli</span><span class="o">.</span><span class="n">operation</span> <span class="ow">is</span> <span class="n">IcarusBuilderOperation</span><span class="o">.</span><span class="n">PATH</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">builder_helper</span><span class="o">.</span><span class="n">ensure_builder_control_plane</span><span class="p">()</span>
         <span class="n">builder_lock</span> <span class="o">=</span> <span class="n">builder_helper</span><span class="o">.</span><span class="n">acquire_builder_lock</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;path.sh&#39;</span>
+            <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">'builder_handler'</span> <span class="o">/</span> <span class="s1">'path.sh'</span>
             <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">builder_helper</span><span class="o">.</span><span class="n">get_ib_argv</span><span class="p">(</span><span class="n">ib_cli</span><span class="o">.</span><span class="n">args</span><span class="p">)]</span>
 
             <span class="n">return_code</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">run_bash_script</span><span class="p">(</span><span class="n">script_path</span><span class="o">=</span><span class="n">script_path</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span><span class="p">)</span>
@@ -190,7 +190,7 @@
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">elif</span> <span class="n">ib_cli</span><span class="o">.</span><span class="n">operation</span> <span class="ow">is</span> <span class="n">IcarusBuilderOperation</span><span class="o">.</span><span class="n">BUMPVER</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">builder_helper</span><span class="o">.</span><span class="n">ensure_builder_control_plane</span><span class="p">()</span>
         <span class="n">builder_lock</span> <span class="o">=</span> <span class="n">builder_helper</span><span class="o">.</span><span class="n">acquire_builder_lock</span><span class="p">()</span>
@@ -205,13 +205,13 @@
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">elif</span> <span class="n">ib_cli</span><span class="o">.</span><span class="n">operation</span> <span class="ow">is</span> <span class="n">IcarusBuilderOperation</span><span class="o">.</span><span class="n">BUILDER</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">builder_helper</span><span class="o">.</span><span class="n">ensure_builder_control_plane</span><span class="p">()</span>
         <span class="n">builder_lock</span> <span class="o">=</span> <span class="n">builder_helper</span><span class="o">.</span><span class="n">acquire_builder_lock</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">&#39;builder_handler&#39;</span> <span class="o">/</span> <span class="s1">&#39;builder.sh&#39;</span>
+            <span class="n">script_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_SCRIPTS_DIR</span> <span class="o">/</span> <span class="s1">'builder_handler'</span> <span class="o">/</span> <span class="s1">'builder.sh'</span>
             <span class="n">script_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">builder_helper</span><span class="o">.</span><span class="n">get_ib_argv</span><span class="p">(</span><span class="n">ib_cli</span><span class="o">.</span><span class="n">args</span><span class="p">)]</span>
 
             <span class="n">return_code</span> <span class="o">=</span> <span class="n">builder_helper</span><span class="o">.</span><span class="n">run_bash_script_with_logging</span><span class="p">(</span>
@@ -223,8 +223,8 @@
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">&#39;the following arguments are required: &lt;subcommand&gt;&#39;</span><span class="p">)</span></div>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">builder_command</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="s1">'the following arguments are required: &lt;subcommand&gt;'</span><span class="p">)</span></div>
 
 </pre></div>
 

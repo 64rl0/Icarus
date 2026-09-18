@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -86,9 +86,9 @@
 <span class="c1"># Copyright (c) Amazon.com Inc. All Rights Reserved.</span>
 <span class="c1"># AMAZON.COM CONFIDENTIAL</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -118,7 +118,7 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;get_argv&#39;</span><span class="p">,</span>
+    <span class="s1">'get_argv'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -128,29 +128,29 @@
 <div class="viewcode-block" id="get_argv">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.create_helper.html#icarus.handlers.builder_handler.create_helper.get_argv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_argv</span><span class="p">(</span><span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">package_language</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Get the command line arguments and return them as a list.</span>
 
 <span class="sd">    :return: The arguments for the create.sh script.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">stru</span> <span class="o">=</span> <span class="n">mylib</span><span class="o">.</span><span class="n">StringUtils</span><span class="p">()</span>
-    <span class="n">name_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[A-Za-z0-9]{1,64}$&#39;</span><span class="p">)</span>
+    <span class="n">name_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^[A-Za-z0-9]{1,64}$'</span><span class="p">)</span>
 
     <span class="n">package_language_normalized</span> <span class="o">=</span> <span class="n">package_language</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">package_name_pascal_case_normalized</span> <span class="o">=</span> <span class="n">package_name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">name_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid input: package name must be 1-64 alphanumeric characters&quot;</span>
+            <span class="s2">"Invalid input: package name must be 1-64 alphanumeric characters"</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">name_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">package_language_normalized</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid input: package language must be 1-64 alphanumeric characters&quot;</span>
+            <span class="s2">"Invalid input: package language must be 1-64 alphanumeric characters"</span>
         <span class="p">)</span>
 
     <span class="n">package_name_snake_case</span> <span class="o">=</span> <span class="n">stru</span><span class="o">.</span><span class="n">snake_case_v2</span><span class="p">(</span><span class="n">package_name_pascal_case_normalized</span><span class="p">)</span>
-    <span class="n">package_name_dashed</span> <span class="o">=</span> <span class="n">package_name_snake_case</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="n">package_name_dashed</span> <span class="o">=</span> <span class="n">package_name_snake_case</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_'</span><span class="p">,</span> <span class="s1">'-'</span><span class="p">)</span>
 
     <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">package_language_normalized</span><span class="p">,</span>
@@ -174,13 +174,13 @@
         <span class="o">&gt;</span> <span class="mi">64</span>
     <span class="p">):</span>
         <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid input: package name must be 1-64 alphanumeric characters&quot;</span>
+            <span class="s2">"Invalid input: package name must be 1-64 alphanumeric characters"</span>
         <span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Package name mapping:</span><span class="se">\n</span><span class="s2">--| User input:  </span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">--| PascalCase:&quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">package_name_pascal_case_normalized</span><span class="si">}</span><span class="se">\n</span><span class="s2">--| snake_case:  </span><span class="si">{</span><span class="n">package_name_snake_case</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;--| dashed-case: </span><span class="si">{</span><span class="n">package_name_dashed</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">"Package name mapping:</span><span class="se">\n</span><span class="s2">--| User input:  </span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">--| PascalCase:"</span>
+        <span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">package_name_pascal_case_normalized</span><span class="si">}</span><span class="se">\n</span><span class="s2">--| snake_case:  </span><span class="si">{</span><span class="n">package_name_snake_case</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="sa">f</span><span class="s2">"--| dashed-case: </span><span class="si">{</span><span class="n">package_name_dashed</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">argv</span></div>

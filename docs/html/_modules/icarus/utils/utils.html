@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/utils/utils.py</span>
 <span class="c1"># Created 1/19/25 - 8:58 PM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -121,10 +121,10 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;set_logger_level&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;run_bash_script&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;capture_exit_code&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;platform_id&#39;</span><span class="p">,</span>
+    <span class="s1">'set_logger_level'</span><span class="p">,</span>
+    <span class="s1">'run_bash_script'</span><span class="p">,</span>
+    <span class="s1">'capture_exit_code'</span><span class="p">,</span>
+    <span class="s1">'platform_id'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -138,12 +138,12 @@
 <div class="viewcode-block" id="capture_exit_code">
 <a class="viewcode-back" href="../../../_apidoc/icarus.utils.utils.html#icarus.utils.utils.capture_exit_code">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">capture_exit_code</span><span class="p">(</span><span class="n">original_function</span><span class="p">:</span> <span class="n">OriginalFunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InnerFunction</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Decorator function to capture the exit code of a Python function.</span>
 
 <span class="sd">    :param original_function: The Python function to be decorated.</span>
 <span class="sd">    :return: Exit code of the Python function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">original_function</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -153,8 +153,8 @@
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Exception occurred while running function: &#39;</span><span class="si">{</span><span class="n">original_function</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; |&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot; exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Exception occurred while running function: '</span><span class="si">{</span><span class="n">original_function</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">' |"</span>
+                <span class="sa">f</span><span class="s2">" exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="mi">1</span>
 
@@ -165,16 +165,16 @@
 <div class="viewcode-block" id="set_logger_level">
 <a class="viewcode-back" href="../../../_apidoc/icarus.utils.utils.html#icarus.utils.utils.set_logger_level">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_logger_level</span><span class="p">(</span><span class="n">level</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Set the logging level for the logger.</span>
 
 <span class="sd">    :param level: The logging level to set.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">change_logger_level</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">change_logger_level</span><span class="p">(</span><span class="s1">'DEBUG'</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">change_logger_level</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span></div>
+        <span class="n">config</span><span class="o">.</span><span class="n">master_logger</span><span class="o">.</span><span class="n">change_logger_level</span><span class="p">(</span><span class="s1">'WARNING'</span><span class="p">)</span></div>
 
 
 
@@ -185,58 +185,58 @@
     <span class="n">script_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">log_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Runs a Bash script with the given arguments.</span>
 
 <span class="sd">    :param script_path: Path to the Bash script.</span>
 <span class="sd">    :param script_args: List of arguments to pass to the script.</span>
 <span class="sd">    :param log_path: Path to the log file.</span>
 <span class="sd">    :return: Exit code of the Bash script.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running BASH script with script_args before serializing </span><span class="si">{</span><span class="n">script_args</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running BASH script with script_args before serializing </span><span class="si">{</span><span class="n">script_args</span><span class="si">=}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Strip ANSI codes from logs</span>
-    <span class="n">ansi_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\x1b\[[0-9;]*m&#39;</span><span class="p">)</span>
+    <span class="n">ansi_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\x1b\[[0-9;]*m'</span><span class="p">)</span>
     <span class="n">script_args_normalized</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="n">script_args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">script_args</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">script_args</span><span class="si">=}</span><span class="s2"> must be a list of strings&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">script_args</span><span class="si">=}</span><span class="s2"> must be a list of strings"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">script_args</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">script_args_normalized</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">script_args_normalized</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">script_args_normalized</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">script_args_normalized</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
 
     <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Running BASH script with script_args after serializing </span><span class="si">{</span><span class="n">script_args_normalized</span><span class="si">=}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">"Running BASH script with script_args after serializing </span><span class="si">{</span><span class="n">script_args_normalized</span><span class="si">=}</span><span class="s2">"</span>
     <span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Combine the script path and its arguments</span>
-        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bash&#39;</span><span class="p">,</span> <span class="n">script_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">script_args_normalized</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'bash'</span><span class="p">,</span> <span class="n">script_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">script_args_normalized</span>
 
         <span class="k">if</span> <span class="n">log_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">log_handle</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">'replace'</span><span class="p">)</span> <span class="k">as</span> <span class="n">log_handle</span><span class="p">:</span>
                 <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
                     <span class="n">command</span><span class="p">,</span>
                     <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
                     <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
-                    <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+                    <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
                     <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">bufsize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                    <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">,</span>
+                    <span class="n">errors</span><span class="o">=</span><span class="s1">'replace'</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Subprocess stdout is None&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Subprocess stdout is None"</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
                     <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                     <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-                    <span class="n">log_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ansi_re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+                    <span class="n">log_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ansi_re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">''</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
                 <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
                 <span class="n">return_code</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span>
         <span class="k">else</span><span class="p">:</span>
@@ -244,82 +244,82 @@
             <span class="n">complete_process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">return_code</span> <span class="o">=</span> <span class="n">complete_process</span><span class="o">.</span><span class="n">returncode</span>
 
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">command</span><span class="si">=}</span><span class="s2"> executed successfully with exit code: </span><span class="si">{</span><span class="n">return_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">command</span><span class="si">=}</span><span class="s2"> executed successfully with exit code: </span><span class="si">{</span><span class="n">return_code</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">return_code</span>
 
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">command</span><span class="si">=}</span><span class="s2"> failed with exit code </span><span class="si">{</span><span class="n">ex</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">command</span><span class="si">=}</span><span class="s2"> failed with exit code </span><span class="si">{</span><span class="n">ex</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ex</span><span class="o">.</span><span class="n">returncode</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exception occurred while running </span><span class="si">{</span><span class="n">command</span><span class="si">=}</span><span class="s2"> | exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Exception occurred while running </span><span class="si">{</span><span class="n">command</span><span class="si">=}</span><span class="s2"> | exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="mi">1</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sanitize</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Keep only letters, digits, dot, dash.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^A-Za-z0-9.-]&#39;</span><span class="p">)</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'[^A-Za-z0-9.-]'</span><span class="p">)</span>
 
-    <span class="n">raw_replaced</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">raw_replaced</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">' '</span><span class="p">,</span> <span class="s1">'-'</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'"'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"'"</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
 
-    <span class="n">sanitized</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">raw_replaced</span><span class="p">)</span>
+    <span class="n">sanitized</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="n">raw_replaced</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">sanitized</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_linux_flavour</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Try `/etc/os-release` first (present on every modern distro).</span>
-<span class="sd">    Fallback: &#39;linux&#39; if file missing / unreadable.</span>
-<span class="sd">    Returns strings like &#39;debian12&#39;, &#39;fedora39&#39;, &#39;ubuntu2204&#39;.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    Fallback: 'linux' if file missing / unreadable.</span>
+<span class="sd">    Returns strings like 'debian12', 'fedora39', 'ubuntu2204'.</span>
+<span class="sd">    """</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/etc/os-release&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span> <span class="k">if</span> <span class="s2">&quot;=&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"/etc/os-release"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span> <span class="k">if</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
 
-        <span class="n">distro</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="s2">&quot;linux&quot;</span><span class="p">)</span>
-        <span class="n">version</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;VERSION_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="n">distro</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ID"</span><span class="p">,</span> <span class="s2">"linux"</span><span class="p">)</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"VERSION_ID"</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">distro</span><span class="si">}{</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">distro</span><span class="si">}{</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;linux0&quot;</span>
+        <span class="k">return</span> <span class="s2">"linux0"</span>
 
 
 <div class="viewcode-block" id="platform_id">
 <a class="viewcode-back" href="../../../_apidoc/icarus.utils.utils.html#icarus.utils.utils.platform_id">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">platform_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns a string that uniquely identifies the current platform.</span>
 
 <span class="sd">    :return:</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">arch</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">machine</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"linux"</span><span class="p">):</span>
         <span class="n">os_part</span> <span class="o">=</span> <span class="n">_linux_flavour</span><span class="p">()</span>
 
-    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
-        <span class="n">major</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">mac_ver</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;0&quot;</span>
-        <span class="n">os_part</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;macos</span><span class="si">{</span><span class="n">major</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">"darwin"</span><span class="p">:</span>
+        <span class="n">major</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">mac_ver</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'.'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">"0"</span>
+        <span class="n">os_part</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"macos</span><span class="si">{</span><span class="n">major</span><span class="si">}</span><span class="s2">"</span>
 
-    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;nt&quot;</span><span class="p">:</span>
-        <span class="n">release</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">win32_ver</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;0&quot;</span>
-        <span class="n">os_part</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;win</span><span class="si">{</span><span class="n">release</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"nt"</span><span class="p">:</span>
+        <span class="n">release</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">win32_ver</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">"0"</span>
+        <span class="n">os_part</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"win</span><span class="si">{</span><span class="n">release</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">os_part</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span>
 
-    <span class="n">sanitized_platform_id</span> <span class="o">=</span> <span class="n">_sanitize</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os_part</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">sanitized_platform_id</span> <span class="o">=</span> <span class="n">_sanitize</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">os_part</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">sanitized_platform_id</span></div>
 

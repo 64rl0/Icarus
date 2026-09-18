@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/handlers/builder_handler/report_generator.py</span>
 <span class="c1"># Created 2/28/26 - 10:02 AM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -118,7 +118,7 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;generate_report&#39;</span><span class="p">,</span>
+    <span class="s1">'generate_report'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -128,14 +128,14 @@
 <div class="viewcode-block" id="generate_report">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.report_generator.html#icarus.handlers.builder_handler.report_generator.generate_report">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="n">script_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generate the builder HTML report from the trace log.</span>
 
 <span class="sd">    :param script_args: List of script argument strings.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">script_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;script_args cannot be None&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"script_args cannot be None"</span><span class="p">)</span>
 
     <span class="n">project_root</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">_extract_project_root</span><span class="p">(</span><span class="n">script_args</span><span class="p">))</span>
 
@@ -150,9 +150,9 @@
         <span class="n">entries</span><span class="o">=</span><span class="n">entries</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">project_root</span><span class="o">=</span><span class="n">project_root</span><span class="p">,</span> <span class="n">script_args</span><span class="o">=</span><span class="n">script_args</span>
     <span class="p">)</span>
 
-    <span class="n">report_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">report_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span>
 
-    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Report generated at </span><span class="si">{</span><span class="n">report_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Report generated at </span><span class="si">{</span><span class="n">report_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 
 
@@ -162,7 +162,7 @@
     <span class="n">project_root</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
     <span class="n">script_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Render the full HTML report from trace entries.</span>
 
 <span class="sd">    :param entries: List of trace entry dictionaries.</span>
@@ -170,7 +170,7 @@
 <span class="sd">    :param project_root: Path to the project root directory.</span>
 <span class="sd">    :param script_args: List of script argument strings.</span>
 <span class="sd">    :return: Complete HTML string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">stats</span> <span class="o">=</span> <span class="n">_compute_stats</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
     <span class="n">duration_bars</span> <span class="o">=</span> <span class="n">_build_duration_bars</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
@@ -179,7 +179,7 @@
     <span class="n">workspace_name</span> <span class="o">=</span> <span class="n">_extract_workspace_name</span><span class="p">(</span><span class="n">script_args</span><span class="p">)</span>
     <span class="n">workspace_root</span> <span class="o">=</span> <span class="n">project_root</span>
 
-    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">astimezone</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S %Z&#39;</span><span class="p">)</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">astimezone</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S %Z'</span><span class="p">)</span>
 
     <span class="n">template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">_HTML_TEMPLATE</span><span class="p">)</span>
 
@@ -188,16 +188,16 @@
         <span class="n">workspace_name</span><span class="o">=</span><span class="n">workspace_name</span><span class="p">,</span>
         <span class="n">workspace_root</span><span class="o">=</span><span class="n">workspace_root</span><span class="p">,</span>
         <span class="n">report_generated</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-        <span class="n">total_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">],</span>
-        <span class="n">passed_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;passed&#39;</span><span class="p">],</span>
-        <span class="n">failed_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;failed&#39;</span><span class="p">],</span>
-        <span class="n">warned_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;warned&#39;</span><span class="p">],</span>
-        <span class="n">success_rate</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;success_rate&#39;</span><span class="p">],</span>
-        <span class="n">avg_duration</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;avg_duration&#39;</span><span class="p">],</span>
-        <span class="n">min_duration</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;min_duration&#39;</span><span class="p">],</span>
-        <span class="n">max_duration</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">],</span>
-        <span class="n">min_duration_run_id</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;min_duration_run_id&#39;</span><span class="p">],</span>
-        <span class="n">max_duration_run_id</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;max_duration_run_id&#39;</span><span class="p">],</span>
+        <span class="n">total_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'total'</span><span class="p">],</span>
+        <span class="n">passed_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'passed'</span><span class="p">],</span>
+        <span class="n">failed_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'failed'</span><span class="p">],</span>
+        <span class="n">warned_runs</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'warned'</span><span class="p">],</span>
+        <span class="n">success_rate</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'success_rate'</span><span class="p">],</span>
+        <span class="n">avg_duration</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'avg_duration'</span><span class="p">],</span>
+        <span class="n">min_duration</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'min_duration'</span><span class="p">],</span>
+        <span class="n">max_duration</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'max_duration'</span><span class="p">],</span>
+        <span class="n">min_duration_run_id</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'min_duration_run_id'</span><span class="p">],</span>
+        <span class="n">max_duration_run_id</span><span class="o">=</span><span class="n">stats</span><span class="p">[</span><span class="s1">'max_duration_run_id'</span><span class="p">],</span>
         <span class="n">table_rows</span><span class="o">=</span><span class="n">table_rows</span><span class="p">,</span>
         <span class="n">duration_bars</span><span class="o">=</span><span class="n">duration_bars</span><span class="p">,</span>
     <span class="p">)</span>
@@ -206,212 +206,212 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_compute_stats</span><span class="p">(</span><span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Compute aggregate statistics from trace entries.</span>
 
 <span class="sd">    :param entries: List of trace entry dictionaries.</span>
 <span class="sd">    :return: Dictionary of computed statistics.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
-    <span class="n">passed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">failed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-    <span class="n">warned</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">durations</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_seconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">]</span>
+    <span class="n">passed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'return_code'</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'return_code'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">warned</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'return_code'</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">durations</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'duration_seconds'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">]</span>
     <span class="n">avg_duration</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">durations</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span> <span class="k">if</span> <span class="n">total</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="n">max_duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">durations</span><span class="p">)</span> <span class="k">if</span> <span class="n">durations</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="n">min_duration</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">durations</span><span class="p">)</span> <span class="k">if</span> <span class="n">durations</span> <span class="k">else</span> <span class="mi">0</span>
-    <span class="n">max_duration_run_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">min_duration_run_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">max_duration_run_id</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">min_duration_run_id</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="k">if</span> <span class="n">entries</span><span class="p">:</span>
-        <span class="n">max_entry</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_seconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-        <span class="n">min_entry</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_seconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-        <span class="n">max_duration_run_id</span> <span class="o">=</span> <span class="n">max_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;run_id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">min_duration_run_id</span> <span class="o">=</span> <span class="n">min_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;run_id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">max_entry</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'duration_seconds'</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">min_entry</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'duration_seconds'</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">max_duration_run_id</span> <span class="o">=</span> <span class="n">max_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'run_id'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">min_duration_run_id</span> <span class="o">=</span> <span class="n">min_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'run_id'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
     <span class="n">success_rate</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">passed</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="k">else</span> <span class="mi">0</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
-        <span class="s1">&#39;passed&#39;</span><span class="p">:</span> <span class="n">passed</span><span class="p">,</span>
-        <span class="s1">&#39;failed&#39;</span><span class="p">:</span> <span class="n">failed</span><span class="p">,</span>
-        <span class="s1">&#39;warned&#39;</span><span class="p">:</span> <span class="n">warned</span><span class="p">,</span>
-        <span class="s1">&#39;avg_duration&#39;</span><span class="p">:</span> <span class="n">_format_duration</span><span class="p">(</span><span class="n">avg_duration</span><span class="p">),</span>
-        <span class="s1">&#39;max_duration&#39;</span><span class="p">:</span> <span class="n">_format_duration</span><span class="p">(</span><span class="n">max_duration</span><span class="p">),</span>
-        <span class="s1">&#39;min_duration&#39;</span><span class="p">:</span> <span class="n">_format_duration</span><span class="p">(</span><span class="n">min_duration</span><span class="p">),</span>
-        <span class="s1">&#39;max_duration_run_id&#39;</span><span class="p">:</span> <span class="n">max_duration_run_id</span><span class="p">,</span>
-        <span class="s1">&#39;min_duration_run_id&#39;</span><span class="p">:</span> <span class="n">min_duration_run_id</span><span class="p">,</span>
-        <span class="s1">&#39;success_rate&#39;</span><span class="p">:</span> <span class="n">success_rate</span><span class="p">,</span>
+        <span class="s1">'total'</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
+        <span class="s1">'passed'</span><span class="p">:</span> <span class="n">passed</span><span class="p">,</span>
+        <span class="s1">'failed'</span><span class="p">:</span> <span class="n">failed</span><span class="p">,</span>
+        <span class="s1">'warned'</span><span class="p">:</span> <span class="n">warned</span><span class="p">,</span>
+        <span class="s1">'avg_duration'</span><span class="p">:</span> <span class="n">_format_duration</span><span class="p">(</span><span class="n">avg_duration</span><span class="p">),</span>
+        <span class="s1">'max_duration'</span><span class="p">:</span> <span class="n">_format_duration</span><span class="p">(</span><span class="n">max_duration</span><span class="p">),</span>
+        <span class="s1">'min_duration'</span><span class="p">:</span> <span class="n">_format_duration</span><span class="p">(</span><span class="n">min_duration</span><span class="p">),</span>
+        <span class="s1">'max_duration_run_id'</span><span class="p">:</span> <span class="n">max_duration_run_id</span><span class="p">,</span>
+        <span class="s1">'min_duration_run_id'</span><span class="p">:</span> <span class="n">min_duration_run_id</span><span class="p">,</span>
+        <span class="s1">'success_rate'</span><span class="p">:</span> <span class="n">success_rate</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">response</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_duration_bars</span><span class="p">(</span><span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Build a simple CSS bar chart of run durations (last 100 runs).</span>
 
 <span class="sd">    :param entries: List of trace entry dictionaries.</span>
 <span class="sd">    :return: HTML string of the duration chart.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">recent</span> <span class="o">=</span> <span class="n">entries</span><span class="p">[</span><span class="o">-</span><span class="mi">100</span><span class="p">:]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">recent</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;&lt;p class=&quot;empty&quot;&gt;No runs recorded yet.&lt;/p&gt;&#39;</span>
+        <span class="k">return</span> <span class="s1">'&lt;p class="empty"&gt;No runs recorded yet.&lt;/p&gt;'</span>
 
-    <span class="n">max_dur</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_seconds&#39;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">recent</span><span class="p">)</span>
+    <span class="n">max_dur</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'duration_seconds'</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">recent</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">max_dur</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">max_dur</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="c1"># Extract date labels for first and last run</span>
-    <span class="n">first_label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">last_label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">first_label</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">last_label</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">recent</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-        <span class="n">first_label</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">recent</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'start_time'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
+        <span class="n">first_label</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M'</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
         <span class="k">pass</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">recent</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-        <span class="n">last_label</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">recent</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'start_time'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
+        <span class="n">last_label</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M'</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
         <span class="k">pass</span>
 
     <span class="n">bars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">recent</span><span class="p">:</span>
-        <span class="n">run_id</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;run_id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">duration</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_seconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">return_code</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">run_id</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'run_id'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'duration_seconds'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'return_code'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">pct</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">duration</span> <span class="o">/</span> <span class="n">max_dur</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">color_class</span> <span class="o">=</span> <span class="s1">&#39;bar-pass&#39;</span>
+            <span class="n">color_class</span> <span class="o">=</span> <span class="s1">'bar-pass'</span>
         <span class="k">elif</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">color_class</span> <span class="o">=</span> <span class="s1">&#39;bar-warn&#39;</span>
+            <span class="n">color_class</span> <span class="o">=</span> <span class="s1">'bar-warn'</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">color_class</span> <span class="o">=</span> <span class="s1">&#39;bar-fail&#39;</span>
+            <span class="n">color_class</span> <span class="o">=</span> <span class="s1">'bar-fail'</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="n">tooltip</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m/</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">s&quot;</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'start_time'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
+            <span class="n">tooltip</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%m/</span><span class="si">%d</span><span class="s1"> %H:%M'</span><span class="p">)</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">s"</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-            <span class="n">tooltip</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">s&quot;</span>
+            <span class="n">tooltip</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">s"</span>
 
         <span class="n">bars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;div class=&quot;bar </span><span class="si">{</span><span class="n">color_class</span><span class="si">}</span><span class="s1">&quot; style=&quot;height:</span><span class="si">{</span><span class="n">pct</span><span class="si">}</span><span class="s1">%&quot;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39; title=&quot;</span><span class="si">{</span><span class="n">tooltip</span><span class="si">}</span><span class="s1">&quot; data-run-id=&quot;</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39; onclick=&quot;scrollToRun(</span><span class="se">\&#39;</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">)&quot;&gt;&lt;/div&gt;&#39;</span>
+            <span class="sa">f</span><span class="s1">'&lt;div class="bar </span><span class="si">{</span><span class="n">color_class</span><span class="si">}</span><span class="s1">" style="height:</span><span class="si">{</span><span class="n">pct</span><span class="si">}</span><span class="s1">%"'</span>
+            <span class="sa">f</span><span class="s1">' title="</span><span class="si">{</span><span class="n">tooltip</span><span class="si">}</span><span class="s1">" data-run-id="</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">"'</span>
+            <span class="sa">f</span><span class="s1">' onclick="scrollToRun(</span><span class="se">\'</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="se">\'</span><span class="s1">)"&gt;&lt;/div&gt;'</span>
         <span class="p">)</span>
 
-    <span class="n">bars_html</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bars</span><span class="p">)</span>
+    <span class="n">bars_html</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bars</span><span class="p">)</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s1">&#39;&lt;div class=&quot;chart-labels&quot;&gt;&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;&lt;span class=&quot;chart-label-left&quot;&gt;</span><span class="si">{</span><span class="n">first_label</span><span class="si">}</span><span class="s1">&lt;/span&gt;&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;&lt;span class=&quot;chart-label-right&quot;&gt;</span><span class="si">{</span><span class="n">last_label</span><span class="si">}</span><span class="s1">&lt;/span&gt;&#39;</span>
-        <span class="s1">&#39;&lt;/div&gt;&#39;</span>
-        <span class="s1">&#39;&lt;div class=&quot;chart-bars&quot;&gt;&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">bars_html</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="s1">&#39;&lt;/div&gt;&#39;</span>
+        <span class="s1">'&lt;div class="chart-labels"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;span class="chart-label-left"&gt;</span><span class="si">{</span><span class="n">first_label</span><span class="si">}</span><span class="s1">&lt;/span&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;span class="chart-label-right"&gt;</span><span class="si">{</span><span class="n">last_label</span><span class="si">}</span><span class="s1">&lt;/span&gt;'</span>
+        <span class="s1">'&lt;/div&gt;'</span>
+        <span class="s1">'&lt;div class="chart-bars"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">bars_html</span><span class="si">}</span><span class="s1">'</span>
+        <span class="s1">'&lt;/div&gt;'</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">response</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_run_table_rows</span><span class="p">(</span><span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">log_dir</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Build HTML table rows for each trace entry (most recent first).</span>
 
 <span class="sd">    :param entries: List of trace entry dictionaries.</span>
 <span class="sd">    :param log_dir: Path to the log directory.</span>
 <span class="sd">    :return: HTML string of table rows.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
-        <span class="n">run_id</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;run_id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">run_id</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'run_id'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
         <span class="n">command</span> <span class="o">=</span> <span class="n">_extract_initial_command</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-        <span class="n">return_code</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">start_time</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">duration</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_seconds&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">cwd</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cwd&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">command_args</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;command_args&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">return_code</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'return_code'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'start_time'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'duration_seconds'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">cwd</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cwd'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">command_args</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'command_args'</span><span class="p">,</span> <span class="p">[])</span>
 
         <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">status_class</span> <span class="o">=</span> <span class="s1">&#39;passed&#39;</span>
-            <span class="n">status_label</span> <span class="o">=</span> <span class="s1">&#39;PASS&#39;</span>
+            <span class="n">status_class</span> <span class="o">=</span> <span class="s1">'passed'</span>
+            <span class="n">status_label</span> <span class="o">=</span> <span class="s1">'PASS'</span>
         <span class="k">elif</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">status_class</span> <span class="o">=</span> <span class="s1">&#39;warned&#39;</span>
-            <span class="n">status_label</span> <span class="o">=</span> <span class="s1">&#39;WARN&#39;</span>
+            <span class="n">status_class</span> <span class="o">=</span> <span class="s1">'warned'</span>
+            <span class="n">status_label</span> <span class="o">=</span> <span class="s1">'WARN'</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">status_class</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-            <span class="n">status_label</span> <span class="o">=</span> <span class="s1">&#39;FAIL&#39;</span>
+            <span class="n">status_class</span> <span class="o">=</span> <span class="s1">'failed'</span>
+            <span class="n">status_label</span> <span class="o">=</span> <span class="s1">'FAIL'</span>
 
         <span class="c1"># Link to log file for failed runs</span>
-        <span class="n">log_file</span> <span class="o">=</span> <span class="n">log_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">.log&quot;</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="n">log_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">.log"</span>
         <span class="k">if</span> <span class="n">log_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="n">log_link</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;&lt;a href=&quot;../</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">ICARUS_LOG_DIRNAME</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">.log&quot;&#39;</span>
-                <span class="s1">&#39; class=&quot;log-link&quot; target=&quot;_blank&quot;&gt;view log&lt;/a&gt;&#39;</span>
+                <span class="sa">f</span><span class="s1">'&lt;a href="../</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">ICARUS_LOG_DIRNAME</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">.log"'</span>
+                <span class="s1">' class="log-link" target="_blank"&gt;view log&lt;/a&gt;'</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">log_link</span> <span class="o">=</span> <span class="s1">&#39;&lt;span class=&quot;no-log&quot;&gt;-&lt;/span&gt;&#39;</span>
+            <span class="n">log_link</span> <span class="o">=</span> <span class="s1">'&lt;span class="no-log"&gt;-&lt;/span&gt;'</span>
 
         <span class="c1"># Format command_args for expandable detail</span>
         <span class="k">if</span> <span class="n">command_args</span><span class="p">:</span>
             <span class="n">args_display</span> <span class="o">=</span> <span class="n">_format_command_args</span><span class="p">(</span><span class="n">command_args</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">args_display</span> <span class="o">=</span> <span class="s1">&#39;&lt;em&gt;no args&lt;/em&gt;&#39;</span>
+            <span class="n">args_display</span> <span class="o">=</span> <span class="s1">'&lt;em&gt;no args&lt;/em&gt;'</span>
 
         <span class="c1"># Format start_time for display</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
-            <span class="n">start_display</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+            <span class="n">start_display</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S'</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
             <span class="n">start_display</span> <span class="o">=</span> <span class="n">start_time</span>
 
         <span class="n">row</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;tr id=&quot;row-</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">&quot; class=&quot;run-row </span><span class="si">{</span><span class="n">status_class</span><span class="si">}</span><span class="s1">&quot; onclick=&quot;toggleDetail(this)&quot;&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;td class=&quot;mono&quot;&gt;</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">&lt;/td&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;td&gt;</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s1">&lt;/td&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;td&gt;&lt;span class=&quot;badge </span><span class="si">{</span><span class="n">status_class</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="si">{</span><span class="n">status_label</span><span class="si">}</span><span class="s1">&lt;/span&gt;&lt;/td&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;td&gt;</span><span class="si">{</span><span class="n">start_display</span><span class="si">}</span><span class="s1">&lt;/td&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;td class=&quot;mono&quot;&gt;</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s1">s&lt;/td&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;&lt;td&gt;</span><span class="si">{</span><span class="n">log_link</span><span class="si">}</span><span class="s1">&lt;/td&gt;&#39;</span>
-            <span class="s1">&#39;&lt;/tr&gt;&#39;</span>
-            <span class="s1">&#39;&lt;tr class=&quot;detail-row&quot; style=&quot;display:none&quot;&gt;&#39;</span>
-            <span class="s1">&#39;&lt;td colspan=&quot;6&quot;&gt;&#39;</span>
-            <span class="s1">&#39;&lt;div class=&quot;detail-content&quot;&gt;&#39;</span>
-            <span class="s1">&#39;&lt;div class=&quot;detail-field&quot;&gt;&lt;strong&gt;cwd:&lt;/strong&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39; &lt;pre&gt;</span><span class="si">{</span><span class="n">cwd</span><span class="si">}</span><span class="s1">&lt;/pre&gt;&lt;/div&gt;&#39;</span>
-            <span class="s1">&#39;&lt;div class=&quot;detail-field&quot;&gt;&lt;strong&gt;args:&lt;/strong&gt;&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39; &lt;pre&gt;</span><span class="si">{</span><span class="n">args_display</span><span class="si">}</span><span class="s1">&lt;/pre&gt;&lt;/div&gt;&#39;</span>
-            <span class="s1">&#39;&lt;/div&gt;&#39;</span>
-            <span class="s1">&#39;&lt;/td&gt;&#39;</span>
-            <span class="s1">&#39;&lt;/tr&gt;&#39;</span>
+            <span class="sa">f</span><span class="s1">'&lt;tr id="row-</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">" class="run-row </span><span class="si">{</span><span class="n">status_class</span><span class="si">}</span><span class="s1">" onclick="toggleDetail(this)"&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;td class="mono"&gt;</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s1">&lt;/td&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;td&gt;</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s1">&lt;/td&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;td&gt;&lt;span class="badge </span><span class="si">{</span><span class="n">status_class</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">status_label</span><span class="si">}</span><span class="s1">&lt;/span&gt;&lt;/td&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;td&gt;</span><span class="si">{</span><span class="n">start_display</span><span class="si">}</span><span class="s1">&lt;/td&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;td class="mono"&gt;</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s1">s&lt;/td&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;td&gt;</span><span class="si">{</span><span class="n">log_link</span><span class="si">}</span><span class="s1">&lt;/td&gt;'</span>
+            <span class="s1">'&lt;/tr&gt;'</span>
+            <span class="s1">'&lt;tr class="detail-row" style="display:none"&gt;'</span>
+            <span class="s1">'&lt;td colspan="6"&gt;'</span>
+            <span class="s1">'&lt;div class="detail-content"&gt;'</span>
+            <span class="s1">'&lt;div class="detail-field"&gt;&lt;strong&gt;cwd:&lt;/strong&gt;'</span>
+            <span class="sa">f</span><span class="s1">' &lt;pre&gt;</span><span class="si">{</span><span class="n">cwd</span><span class="si">}</span><span class="s1">&lt;/pre&gt;&lt;/div&gt;'</span>
+            <span class="s1">'&lt;div class="detail-field"&gt;&lt;strong&gt;args:&lt;/strong&gt;'</span>
+            <span class="sa">f</span><span class="s1">' &lt;pre&gt;</span><span class="si">{</span><span class="n">args_display</span><span class="si">}</span><span class="s1">&lt;/pre&gt;&lt;/div&gt;'</span>
+            <span class="s1">'&lt;/div&gt;'</span>
+            <span class="s1">'&lt;/td&gt;'</span>
+            <span class="s1">'&lt;/tr&gt;'</span>
         <span class="p">)</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
 
-    <span class="n">response</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">response</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_read_trace_log</span><span class="p">(</span><span class="n">trace_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Read the trace log file and return a list of trace entries.</span>
 
 <span class="sd">    :param trace_path: Path to the trace.log file.</span>
 <span class="sd">    :return: List of trace entry dictionaries.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">trace_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">return</span> <span class="n">entries</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">trace_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">trace_path</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
@@ -425,122 +425,122 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_package_name</span><span class="p">(</span><span class="n">script_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extract the package name from script arguments.</span>
 
 <span class="sd">    :param script_args: List of script argument strings.</span>
 <span class="sd">    :return: The package name in PascalCase, or empty string if not</span>
 <span class="sd">        found.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">script_args</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">''</span>
 
-    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;package_name_pascal_case=&#39;([^&#39;]*)&#39;&quot;</span><span class="p">,</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"package_name_pascal_case='([^']*)'"</span><span class="p">,</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">return</span> <span class="s1">''</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_workspace_name</span><span class="p">(</span><span class="n">script_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extract the workspace name from script arguments.</span>
 
 <span class="sd">    :param script_args: List of script argument strings.</span>
 <span class="sd">    :return: The workspace name.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">script_args</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">''</span>
 
-    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;project_workspace_name=&#39;([^&#39;]*)&#39;&quot;</span><span class="p">,</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"project_workspace_name='([^']*)'"</span><span class="p">,</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">return</span> <span class="s1">''</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_project_root</span><span class="p">(</span><span class="n">script_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extract the project root from script arguments.</span>
 
 <span class="sd">    :param script_args: List of script argument strings.</span>
 <span class="sd">    :return: The project root path, or empty string if not found.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">script_args</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">''</span>
 
-    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;project_root_dir_abs=&#39;([^&#39;]*)&#39;&quot;</span><span class="p">,</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"project_root_dir_abs='([^']*)'"</span><span class="p">,</span> <span class="n">script_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">return</span> <span class="s1">''</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_initial_command</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extract initial_command_received from a trace entry&#39;s command_args.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extract initial_command_received from a trace entry's command_args.</span>
 
 <span class="sd">    :param entry: A single trace entry dictionary.</span>
 <span class="sd">    :return: The initial command string, or the script filename as</span>
 <span class="sd">        fallback.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">command_args</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;command_args&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">command_args</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'command_args'</span><span class="p">,</span> <span class="p">[])</span>
     <span class="k">if</span> <span class="n">command_args</span><span class="p">:</span>
-        <span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command_args</span><span class="p">)</span>
-        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;initial_command_received=&#39;([^&#39;]*)&#39;&quot;</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command_args</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"initial_command_received='([^']*)'"</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">response</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;command&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'command'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
 
     <span class="k">return</span> <span class="n">response</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_format_command_args</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Format command arguments for display in the detail row.</span>
 
 <span class="sd">    :param args: List of command argument strings.</span>
 <span class="sd">    :return: Formatted string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">''</span>
 
     <span class="c1"># The args list is typically a single large string of bash</span>
     <span class="c1"># assignments.</span>
-    <span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">raw</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_format_duration</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Format a duration as seconds or minutes depending on magnitude.</span>
 
 <span class="sd">    :param seconds: Duration in seconds.</span>
 <span class="sd">    :return: Formatted string with unit.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">seconds</span> <span class="o">&gt;=</span> <span class="mi">60</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">seconds</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"> min&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">seconds</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"> min"</span>
 
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2"> s&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2"> s"</span>
 
 
 <span class="c1"># =====================================================================</span>
 <span class="c1"># HTML TEMPLATE</span>
 <span class="c1"># =====================================================================</span>
-<span class="n">_HTML_TEMPLATE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="n">_HTML_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""</span><span class="se">\</span>
 <span class="s2">&lt;!DOCTYPE html&gt;</span>
-<span class="s2">&lt;html lang=&quot;en&quot;&gt;</span>
+<span class="s2">&lt;html lang="en"&gt;</span>
 <span class="s2">&lt;head&gt;</span>
-<span class="s2">&lt;meta charset=&quot;utf-8&quot;&gt;</span>
-<span class="s2">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;</span>
+<span class="s2">&lt;meta charset="utf-8"&gt;</span>
+<span class="s2">&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</span>
 <span class="s2">&lt;title&gt;Icarus Builder Report&lt;/title&gt;</span>
 <span class="s2">&lt;style&gt;</span>
 <span class="s2">  :root {</span>
@@ -554,8 +554,8 @@
 <span class="s2">    --red: #f85149;</span>
 <span class="s2">    --yellow: #d29922;</span>
 <span class="s2">    --blue: #58a6ff;</span>
-<span class="s2">    --mono: &#39;SF Mono&#39;, &#39;Cascadia Code&#39;, &#39;Fira Code&#39;, Consolas, monospace;</span>
-<span class="s2">    --sans: -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Helvetica, Arial,</span>
+<span class="s2">    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;</span>
+<span class="s2">    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,</span>
 <span class="s2">            sans-serif;</span>
 <span class="s2">  }</span>
 
@@ -776,53 +776,53 @@
 <span class="s2">&lt;body&gt;</span>
 
 <span class="s2">&lt;h1&gt;Icarus Builder Report&lt;/h1&gt;</span>
-<span class="s2">&lt;div class=&quot;subtitle&quot;&gt;Package: $package_name&lt;/div&gt;</span>
-<span class="s2">&lt;div class=&quot;subtitle&quot;&gt;Workspace: $workspace_name&lt;/div&gt;</span>
-<span class="s2">&lt;div class=&quot;subtitle&quot;&gt;Root: $workspace_root&lt;/div&gt;</span>
-<span class="s2">&lt;div class=&quot;subtitle&quot;&gt;Generated $report_generated&lt;/div&gt;</span>
+<span class="s2">&lt;div class="subtitle"&gt;Package: $package_name&lt;/div&gt;</span>
+<span class="s2">&lt;div class="subtitle"&gt;Workspace: $workspace_name&lt;/div&gt;</span>
+<span class="s2">&lt;div class="subtitle"&gt;Root: $workspace_root&lt;/div&gt;</span>
+<span class="s2">&lt;div class="subtitle"&gt;Generated $report_generated&lt;/div&gt;</span>
 
-<span class="s2">&lt;div class=&quot;stats&quot;&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value blue&quot;&gt;$total_runs&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Total Runs&lt;/div&gt;</span>
+<span class="s2">&lt;div class="stats"&gt;</span>
+<span class="s2">  &lt;div class="stat-card"&gt;</span>
+<span class="s2">    &lt;div class="value blue"&gt;$total_runs&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Total Runs&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value green&quot;&gt;$passed_runs&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Passed&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card"&gt;</span>
+<span class="s2">    &lt;div class="value green"&gt;$passed_runs&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Passed&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value red&quot;&gt;$failed_runs&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Failed&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card"&gt;</span>
+<span class="s2">    &lt;div class="value red"&gt;$failed_runs&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Failed&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value yellow&quot;&gt;$warned_runs&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Warned&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card"&gt;</span>
+<span class="s2">    &lt;div class="value yellow"&gt;$warned_runs&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Warned&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value green&quot;&gt;$success_rate%&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Success Rate&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card"&gt;</span>
+<span class="s2">    &lt;div class="value green"&gt;$success_rate%&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Success Rate&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value blue&quot;&gt;$avg_duration&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Avg Duration&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card"&gt;</span>
+<span class="s2">    &lt;div class="value blue"&gt;$avg_duration&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Avg Duration&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card clickable&quot; onclick=&quot;scrollToRun(&#39;$min_duration_run_id&#39;)&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value blue&quot;&gt;$min_duration&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Min Duration&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card clickable" onclick="scrollToRun('$min_duration_run_id')"&gt;</span>
+<span class="s2">    &lt;div class="value blue"&gt;$min_duration&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Min Duration&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
-<span class="s2">  &lt;div class=&quot;stat-card clickable&quot; onclick=&quot;scrollToRun(&#39;$max_duration_run_id&#39;)&quot;&gt;</span>
-<span class="s2">    &lt;div class=&quot;value blue&quot;&gt;$max_duration&lt;/div&gt;</span>
-<span class="s2">    &lt;div class=&quot;label&quot;&gt;Max Duration&lt;/div&gt;</span>
+<span class="s2">  &lt;div class="stat-card clickable" onclick="scrollToRun('$max_duration_run_id')"&gt;</span>
+<span class="s2">    &lt;div class="value blue"&gt;$max_duration&lt;/div&gt;</span>
+<span class="s2">    &lt;div class="label"&gt;Max Duration&lt;/div&gt;</span>
 <span class="s2">  &lt;/div&gt;</span>
 <span class="s2">&lt;/div&gt;</span>
 
-<span class="s2">&lt;div class=&quot;section-title&quot;&gt;Duration (last 100 runs)&lt;/div&gt;</span>
-<span class="s2">&lt;div class=&quot;chart-container&quot;&gt;</span>
+<span class="s2">&lt;div class="section-title"&gt;Duration (last 100 runs)&lt;/div&gt;</span>
+<span class="s2">&lt;div class="chart-container"&gt;</span>
 <span class="s2">  $duration_bars</span>
 <span class="s2">&lt;/div&gt;</span>
 
-<span class="s2">&lt;div class=&quot;section-title&quot;&gt;Run History&lt;/div&gt;</span>
-<span class="s2">&lt;div class=&quot;table-wrapper&quot;&gt;</span>
+<span class="s2">&lt;div class="section-title"&gt;Run History&lt;/div&gt;</span>
+<span class="s2">&lt;div class="table-wrapper"&gt;</span>
 <span class="s2">  &lt;table&gt;</span>
 <span class="s2">    &lt;thead&gt;</span>
 <span class="s2">      &lt;tr&gt;</span>
@@ -840,40 +840,40 @@
 <span class="s2">  &lt;/table&gt;</span>
 <span class="s2">&lt;/div&gt;</span>
 
-<span class="s2">&lt;div class=&quot;footer&quot;&gt;</span>
+<span class="s2">&lt;div class="footer"&gt;</span>
 <span class="s2">  Icarus Builder &amp;mdash; report auto-generated from trace.log</span>
 <span class="s2">&lt;/div&gt;</span>
 
 <span class="s2">&lt;script&gt;</span>
 <span class="s2">function toggleDetail(row) {</span>
 <span class="s2">  var detail = row.nextElementSibling;</span>
-<span class="s2">  if (detail &amp;&amp; detail.classList.contains(&#39;detail-row&#39;)) {</span>
-<span class="s2">    detail.style.display = detail.style.display === &#39;none&#39; ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="s2">  if (detail &amp;&amp; detail.classList.contains('detail-row')) {</span>
+<span class="s2">    detail.style.display = detail.style.display === 'none' ? '' : 'none';</span>
 <span class="s2">  }</span>
 <span class="s2">}</span>
 
 <span class="s2">function scrollToRun(runId) {</span>
-<span class="s2">  var row = document.getElementById(&#39;row-&#39; + runId);</span>
+<span class="s2">  var row = document.getElementById('row-' + runId);</span>
 <span class="s2">  if (!row) return;</span>
 
 <span class="s2">  // Briefly highlight</span>
-<span class="s2">  row.classList.add(&#39;highlight&#39;);</span>
-<span class="s2">  setTimeout(function() { row.classList.remove(&#39;highlight&#39;); }, 1500);</span>
+<span class="s2">  row.classList.add('highlight');</span>
+<span class="s2">  setTimeout(function() { row.classList.remove('highlight'); }, 1500);</span>
 
 <span class="s2">  // Expand detail</span>
 <span class="s2">  var detail = row.nextElementSibling;</span>
-<span class="s2">  if (detail &amp;&amp; detail.classList.contains(&#39;detail-row&#39;)) {</span>
-<span class="s2">    detail.style.display = &#39;&#39;;</span>
+<span class="s2">  if (detail &amp;&amp; detail.classList.contains('detail-row')) {</span>
+<span class="s2">    detail.style.display = '';</span>
 <span class="s2">  }</span>
 
 <span class="s2">  // Scroll into view</span>
-<span class="s2">  row.scrollIntoView({ behavior: &#39;smooth&#39;, block: &#39;center&#39; });</span>
+<span class="s2">  row.scrollIntoView({ behavior: 'smooth', block: 'center' });</span>
 <span class="s2">}</span>
 <span class="s2">&lt;/script&gt;</span>
 
 <span class="s2">&lt;/body&gt;</span>
 <span class="s2">&lt;/html&gt;</span>
-<span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
 </pre></div>
 
            </div>

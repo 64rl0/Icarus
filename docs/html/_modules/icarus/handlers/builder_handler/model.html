@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/handlers/builder_handler/types.py</span>
 <span class="c1"># Created 2/16/26 - 4:33 PM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -115,10 +115,10 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;BuildSystems&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;IcarusBuilderOperation&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;IcarusBuilderCliArg&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;IcarusBuilderArg&#39;</span><span class="p">,</span>
+    <span class="s1">'BuildSystems'</span><span class="p">,</span>
+    <span class="s1">'IcarusBuilderOperation'</span><span class="p">,</span>
+    <span class="s1">'IcarusBuilderCliArg'</span><span class="p">,</span>
+    <span class="s1">'IcarusBuilderArg'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -128,21 +128,21 @@
 <div class="viewcode-block" id="BuildSystems">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.model.html#icarus.handlers.builder_handler.model.BuildSystems">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BuildSystems</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="n">ICARUS_PYTHON3</span> <span class="o">=</span> <span class="s1">&#39;icarus-python3&#39;</span>
-    <span class="n">ICARUS_CDK</span> <span class="o">=</span> <span class="s1">&#39;icarus-cdk&#39;</span></div>
+    <span class="n">ICARUS_PYTHON3</span> <span class="o">=</span> <span class="s1">'icarus-python3'</span>
+    <span class="n">ICARUS_CDK</span> <span class="o">=</span> <span class="s1">'icarus-cdk'</span></div>
 
 
 
 <div class="viewcode-block" id="IcarusBuilderOperation">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.model.html#icarus.handlers.builder_handler.model.IcarusBuilderOperation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IcarusBuilderOperation</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="n">UNDEFINED</span> <span class="o">=</span> <span class="s1">&#39;undefined&#39;</span>
-    <span class="n">BUILD_RUNTIME</span> <span class="o">=</span> <span class="s1">&#39;build-runtime&#39;</span>
-    <span class="n">CREATE</span> <span class="o">=</span> <span class="s1">&#39;create&#39;</span>
-    <span class="n">BUILDER</span> <span class="o">=</span> <span class="s1">&#39;builder&#39;</span>
-    <span class="n">BUMPVER</span> <span class="o">=</span> <span class="s1">&#39;bumpver&#39;</span>
-    <span class="n">PATH</span> <span class="o">=</span> <span class="s1">&#39;path&#39;</span>
-    <span class="n">CACHE</span> <span class="o">=</span> <span class="s1">&#39;cache&#39;</span></div>
+    <span class="n">UNDEFINED</span> <span class="o">=</span> <span class="s1">'undefined'</span>
+    <span class="n">BUILD_RUNTIME</span> <span class="o">=</span> <span class="s1">'build-runtime'</span>
+    <span class="n">CREATE</span> <span class="o">=</span> <span class="s1">'create'</span>
+    <span class="n">BUILDER</span> <span class="o">=</span> <span class="s1">'builder'</span>
+    <span class="n">BUMPVER</span> <span class="o">=</span> <span class="s1">'bumpver'</span>
+    <span class="n">PATH</span> <span class="o">=</span> <span class="s1">'path'</span>
+    <span class="n">CACHE</span> <span class="o">=</span> <span class="s1">'cache'</span></div>
 
 
 
@@ -160,126 +160,126 @@
 <span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">IcarusBuilderArg</span><span class="p">:</span>
     <span class="n">all_hooks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;clean&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;isort&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;black&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;flake8&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mypy&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;shfmt&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;eolnorm&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;whitespaces&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;trailing&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;eofnewline&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;gitleaks&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;pytest&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;sphinx&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;readthedocs&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;pypi&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;merge&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;exectool&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;execrun&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;execdev&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;bumpver&#39;</span><span class="p">],</span>
-        <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;prayers&#39;</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'build'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'clean'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'isort'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'black'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'flake8'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'mypy'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'shfmt'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'eolnorm'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'whitespaces'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'trailing'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'eofnewline'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'gitleaks'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'pytest'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'sphinx'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'readthedocs'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'pypi'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'merge'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'exectool'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'execrun'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'execdev'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'bumpver'</span><span class="p">],</span>
+        <span class="n">Literal</span><span class="p">[</span><span class="s1">'prayers'</span><span class="p">],</span>
     <span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s1">&#39;build&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;clean&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;isort&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;black&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;flake8&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;mypy&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;shfmt&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;eolnorm&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;whitespaces&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;trailing&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;eofnewline&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;gitleaks&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;pytest&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;sphinx&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;readthedocs&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;pypi&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;merge&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;exectool&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;execrun&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;execdev&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;bumpver&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;prayers&#39;</span><span class="p">,</span>
+        <span class="s1">'build'</span><span class="p">,</span>
+        <span class="s1">'clean'</span><span class="p">,</span>
+        <span class="s1">'isort'</span><span class="p">,</span>
+        <span class="s1">'black'</span><span class="p">,</span>
+        <span class="s1">'flake8'</span><span class="p">,</span>
+        <span class="s1">'mypy'</span><span class="p">,</span>
+        <span class="s1">'shfmt'</span><span class="p">,</span>
+        <span class="s1">'eolnorm'</span><span class="p">,</span>
+        <span class="s1">'whitespaces'</span><span class="p">,</span>
+        <span class="s1">'trailing'</span><span class="p">,</span>
+        <span class="s1">'eofnewline'</span><span class="p">,</span>
+        <span class="s1">'gitleaks'</span><span class="p">,</span>
+        <span class="s1">'pytest'</span><span class="p">,</span>
+        <span class="s1">'sphinx'</span><span class="p">,</span>
+        <span class="s1">'readthedocs'</span><span class="p">,</span>
+        <span class="s1">'pypi'</span><span class="p">,</span>
+        <span class="s1">'merge'</span><span class="p">,</span>
+        <span class="s1">'exectool'</span><span class="p">,</span>
+        <span class="s1">'execrun'</span><span class="p">,</span>
+        <span class="s1">'execdev'</span><span class="p">,</span>
+        <span class="s1">'bumpver'</span><span class="p">,</span>
+        <span class="s1">'prayers'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">running_hooks_name</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="n">running_hooks_count</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">running_hooks_count</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="n">platform_identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">platform_id</span><span class="p">()</span>
-    <span class="n">verbose</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;N&#39;</span>
-    <span class="n">run_log_filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">icarus_config_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">icarus_config_filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">project_root_dir_abs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">project_workspace_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">build_root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_name_pascal_case</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_name_snake_case</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_name_dashed</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_version_full</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_version_major</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_version_minor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">package_version_patch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">build_system_in_use</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">python_version_default_for_icarus</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'N'</span>
+    <span class="n">run_log_filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">icarus_config_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">icarus_config_filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">project_root_dir_abs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">project_workspace_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">build_root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_name_pascal_case</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_name_snake_case</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_name_dashed</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_version_full</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_version_major</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_version_minor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">package_version_patch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">build_system_in_use</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">python_version_default_for_icarus</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="n">python_versions_for_icarus</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="n">python_default_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">python_default_full_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">python_default_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">python_default_full_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="n">python_versions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">tool_requirements_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">run_requirements_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">run_requirements_pyproject_toml</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">dev_requirements_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="n">read_the_docs_requirements_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">read_the_docs_requirements_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="n">icarus_ignore_array</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="n">is_release</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">is_only_build_hook</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">merge</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">bumpver</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">build</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">clean</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">isort</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">black</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">flake8</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">mypy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">shfmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">eolnorm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">whitespaces</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">trailing</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">eofnewline</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">gitleaks</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">pytest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">sphinx</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">readthedocs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">pypi</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">exectool</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">execrun</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">execdev</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">prayers</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">initial_command_received</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;icarus </span><span class="si">{verbose}</span><span class="s1">builder hook&#39;</span>
+    <span class="n">is_release</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">is_only_build_hook</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">merge</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">bumpver</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">build</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">isort</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">black</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">flake8</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">mypy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">shfmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">eolnorm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">whitespaces</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">trailing</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">eofnewline</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">gitleaks</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">pytest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">sphinx</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">readthedocs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">pypi</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">exectool</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">execrun</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">execdev</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">prayers</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">initial_command_received</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'icarus </span><span class="si">{verbose}</span><span class="s1">builder hook'</span>
     <span class="n">initial_exectool_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">initial_execrun_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">initial_execdev_command_received</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="c1"># Path CLI</span>
-    <span class="n">path_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">list_paths</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">path_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">list_paths</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
     <span class="c1"># Cache CLI</span>
-    <span class="n">cache_root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">cache_clean</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">cache_size</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">cache_root_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">cache_clean</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">cache_size</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span>
 
 <div class="viewcode-block" id="IcarusBuilderArg.as_dict">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.model.html#icarus.handlers.builder_handler.model.IcarusBuilderArg.as_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Convert the IcarusBuilderArg object to a dictionary.</span>
 
 <span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
@@ -287,42 +287,42 @@
 <div class="viewcode-block" id="IcarusBuilderArg.as_bash_argv">
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.builder_handler.model.html#icarus.handlers.builder_handler.model.IcarusBuilderArg.as_bash_argv">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">as_bash_argv</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Convert a dictionary to a bash ib_arg string.</span>
 
 <span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">temp_ib_arg</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'*'</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">temp_ib_arg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_value</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-            <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ib_arg -&gt; </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">temp_ib_arg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ib_arg -&gt; </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">temp_ib_arg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">module_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'*'</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
 
-        <span class="n">ib_arg_str</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">temp_ib_arg</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="n">ib_arg_str</span> <span class="o">=</span> <span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">temp_ib_arg</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
         <span class="k">return</span> <span class="n">ib_arg_str</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_convert_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Convert a value to a string representation suitable for use in a</span>
 <span class="sd">        Bash script.</span>
 
 <span class="sd">        :param value:</span>
 <span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_convert_value</span><span class="p">(</span><span class="n">el</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">el</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> )&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"( </span><span class="si">{</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_convert_value</span><span class="p">(</span><span class="n">el</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">el</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> )"</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid type for `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">utils</span><span class="o">.</span><span class="n">IcarusParserException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid type for `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">`"</span><span class="p">)</span></div>
 
 </pre></div>
 

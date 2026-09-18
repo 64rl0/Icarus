@@ -74,7 +74,7 @@
 <span class="c1"># MODULE DETAILS</span>
 <span class="c1"># This section provides metadata about the module, including its</span>
 <span class="c1"># creation date, author, copyright information, and a brief description</span>
-<span class="c1"># of the module&#39;s purpose and functionality.</span>
+<span class="c1"># of the module's purpose and functionality.</span>
 <span class="c1"># ======================================================================</span>
 
 <span class="c1">#   __|    \    _ \  |      _ \   __| __ __| __ __|</span>
@@ -84,9 +84,9 @@
 <span class="c1"># src/icarus/handlers/global_handler/cli_version.py</span>
 <span class="c1"># Created 1/23/25 - 3:26 PM UK Time (London) by carlogtt</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module ...</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># ======================================================================</span>
 <span class="c1"># EXCEPTIONS</span>
@@ -115,7 +115,7 @@
 
 <span class="c1"># List of public names in the module</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;cli_version&#39;</span><span class="p">,</span>
+    <span class="s1">'cli_version'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Setting up logger for current module</span>
@@ -129,25 +129,25 @@
 <a class="viewcode-back" href="../../../../_apidoc/icarus.handlers.global_handler.cli_version.html#icarus.handlers.global_handler.cli_version.cli_version">[docs]</a>
 <span class="nd">@utils</span><span class="o">.</span><span class="n">capture_exit_code</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">cli_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Display the version of the CLI.</span>
 
 <span class="sd">    :return: The CLI version.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">icarus_version</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">CLI_VERSION</span>
     <span class="n">icarus_build</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-        <span class="p">[</span><span class="s1">&#39;git&#39;</span><span class="p">,</span> <span class="s1">&#39;describe&#39;</span><span class="p">,</span> <span class="s1">&#39;--always&#39;</span><span class="p">],</span>
-        <span class="n">cwd</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.icarus&quot;</span><span class="p">),</span>
+        <span class="p">[</span><span class="s1">'git'</span><span class="p">,</span> <span class="s1">'describe'</span><span class="p">,</span> <span class="s1">'--always'</span><span class="p">],</span>
+        <span class="n">cwd</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">"~/.icarus"</span><span class="p">),</span>
         <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
     <span class="n">python_version</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span>
 
     <span class="n">version</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s1">&#39;icarus-cli: </span><span class="si">{</span><span class="n">icarus_version</span><span class="si">}</span><span class="se">\n</span><span class="s1">icarus-hash: </span><span class="si">{</span><span class="n">icarus_build</span><span class="si">}</span><span class="se">\n</span><span class="s1">python:&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">python_version</span><span class="si">}</span><span class="se">\n</span><span class="s1">platform: </span><span class="si">{</span><span class="n">utils</span><span class="o">.</span><span class="n">platform_id</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">'icarus-cli: </span><span class="si">{</span><span class="n">icarus_version</span><span class="si">}</span><span class="se">\n</span><span class="s1">icarus-hash: </span><span class="si">{</span><span class="n">icarus_build</span><span class="si">}</span><span class="se">\n</span><span class="s1">python:'</span>
+        <span class="sa">f</span><span class="s1">' </span><span class="si">{</span><span class="n">python_version</span><span class="si">}</span><span class="se">\n</span><span class="s1">platform: </span><span class="si">{</span><span class="n">utils</span><span class="o">.</span><span class="n">platform_id</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span>
     <span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
