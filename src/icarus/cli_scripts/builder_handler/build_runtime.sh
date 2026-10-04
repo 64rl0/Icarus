@@ -1944,6 +1944,18 @@ function build_python_runtime() {
         # Be paranoid and strip the system include/library hints
         unset C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR
 
+        # Xcode 27+ SDKs advertise pipe2()/dup3() but macOS has no working
+        # implementation; configure must not detect them or every subprocess
+        # spawn segfaults (PGO run and ensurepip both die with SIGSEGV).
+        # Upstream skips these checks on macOS since 3.13.14+, but <=3.12 are
+        # security-only and never get the fix, so preset the autoconf cache
+        # for the legacy branches only and let upstream own the behavior for
+        # 3.13+.
+        if [[ "${python_full_version}" =~ ^3\.(7|8|9|10|11|12)\. ]]; then
+            export ac_cv_func_pipe2=no
+            export ac_cv_func_dup3=no
+        fi
+
         # Options for Python third-party dependencies
         export TCLTK_CFLAGS="-I${path_to_local}/include"
         export TCLTK_LIBS="-L${path_to_local}/lib -framework Tcl -framework Tk"
