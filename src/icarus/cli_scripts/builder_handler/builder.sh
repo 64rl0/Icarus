@@ -828,6 +828,9 @@ function run_readthedocs() {
     filepath="${project_root_dir_abs}/${read_the_docs_requirements_path##/}"
     filename="$(basename "${read_the_docs_requirements_path}")"
 
+    echo -e "Generating requirements for Read the Docs"
+    echo
+
     mkdir -p "$(dirname "${filepath}")" || {
         echo_error "Failed to create '$(dirname "${filepath}")'."
         readthedocs_summary_status="${failed}"
@@ -870,6 +873,11 @@ function run_readthedocs() {
         readthedocs_summary_status="${failed}"
         exit_code=1
     }
+
+    if [[ "${readthedocs_summary_status}" != "${failed}" ]]; then
+        echo -e "Generated '${filepath}'"
+        echo
+    fi
 }
 
 function run_documentation_sphinx() {
