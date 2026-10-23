@@ -120,6 +120,12 @@ function set_constants() {
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
     fi
+    # Set ncpu to (ncpu - 2), but keep it at a minimum of 4
+    if (( ncpu - 2 > 4 )); then
+        ncpu=$(( ncpu - 2 ))
+    else
+        ncpu=4
+    fi
 
     python_builds="${tmp_root_sudo}/build-runtime"
 
