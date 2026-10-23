@@ -121,8 +121,8 @@ function set_constants() {
         exit_code=1
     fi
     # Set ncpu to (ncpu - 2), but keep it at a minimum of 4
-    if (( ncpu - 2 > 4 )); then
-        ncpu=$(( ncpu - 2 ))
+    if ((ncpu - 2 > 4)); then
+        ncpu=$((ncpu - 2))
     else
         ncpu=4
     fi
