@@ -113,7 +113,10 @@ function set_constants() {
 
     # Find max available cores
     if [[ $(uname -s) == "Darwin" ]]; then
-        ncpu="$(sysctl -n hw.ncpu)" || ncpu=6
+        # Disable auto detection as cause issue with parallels
+        # Forcing macos to use only 2 cores.
+        # ncpu="$(sysctl -n hw.ncpu)" || ncpu=4
+        ncpu=4
     elif [[ $(uname -s) == "Linux" ]]; then
         ncpu="$(grep -c ^processor /proc/cpuinfo)" || ncpu=6
     else
