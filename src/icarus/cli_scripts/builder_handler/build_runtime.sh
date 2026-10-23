@@ -113,19 +113,15 @@ function set_constants() {
 
     # Find max available cores
     if [[ $(uname -s) == "Darwin" ]]; then
-        ncpu="$(sysctl -n hw.ncpu)" || ncpu=4
+        ncpu="$(sysctl -n hw.ncpu)" || ncpu=6
     elif [[ $(uname -s) == "Linux" ]]; then
-        ncpu="$(grep -c ^processor /proc/cpuinfo)" || ncpu=4
+        ncpu="$(grep -c ^processor /proc/cpuinfo)" || ncpu=6
     else
         echo_error "Unsupported platform: $(uname -s)"
         exit_code=1
     fi
-    # Set ncpu to (ncpu - 2), but keep it at a minimum of 4
-    if ((ncpu - 2 > 4)); then
-        ncpu=$((ncpu - 2))
-    else
-        ncpu=4
-    fi
+    # Set ncpu to (ncpu - 2)
+    ncpu=$((ncpu - 2))
 
     python_builds="${tmp_root_sudo}/build-runtime"
 
