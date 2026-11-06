@@ -1079,7 +1079,7 @@ function build_libnsl() {
         :LIBS=-ltirpc"
 }
 
-function builld_libmpdec() {
+function build_libmpdec() {
     build_generic \
         "Libmpdec${libmpdec_version}" \
         "Libmpdec" \
@@ -1516,7 +1516,7 @@ function build_python_runtime() {
             build_gdbm
             build_xz
             build_zstd
-            builld_libmpdec
+            build_libmpdec
             build_uuid_macos
             build_sqlite3
         elif [[ $(uname -s) == "Linux" ]]; then
@@ -1524,16 +1524,19 @@ function build_python_runtime() {
                 build_debian_base_dependencies
                 build_tcltk
                 build_openssl
+                build_libmpdec
                 build_sqlite3
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
+                build_libmpdec
                 build_sqlite3
             elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
+                build_libmpdec
                 build_sqlite3
             elif [[ "${platform_identifier}" == *'amzn2-'* ]]; then
                 echo_error "Unsupported Linux platform: ${platform_identifier}"
