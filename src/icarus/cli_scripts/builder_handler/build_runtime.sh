@@ -1308,6 +1308,22 @@ function build_linux_base_dependencies() {
         exit_code=1
     }
 
+    # No-PCRE1 handling, mirroring build_debian_base_dependencies: PCRE1 is
+    # EOL and RHEL/CS 10 removed it entirely (pcre2 only), the same removal
+    # that keeps libpcre3-dev out of the Debian list. Debian can omit it
+    # outright because that function only ever serves debian13; this one
+    # serves every yum distro, so pcre-devel is gated as an allowlist of the
+    # legacy distros that still ship it — centos9 (its glib2 2.68 links
+    # libpcre.so.1) and the amzn family. Newer platforms are pcre2-only by
+    # default, so this gate never grows; the "libpcre" prefix in the libs
+    # allowlist below matches the libpcre2* files either way.
+    local -a pcre1_devel=()
+    case "${platform_identifier}" in
+    *'centos9-'* | *'amzn2023-'* | *'amzn2-'*)
+        pcre1_devel=("pcre-devel")
+        ;;
+    esac
+
     echo -e "Redirecting output to '${path_to_log_root}/build_linux_base_dependencies.log'"
     sudo yum --installroot="${path_to_linux_dependencies_root}" \
         --releasever=latest \
@@ -1326,7 +1342,7 @@ function build_linux_base_dependencies() {
         libuuid-devel \
         gobject-introspection-devel \
         pixman-devel \
-        pcre-devel \
+        "${pcre1_devel[@]}" \
         pcre2-devel \
         libicu-devel \
         harfbuzz-devel \
@@ -1532,6 +1548,12 @@ function build_python_runtime() {
                 build_openssl
                 build_libmpdec
                 build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos10-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_libmpdec
+                build_sqlite3
             elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
@@ -1575,6 +1597,11 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos10-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1626,6 +1653,11 @@ function build_python_runtime() {
                 build_tcltk
                 build_openssl
                 build_sqlite3
+            elif [[ "${platform_identifier}" == *'centos10-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
             elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
@@ -1670,6 +1702,12 @@ function build_python_runtime() {
                 build_sqlite3
                 build_libnsl
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'centos10-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
@@ -1727,6 +1765,12 @@ function build_python_runtime() {
                 build_openssl
                 build_sqlite3
                 build_libnsl
+            elif [[ "${platform_identifier}" == *'centos10-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
             elif [[ "${platform_identifier}" == *'amzn2023-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
@@ -1774,6 +1818,12 @@ function build_python_runtime() {
                 build_sqlite3
                 build_libnsl
             elif [[ "${platform_identifier}" == *'centos9-'* ]]; then
+                build_linux_base_dependencies
+                build_tcltk
+                build_openssl
+                build_sqlite3
+                build_libnsl
+            elif [[ "${platform_identifier}" == *'centos10-'* ]]; then
                 build_linux_base_dependencies
                 build_tcltk
                 build_openssl
